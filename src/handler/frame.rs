@@ -4,6 +4,7 @@ use std::sync::{Arc, LazyLock};
 use std::time::{Duration, Instant};
 
 use chromiumoxide_cdp::cdp::browser_protocol::network::LoaderId;
+use chromiumoxide_cdp::cdp::browser_protocol::page::{self, FrameId};
 use chromiumoxide_cdp::cdp::browser_protocol::page::{
     AddScriptToEvaluateOnNewDocumentParams, CreateIsolatedWorldParams, EventFrameDetached,
     EventFrameStartedLoading, EventFrameStoppedLoading, EventLifecycleEvent,
@@ -11,10 +12,6 @@ use chromiumoxide_cdp::cdp::browser_protocol::page::{
 };
 use chromiumoxide_cdp::cdp::browser_protocol::target::EventAttachedToTarget;
 use chromiumoxide_cdp::cdp::js_protocol::runtime::*;
-use chromiumoxide_cdp::cdp::{
-    browser_protocol::page::{self, FrameId},
-    js_protocol::runtime,
-};
 use chromiumoxide_types::{Method, MethodId, Request};
 
 use crate::error::DeadlineExceeded;
@@ -224,7 +221,6 @@ impl FrameManager {
         let enable = page::EnableParams::default();
         let get_tree = page::GetFrameTreeParams::default();
         let set_lifecycle = page::SetLifecycleEventsEnabledParams::new(true);
-        let enable_runtime = runtime::EnableParams::default();
         CommandChain::new(
             vec![
                 (enable.identifier(), serde_json::to_value(enable).unwrap()),
@@ -235,10 +231,6 @@ impl FrameManager {
                 (
                     set_lifecycle.identifier(),
                     serde_json::to_value(set_lifecycle).unwrap(),
-                ),
-                (
-                    enable_runtime.identifier(),
-                    serde_json::to_value(enable_runtime).unwrap(),
                 ),
             ],
             timeout,
