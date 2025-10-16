@@ -6,6 +6,7 @@ pub struct Viewport {
     pub emulating_mobile: bool,
     pub is_landscape: bool,
     pub has_touch: bool,
+    pub max_touch_points: Option<i64>,
 }
 
 impl Default for Viewport {
@@ -17,6 +18,7 @@ impl Default for Viewport {
             emulating_mobile: false,
             is_landscape: false,
             has_touch: false,
+            max_touch_points: None,
         }
     }
 }

@@ -1,8 +1,9 @@
 use chromiumoxide_cdp::cdp::browser_protocol::emulation::{
     ScreenOrientation, ScreenOrientationType, SetDeviceMetricsOverrideParams,
-    SetTouchEmulationEnabledParams,
+    SetGeolocationOverrideParams, SetHardwareConcurrencyOverrideParams, SetTimezoneOverrideParams,
+    SetTouchEmulationEnabledParams, SetUserAgentOverrideParams,
 };
-use chromiumoxide_types::Method;
+use chromiumoxide_types::{Command, MethodId};
 
 use crate::cmd::CommandChain;
 use crate::handler::viewport::Viewport;
@@ -26,40 +27,68 @@ impl EmulationManager {
         }
     }
 
-    pub fn init_commands(&mut self, viewport: &Viewport) -> CommandChain {
-        let orientation = if viewport.is_landscape {
-            ScreenOrientation::new(ScreenOrientationType::LandscapePrimary, 90)
+    pub fn init_commands(&mut self, overrides: &EmulationOverrides) -> Option<CommandChain> {
+        let mut cmds: Vec<(MethodId, serde_json::Value)> = Vec::with_capacity(10);
+
+        if let Some(user_agent) = &overrides.user_agent {
+            cmds.push(user_agent.to_cmd());
+        }
+        if let Some(hardware_concurrency) = &overrides.hardware_concurrency {
+            cmds.push(hardware_concurrency.to_cmd());
+        }
+        if let Some(timezone) = &overrides.timezone {
+            cmds.push(timezone.to_cmd());
+        }
+        if let Some(geolocation) = &overrides.geolocation {
+            cmds.push(geolocation.to_cmd());
+        }
+        if let Some(viewport) = &overrides.viewport {
+            let orientation = if viewport.is_landscape {
+                ScreenOrientation::new(ScreenOrientationType::LandscapePrimary, 90)
+            } else {
+                ScreenOrientation::new(ScreenOrientationType::PortraitPrimary, 0)
+            };
+            let device_metrics = SetDeviceMetricsOverrideParams::builder()
+                .mobile(viewport.emulating_mobile)
+                .width(viewport.width)
+                .height(viewport.height)
+                .device_scale_factor(viewport.device_scale_factor.unwrap_or(1.))
+                .screen_orientation(orientation)
+                .build()
+                .unwrap();
+            let mut touch_emulation = SetTouchEmulationEnabledParams::new(viewport.has_touch);
+            touch_emulation.max_touch_points = viewport.max_touch_points;
+
+            cmds.push(device_metrics.to_cmd());
+            cmds.push(touch_emulation.to_cmd());
+
+            self.needs_reload = self.emulating_mobile != viewport.emulating_mobile
+                || self.has_touch != viewport.has_touch;
+        }
+
+        if cmds.is_empty() {
+            None
         } else {
-            ScreenOrientation::new(ScreenOrientationType::PortraitPrimary, 0)
-        };
+            Some(CommandChain::new(cmds, self.request_timeout))
+        }
+    }
+}
 
-        let set_device = SetDeviceMetricsOverrideParams::builder()
-            .mobile(viewport.emulating_mobile)
-            .width(viewport.width)
-            .height(viewport.height)
-            .device_scale_factor(viewport.device_scale_factor.unwrap_or(1.))
-            .screen_orientation(orientation)
-            .build()
-            .unwrap();
+#[derive(Debug, Clone, Default)]
+pub struct EmulationOverrides {
+    pub user_agent: Option<SetUserAgentOverrideParams>,
+    pub hardware_concurrency: Option<SetHardwareConcurrencyOverrideParams>,
+    pub timezone: Option<SetTimezoneOverrideParams>,
+    pub geolocation: Option<SetGeolocationOverrideParams>,
+    pub viewport: Option<Viewport>,
+}
 
-        let set_touch = SetTouchEmulationEnabledParams::new(true);
+trait ToCommandChainItem {
+    fn to_cmd(&self) -> (MethodId, serde_json::Value);
+}
 
-        let chain = CommandChain::new(
-            vec![
-                (
-                    set_device.identifier(),
-                    serde_json::to_value(set_device).unwrap(),
-                ),
-                (
-                    set_touch.identifier(),
-                    serde_json::to_value(set_touch).unwrap(),
-                ),
-            ],
-            self.request_timeout,
-        );
-
-        self.needs_reload = self.emulating_mobile != viewport.emulating_mobile
-            || self.has_touch != viewport.has_touch;
-        chain
+impl<T: Command> ToCommandChainItem for T {
+    fn to_cmd(&self) -> (MethodId, serde_json::Value) {
+        (self.identifier(), serde_json::to_value(self).unwrap())
     }
 }

@@ -25,14 +25,13 @@ use crate::cmd::CommandMessage;
 use crate::error::{CdpError, Result};
 use crate::handler::browser::BrowserContext;
 use crate::handler::domworld::DOMWorldKind;
-use crate::handler::emulation::EmulationManager;
+use crate::handler::emulation::{EmulationManager, EmulationOverrides};
 use crate::handler::frame::{
     FrameEvent, FrameManager, NavigationError, NavigationId, NavigationOk,
 };
 use crate::handler::frame::{FrameNavigationRequest, UTILITY_WORLD_NAME};
 use crate::handler::network::{NetworkEvent, NetworkManager};
 use crate::handler::page::PageHandle;
-use crate::handler::viewport::Viewport;
 use crate::handler::{PageInner, REQUEST_TIMEOUT};
 use crate::listeners::{EventListenerRequest, EventListeners};
 use crate::{page::Page, ArcHttpRequest};
@@ -379,15 +378,17 @@ impl Target {
                 );
             }
             TargetInit::InitializingPage(cmds) => {
+                let emulation_commands = self
+                    .emulation_manager
+                    .init_commands(&self.config.emulation_overrides);
+
                 advance_state!(
                     self,
                     cx,
                     now,
                     cmds,
-                    match self.config.viewport.as_ref() {
-                        Some(viewport) => TargetInit::InitializingEmulation(
-                            self.emulation_manager.init_commands(viewport)
-                        ),
+                    match emulation_commands {
+                        Some(cmds) => TargetInit::InitializingEmulation(cmds),
                         None => TargetInit::Initialized,
                     }
                 );
@@ -599,9 +600,9 @@ pub struct TargetConfig {
     pub ignore_https_errors: bool,
     ///  Request timeout to use
     pub request_timeout: Duration,
-    pub viewport: Option<Viewport>,
     pub request_intercept: bool,
     pub cache_enabled: bool,
+    pub emulation_overrides: EmulationOverrides,
 }
 
 impl Default for TargetConfig {
@@ -609,9 +610,9 @@ impl Default for TargetConfig {
         Self {
             ignore_https_errors: true,
             request_timeout: Duration::from_secs(REQUEST_TIMEOUT),
-            viewport: Default::default(),
             request_intercept: false,
             cache_enabled: true,
+            emulation_overrides: Default::default(),
         }
     }
 }

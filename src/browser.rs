@@ -28,7 +28,7 @@ use crate::conn::Connection;
 use crate::detection::{self, DetectionOptions};
 use crate::error::{BrowserStderr, CdpError, Result};
 use crate::handler::browser::BrowserContext;
-use crate::handler::viewport::Viewport;
+use crate::handler::emulation::EmulationOverrides;
 use crate::handler::{Handler, HandlerConfig, HandlerMessage, REQUEST_TIMEOUT};
 use crate::listeners::{EventListenerRequest, EventStream};
 use crate::page::Page;
@@ -210,11 +210,11 @@ impl Browser {
 
         let handler_config = HandlerConfig {
             ignore_https_errors: config.ignore_https_errors,
-            viewport: config.viewport.clone(),
             context_ids: Vec::new(),
             request_timeout: config.request_timeout,
             request_intercept: config.request_intercept,
             cache_enabled: config.cache_enabled,
+            emulation_overrides: config.emulation_overrides.clone(),
         };
 
         let fut = Handler::new(conn, rx, handler_config);
@@ -642,7 +642,6 @@ pub struct BrowserConfig {
 
     /// Ignore https errors, default is true
     ignore_https_errors: bool,
-    viewport: Option<Viewport>,
     /// The duration after a request with no response should time out
     request_timeout: Duration,
 
@@ -657,6 +656,9 @@ pub struct BrowserConfig {
 
     /// Whether to enable cache
     pub cache_enabled: bool,
+
+    /// Emulation overrides applied to every page on creation
+    emulation_overrides: EmulationOverrides,
 }
 
 #[derive(Debug, Clone)]
@@ -673,12 +675,12 @@ pub struct BrowserConfigBuilder {
     incognito: bool,
     launch_timeout: Duration,
     ignore_https_errors: bool,
-    viewport: Option<Viewport>,
     request_timeout: Duration,
     args: Vec<String>,
     disable_default_args: bool,
     request_intercept: bool,
     cache_enabled: bool,
+    emulation_overrides: EmulationOverrides,
 }
 
 impl BrowserConfig {
@@ -706,12 +708,12 @@ impl Default for BrowserConfigBuilder {
             incognito: false,
             launch_timeout: Duration::from_millis(LAUNCH_TIMEOUT),
             ignore_https_errors: true,
-            viewport: Some(Default::default()),
             request_timeout: Duration::from_millis(REQUEST_TIMEOUT),
             args: Vec::new(),
             disable_default_args: false,
             request_intercept: false,
             cache_enabled: true,
+            emulation_overrides: Default::default(),
         }
     }
 }
@@ -764,16 +766,6 @@ impl BrowserConfigBuilder {
 
     pub fn request_timeout(mut self, timeout: Duration) -> Self {
         self.request_timeout = timeout;
-        self
-    }
-
-    /// Configures the viewport of the browser, which defaults to `800x600`.
-    /// `None` disables viewport emulation (i.e., it uses the browsers default
-    /// configuration, which fills the available space. This is similar to what
-    /// Playwright does when you provide `null` as the value of its `viewport`
-    /// option).
-    pub fn viewport(mut self, viewport: impl Into<Option<Viewport>>) -> Self {
-        self.viewport = viewport.into();
         self
     }
 
@@ -868,6 +860,11 @@ impl BrowserConfigBuilder {
         self
     }
 
+    pub fn emulation_overrides(mut self, overrides: EmulationOverrides) -> Self {
+        self.emulation_overrides = overrides;
+        self
+    }
+
     pub fn build(self) -> std::result::Result<BrowserConfig, String> {
         let executable = if let Some(e) = self.executable {
             e
@@ -887,12 +884,12 @@ impl BrowserConfigBuilder {
             incognito: self.incognito,
             launch_timeout: self.launch_timeout,
             ignore_https_errors: self.ignore_https_errors,
-            viewport: self.viewport,
             request_timeout: self.request_timeout,
             args: self.args,
             disable_default_args: self.disable_default_args,
             request_intercept: self.request_intercept,
             cache_enabled: self.cache_enabled,
+            emulation_overrides: self.emulation_overrides,
         })
     }
 }

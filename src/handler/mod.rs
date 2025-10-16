@@ -21,13 +21,13 @@ use crate::cmd::{to_command_response, CommandMessage};
 use crate::conn::Connection;
 use crate::error::{CdpError, Result};
 use crate::handler::browser::BrowserContext;
+use crate::handler::emulation::EmulationOverrides;
 use crate::handler::frame::FrameNavigationRequest;
 use crate::handler::frame::{NavigationError, NavigationId, NavigationOk};
 use crate::handler::job::PeriodicJob;
 use crate::handler::session::Session;
 use crate::handler::target::TargetEvent;
 use crate::handler::target::{Target, TargetConfig};
-use crate::handler::viewport::Viewport;
 use crate::page::Page;
 
 /// Standard timeout in MS
@@ -434,9 +434,9 @@ impl Handler {
             TargetConfig {
                 ignore_https_errors: self.config.ignore_https_errors,
                 request_timeout: self.config.request_timeout,
-                viewport: self.config.viewport.clone(),
                 request_intercept: self.config.request_intercept,
                 cache_enabled: self.config.cache_enabled,
+                emulation_overrides: self.config.emulation_overrides.clone(),
             },
             browser_ctx,
         );
@@ -650,8 +650,6 @@ impl Stream for Handler {
 pub struct HandlerConfig {
     /// Whether the `NetworkManager`s should ignore https errors
     pub ignore_https_errors: bool,
-    /// Window and device settings
-    pub viewport: Option<Viewport>,
     /// Context ids to set from the get go
     pub context_ids: Vec<BrowserContextId>,
     /// default request timeout to use
@@ -660,17 +658,19 @@ pub struct HandlerConfig {
     pub request_intercept: bool,
     /// Whether to enable cache
     pub cache_enabled: bool,
+    /// Emulation overrides applied to every page on creation
+    pub emulation_overrides: EmulationOverrides,
 }
 
 impl Default for HandlerConfig {
     fn default() -> Self {
         Self {
             ignore_https_errors: true,
-            viewport: Default::default(),
             context_ids: Vec::new(),
             request_timeout: Duration::from_millis(REQUEST_TIMEOUT),
             request_intercept: false,
             cache_enabled: true,
+            emulation_overrides: Default::default(),
         }
     }
 }
