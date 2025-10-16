@@ -1,9 +1,7 @@
-use std::collections::VecDeque;
-use std::collections::{HashMap, HashSet};
-use std::sync::Arc;
-use std::time::{Duration, Instant};
-
 use serde_json::map::Entry;
+use std::collections::{HashMap, HashSet, VecDeque};
+use std::sync::{Arc, LazyLock};
+use std::time::{Duration, Instant};
 
 use chromiumoxide_cdp::cdp::browser_protocol::network::LoaderId;
 use chromiumoxide_cdp::cdp::browser_protocol::page::{
@@ -25,8 +23,18 @@ use crate::handler::http::HttpRequest;
 use crate::handler::REQUEST_TIMEOUT;
 use crate::{cmd::CommandChain, ArcHttpRequest};
 
-pub const UTILITY_WORLD_NAME: &str = "__chromiumoxide_utility_world__";
-const EVALUATION_SCRIPT_URL: &str = "____chromiumoxide_utility_world___evaluation_script__";
+pub static UTILITY_WORLD_NAME: LazyLock<String> = LazyLock::new(|| {
+    use rand::prelude::*;
+
+    let mut rng = rand::rng();
+    let rand_len = rng.random_range(12..=20);
+    let rand_id: String = (0..rand_len)
+        .filter_map(|_| std::char::from_digit(rng.random_range(0..36), 36))
+        .collect();
+
+    format!("util_{}", rand_id)
+});
+const EVALUATION_SCRIPT_URL: &str = "app.js";
 
 /// Represents a frame on the page
 #[derive(Debug)]
@@ -461,7 +469,7 @@ impl FrameManager {
                     frame
                         .main_world
                         .set_context(event.context.id, event.context.unique_id.clone());
-                } else if event.context.name == UTILITY_WORLD_NAME
+                } else if event.context.name == *UTILITY_WORLD_NAME
                     && frame.secondary_world.execution_context().is_none()
                 {
                     frame

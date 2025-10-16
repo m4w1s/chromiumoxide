@@ -344,8 +344,9 @@ impl Target {
                 if let Poll::Ready(poll) = cmds.poll(now) {
                     return match poll {
                         None => {
-                            if let Some(isolated_world_cmds) =
-                                self.frame_manager.ensure_isolated_world(UTILITY_WORLD_NAME)
+                            if let Some(isolated_world_cmds) = self
+                                .frame_manager
+                                .ensure_isolated_world(&UTILITY_WORLD_NAME)
                             {
                                 *cmds = isolated_world_cmds;
                             } else {
