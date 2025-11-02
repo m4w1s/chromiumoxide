@@ -3,6 +3,7 @@ use std::marker::PhantomData;
 use std::pin::Pin;
 use std::task::ready;
 
+use async_tungstenite::tokio::ConnectStream;
 use async_tungstenite::tungstenite::Message as WsMessage;
 use async_tungstenite::{tungstenite::protocol::WebSocketConfig, WebSocketStream};
 use futures::stream::Stream;
@@ -15,13 +16,6 @@ use chromiumoxide_types::{CallId, EventMessage, Message, MethodCall, MethodId};
 use crate::error::CdpError;
 use crate::error::Result;
 
-cfg_if::cfg_if! {
-    if #[cfg(feature = "async-std-runtime")] {
-       use async_tungstenite::async_std::ConnectStream;
-    } else if #[cfg(feature = "tokio-runtime")] {
-        use async_tungstenite::tokio::ConnectStream;
-    }
-}
 /// Exchanges the messages with the websocket
 #[must_use = "streams do nothing unless polled"]
 #[derive(Debug)]
@@ -45,14 +39,11 @@ impl<T: EventMessage + Unpin> Connection<T> {
             max_frame_size: None,
             ..Default::default()
         };
-
-        cfg_if::cfg_if! {
-            if #[cfg(feature = "async-std-runtime")] {
-               let (ws, _) = async_tungstenite::async_std::connect_async_with_config(debug_ws_url.as_ref(), Some(config)).await?;
-            } else if #[cfg(feature = "tokio-runtime")] {
-                 let (ws, _) = async_tungstenite::tokio::connect_async_with_config(debug_ws_url.as_ref(), Some(config)).await?;
-            }
-        }
+        let (ws, _) = async_tungstenite::tokio::connect_async_with_config(
+            debug_ws_url.as_ref(),
+            Some(config),
+        )
+        .await?;
 
         Ok(Self {
             pending_commands: Default::default(),

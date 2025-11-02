@@ -11,7 +11,6 @@ use futures::task::{Context, Poll};
 use chromiumoxide_cdp::cdp::browser_protocol::page::{FrameId, GetFrameTreeParams};
 use chromiumoxide_cdp::cdp::browser_protocol::{
     browser::BrowserContextId,
-    log as cdplog, performance,
     target::{AttachToTargetParams, SessionId, SetAutoAttachParams, TargetId, TargetInfo},
 };
 use chromiumoxide_cdp::cdp::events::CdpEvent;
@@ -577,20 +576,9 @@ impl Target {
             .wait_for_debugger_on_start(true)
             .build()
             .unwrap();
-        let enable_performance = performance::EnableParams::default();
-        let enable_log = cdplog::EnableParams::default();
+
         CommandChain::new(
-            vec![
-                (attach.identifier(), serde_json::to_value(attach).unwrap()),
-                (
-                    enable_performance.identifier(),
-                    serde_json::to_value(enable_performance).unwrap(),
-                ),
-                (
-                    enable_log.identifier(),
-                    serde_json::to_value(enable_log).unwrap(),
-                ),
-            ],
+            vec![(attach.identifier(), serde_json::to_value(attach).unwrap())],
             timeout,
         )
     }

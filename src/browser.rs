@@ -1,4 +1,5 @@
 use std::future::Future;
+use std::sync::Arc;
 use std::time::Duration;
 use std::{
     collections::HashMap,
@@ -10,14 +11,16 @@ use futures::channel::mpsc::{channel, unbounded, Sender};
 use futures::channel::oneshot::channel as oneshot_channel;
 use futures::select;
 use futures::SinkExt;
+use tokio::sync::broadcast;
+use tokio_stream::wrappers::BroadcastStream;
 
 use chromiumoxide_cdp::cdp::browser_protocol::network::{Cookie, CookieParam};
 use chromiumoxide_cdp::cdp::browser_protocol::storage::{
     ClearCookiesParams, GetCookiesParams, SetCookiesParams,
 };
 use chromiumoxide_cdp::cdp::browser_protocol::target::{
-    CreateBrowserContextParams, CreateTargetParams, DisposeBrowserContextParams, TargetId,
-    TargetInfo,
+    CreateBrowserContextParams, CreateTargetParams, DisposeBrowserContextParams, SessionId,
+    TargetId, TargetInfo,
 };
 use chromiumoxide_cdp::cdp::{CdpEventMessage, IntoEventKind};
 use chromiumoxide_types::*;
@@ -54,6 +57,8 @@ pub struct Browser {
     debug_ws_url: String,
     /// The context of the browser
     browser_context: BrowserContext,
+    /// Raw CDP event handler
+    raw_event_handler: broadcast::WeakSender<Arc<CdpEventMessage>>,
 }
 
 /// Browser connection information.
@@ -135,8 +140,10 @@ impl Browser {
         let conn = Connection::<CdpEventMessage>::connect(&debug_ws_url).await?;
 
         let (tx, rx) = channel(1);
+        let (raw_event_tx, _) = broadcast::channel(100);
+        let raw_event_handler = raw_event_tx.downgrade();
 
-        let fut = Handler::new(conn, rx, config);
+        let fut = Handler::new(conn, rx, raw_event_tx, config);
         let browser_context = fut.default_browser_context().clone();
 
         let browser = Self {
@@ -145,6 +152,7 @@ impl Browser {
             child: None,
             debug_ws_url,
             browser_context,
+            raw_event_handler,
         };
         Ok((browser, fut))
     }
@@ -173,15 +181,7 @@ impl Browser {
             child: &mut Child,
         ) -> Result<(String, Connection<CdpEventMessage>)> {
             let dur = config.launch_timeout;
-            cfg_if::cfg_if! {
-                if #[cfg(feature = "async-std-runtime")] {
-                    let timeout_fut = Box::pin(async_std::task::sleep(dur));
-                } else if #[cfg(feature = "tokio-runtime")] {
-                    let timeout_fut = Box::pin(tokio::time::sleep(dur));
-                } else {
-                    panic!("missing chromiumoxide runtime: enable `async-std-runtime` or `tokio-runtime`")
-                }
-            };
+            let timeout_fut = Box::pin(tokio::time::sleep(dur));
             // extract the ws:
             let debug_ws_url = ws_url_from_output(child, timeout_fut).await?;
             let conn = Connection::<CdpEventMessage>::connect(&debug_ws_url).await?;
@@ -207,6 +207,8 @@ impl Browser {
         // child process.
 
         let (tx, rx) = channel(1);
+        let (raw_event_tx, _) = broadcast::channel(100);
+        let raw_event_handler = raw_event_tx.downgrade();
 
         let handler_config = HandlerConfig {
             ignore_https_errors: config.ignore_https_errors,
@@ -217,7 +219,7 @@ impl Browser {
             emulation_overrides: config.emulation_overrides.clone(),
         };
 
-        let fut = Handler::new(conn, rx, handler_config);
+        let fut = Handler::new(conn, rx, raw_event_tx, handler_config);
         let browser_context = fut.default_browser_context().clone();
 
         let browser = Self {
@@ -226,6 +228,7 @@ impl Browser {
             child: Some(child),
             debug_ws_url,
             browser_context,
+            raw_event_handler,
         };
 
         Ok((browser, fut))
@@ -410,7 +413,10 @@ impl Browser {
 
     /// Version information about the browser
     pub async fn version(&self) -> Result<GetVersionReturns> {
-        Ok(self.execute(GetVersionParams::default()).await?.result)
+        Ok(self
+            .execute(GetVersionParams::default(), None)
+            .await?
+            .result)
     }
 
     /// Returns the user agent of the browser
@@ -419,10 +425,14 @@ impl Browser {
     }
 
     /// Call a browser method.
-    pub async fn execute<T: Command>(&self, cmd: T) -> Result<CommandResponse<T::Response>> {
+    pub async fn execute<T: Command>(
+        &self,
+        cmd: T,
+        session_id: Option<SessionId>,
+    ) -> Result<CommandResponse<T::Response>> {
         let (tx, rx) = oneshot_channel();
         let method = cmd.identifier();
-        let msg = CommandMessage::new(cmd, tx)?;
+        let msg = CommandMessage::with_session(cmd, tx, session_id)?;
 
         self.sender
             .clone()
@@ -465,12 +475,21 @@ impl Browser {
         Ok(EventStream::new(rx))
     }
 
+    /// Subscribe to raw cdp events.
+    ///
+    /// Returns `None` if the connection is already dropped.
+    pub fn raw_event_listener(&self) -> Option<BroadcastStream<Arc<CdpEventMessage>>> {
+        self.raw_event_handler
+            .upgrade()
+            .map(|sender| sender.subscribe().into())
+    }
+
     /// Creates a new empty browser context.
     pub async fn create_browser_context(
         &self,
         params: CreateBrowserContextParams,
     ) -> Result<BrowserContextId> {
-        let response = self.execute(params).await?;
+        let response = self.execute(params, None).await?;
         Ok(response.result.browser_context_id)
     }
 
@@ -479,7 +498,7 @@ impl Browser {
         &self,
         browser_context_id: impl Into<BrowserContextId>,
     ) -> Result<()> {
-        self.execute(DisposeBrowserContextParams::new(browser_context_id))
+        self.execute(DisposeBrowserContextParams::new(browser_context_id), None)
             .await?;
 
         Ok(())
@@ -487,14 +506,14 @@ impl Browser {
 
     /// Clears cookies.
     pub async fn clear_cookies(&self) -> Result<()> {
-        self.execute(ClearCookiesParams::default()).await?;
+        self.execute(ClearCookiesParams::default(), None).await?;
         Ok(())
     }
 
     /// Returns all browser cookies.
     pub async fn get_cookies(&self) -> Result<Vec<Cookie>> {
         Ok(self
-            .execute(GetCookiesParams::default())
+            .execute(GetCookiesParams::default(), None)
             .await?
             .result
             .cookies)
@@ -508,7 +527,7 @@ impl Browser {
             }
         }
 
-        self.execute(SetCookiesParams::new(cookies)).await?;
+        self.execute(SetCookiesParams::new(cookies), None).await?;
         Ok(self)
     }
 }

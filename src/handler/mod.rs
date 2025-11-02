@@ -1,5 +1,6 @@
 use std::collections::{HashMap, HashSet};
 use std::pin::Pin;
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use fnv::FnvHashMap;
@@ -7,6 +8,7 @@ use futures::channel::mpsc::Receiver;
 use futures::channel::oneshot::Sender as OneshotSender;
 use futures::stream::{Fuse, Stream, StreamExt};
 use futures::task::{Context, Poll};
+use tokio::sync::broadcast;
 
 use crate::listeners::{EventListenerRequest, EventListeners};
 use chromiumoxide_cdp::cdp::browser_protocol::browser::*;
@@ -81,6 +83,8 @@ pub struct Handler {
     config: HandlerConfig,
     /// All registered event subscriptions
     event_listeners: EventListeners,
+    /// Raw CDP event handler
+    raw_event_handler: broadcast::Sender<Arc<CdpEventMessage>>,
     /// Keeps track is the browser is closing
     closing: bool,
 }
@@ -91,6 +95,7 @@ impl Handler {
     pub(crate) fn new(
         mut conn: Connection<CdpEventMessage>,
         rx: Receiver<HandlerMessage>,
+        raw_event_handler: broadcast::Sender<Arc<CdpEventMessage>>,
         config: HandlerConfig,
     ) -> Self {
         let discover = SetDiscoverTargetsParams::new(true);
@@ -120,6 +125,7 @@ impl Handler {
             next_navigation_id: 0,
             config,
             event_listeners: Default::default(),
+            raw_event_handler,
             closing: false,
         }
     }
@@ -397,6 +403,7 @@ impl Handler {
 
     /// Process an incoming event read from the websocket
     fn on_event(&mut self, event: CdpEventMessage) {
+        let _ = self.raw_event_handler.send(Arc::new(event.clone()));
         if let Some(ref session_id) = event.session_id {
             if let Some(session) = self.sessions.get(session_id.as_str()) {
                 if let Some(target) = self.targets.get_mut(session.target_id()) {
@@ -405,11 +412,11 @@ impl Handler {
             }
         }
         let CdpEventMessage { params, method, .. } = event;
-        match params.clone() {
-            CdpEvent::TargetTargetCreated(ev) => self.on_target_created(ev),
-            CdpEvent::TargetAttachedToTarget(ev) => self.on_attached_to_target(ev),
-            CdpEvent::TargetTargetDestroyed(ev) => self.on_target_destroyed(ev),
-            CdpEvent::TargetDetachedFromTarget(ev) => self.on_detached_from_target(ev),
+        match &params {
+            CdpEvent::TargetTargetCreated(ev) => self.on_target_created(ev.clone()),
+            CdpEvent::TargetAttachedToTarget(ev) => self.on_attached_to_target(ev.clone()),
+            CdpEvent::TargetTargetDestroyed(ev) => self.on_target_destroyed(ev.clone()),
+            CdpEvent::TargetDetachedFromTarget(ev) => self.on_detached_from_target(ev.clone()),
             _ => {}
         }
         chromiumoxide_cdp::consume_event!(match params {
