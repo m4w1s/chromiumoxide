@@ -130,7 +130,6 @@ pub mod events {
     impl chromiumoxide_types::Method for CdpEventMessage {
         fn identifier(&self) -> chromiumoxide_types::MethodId {
             match &self.params {
-                CdpEvent::DebuggerBreakpointResolved(inner) => inner.identifier(),
                 CdpEvent::DebuggerPaused(inner) => inner.identifier(),
                 CdpEvent::DebuggerResumed(inner) => inner.identifier(),
                 CdpEvent::DebuggerScriptFailedToParse(inner) => inner.identifier(),
@@ -170,6 +169,7 @@ pub mod events {
                 CdpEvent::CssStyleSheetAdded(inner) => inner.identifier(),
                 CdpEvent::CssStyleSheetChanged(inner) => inner.identifier(),
                 CdpEvent::CssStyleSheetRemoved(inner) => inner.identifier(),
+                CdpEvent::CssComputedStyleUpdated(inner) => inner.identifier(),
                 CdpEvent::CastSinksUpdated(inner) => inner.identifier(),
                 CdpEvent::CastIssueUpdated(inner) => inner.identifier(),
                 CdpEvent::DomAttributeModified(inner) => inner.identifier(),
@@ -192,7 +192,6 @@ pub mod events {
                 CdpEvent::DomStorageDomStorageItemRemoved(inner) => inner.identifier(),
                 CdpEvent::DomStorageDomStorageItemUpdated(inner) => inner.identifier(),
                 CdpEvent::DomStorageDomStorageItemsCleared(inner) => inner.identifier(),
-                CdpEvent::DatabaseAddDatabase(inner) => inner.identifier(),
                 CdpEvent::EmulationVirtualTimeBudgetExpired(inner) => inner.identifier(),
                 CdpEvent::InputDragIntercepted(inner) => inner.identifier(),
                 CdpEvent::InspectorDetached(inner) => inner.identifier(),
@@ -248,6 +247,7 @@ pub mod events {
                 CdpEvent::PageFrameNavigated(inner) => inner.identifier(),
                 CdpEvent::PageDocumentOpened(inner) => inner.identifier(),
                 CdpEvent::PageFrameResized(inner) => inner.identifier(),
+                CdpEvent::PageFrameStartedNavigating(inner) => inner.identifier(),
                 CdpEvent::PageFrameRequestedNavigation(inner) => inner.identifier(),
                 CdpEvent::PageFrameStartedLoading(inner) => inner.identifier(),
                 CdpEvent::PageFrameStoppedLoading(inner) => inner.identifier(),
@@ -310,6 +310,8 @@ pub mod events {
                 CdpEvent::WebAudioNodeParamConnected(inner) => inner.identifier(),
                 CdpEvent::WebAudioNodeParamDisconnected(inner) => inner.identifier(),
                 CdpEvent::WebAuthnCredentialAdded(inner) => inner.identifier(),
+                CdpEvent::WebAuthnCredentialDeleted(inner) => inner.identifier(),
+                CdpEvent::WebAuthnCredentialUpdated(inner) => inner.identifier(),
                 CdpEvent::WebAuthnCredentialAsserted(inner) => inner.identifier(),
                 CdpEvent::MediaPlayerPropertiesChanged(inner) => inner.identifier(),
                 CdpEvent::MediaPlayerEventsAdded(inner) => inner.identifier(),
@@ -336,7 +338,6 @@ pub mod events {
     }
     #[derive(Debug, Clone, PartialEq)]
     pub enum CdpEvent {
-        DebuggerBreakpointResolved(super::js_protocol::debugger::EventBreakpointResolved),
         DebuggerPaused(super::js_protocol::debugger::EventPaused),
         DebuggerResumed(super::js_protocol::debugger::EventResumed),
         DebuggerScriptFailedToParse(Box<super::js_protocol::debugger::EventScriptFailedToParse>),
@@ -386,6 +387,7 @@ pub mod events {
         CssStyleSheetAdded(super::browser_protocol::css::EventStyleSheetAdded),
         CssStyleSheetChanged(super::browser_protocol::css::EventStyleSheetChanged),
         CssStyleSheetRemoved(super::browser_protocol::css::EventStyleSheetRemoved),
+        CssComputedStyleUpdated(super::browser_protocol::css::EventComputedStyleUpdated),
         CastSinksUpdated(super::browser_protocol::cast::EventSinksUpdated),
         CastIssueUpdated(super::browser_protocol::cast::EventIssueUpdated),
         DomAttributeModified(super::browser_protocol::dom::EventAttributeModified),
@@ -416,7 +418,6 @@ pub mod events {
         DomStorageDomStorageItemsCleared(
             super::browser_protocol::dom_storage::EventDomStorageItemsCleared,
         ),
-        DatabaseAddDatabase(super::browser_protocol::database::EventAddDatabase),
         EmulationVirtualTimeBudgetExpired(
             super::browser_protocol::emulation::EventVirtualTimeBudgetExpired,
         ),
@@ -514,6 +515,7 @@ pub mod events {
         PageFrameNavigated(Box<super::browser_protocol::page::EventFrameNavigated>),
         PageDocumentOpened(Box<super::browser_protocol::page::EventDocumentOpened>),
         PageFrameResized(super::browser_protocol::page::EventFrameResized),
+        PageFrameStartedNavigating(super::browser_protocol::page::EventFrameStartedNavigating),
         PageFrameRequestedNavigation(super::browser_protocol::page::EventFrameRequestedNavigation),
         PageFrameStartedLoading(super::browser_protocol::page::EventFrameStartedLoading),
         PageFrameStoppedLoading(super::browser_protocol::page::EventFrameStoppedLoading),
@@ -615,8 +617,12 @@ pub mod events {
         WebAudioNodeParamDisconnected(
             super::browser_protocol::web_audio::EventNodeParamDisconnected,
         ),
-        WebAuthnCredentialAdded(super::browser_protocol::web_authn::EventCredentialAdded),
-        WebAuthnCredentialAsserted(super::browser_protocol::web_authn::EventCredentialAsserted),
+        WebAuthnCredentialAdded(Box<super::browser_protocol::web_authn::EventCredentialAdded>),
+        WebAuthnCredentialDeleted(super::browser_protocol::web_authn::EventCredentialDeleted),
+        WebAuthnCredentialUpdated(Box<super::browser_protocol::web_authn::EventCredentialUpdated>),
+        WebAuthnCredentialAsserted(
+            Box<super::browser_protocol::web_authn::EventCredentialAsserted>,
+        ),
         MediaPlayerPropertiesChanged(super::browser_protocol::media::EventPlayerPropertiesChanged),
         MediaPlayerEventsAdded(super::browser_protocol::media::EventPlayerEventsAdded),
         MediaPlayerMessagesLogged(super::browser_protocol::media::EventPlayerMessagesLogged),
@@ -650,7 +656,6 @@ pub mod events {
         #[doc = r" Serializes the event as Json"]
         pub fn into_json(self) -> serde_json::Result<serde_json::Value> {
             match self {
-                CdpEvent::DebuggerBreakpointResolved(inner) => serde_json::to_value(inner),
                 CdpEvent::DebuggerPaused(inner) => serde_json::to_value(inner),
                 CdpEvent::DebuggerResumed(inner) => serde_json::to_value(inner),
                 CdpEvent::DebuggerScriptFailedToParse(inner) => serde_json::to_value(inner),
@@ -694,6 +699,7 @@ pub mod events {
                 CdpEvent::CssStyleSheetAdded(inner) => serde_json::to_value(inner),
                 CdpEvent::CssStyleSheetChanged(inner) => serde_json::to_value(inner),
                 CdpEvent::CssStyleSheetRemoved(inner) => serde_json::to_value(inner),
+                CdpEvent::CssComputedStyleUpdated(inner) => serde_json::to_value(inner),
                 CdpEvent::CastSinksUpdated(inner) => serde_json::to_value(inner),
                 CdpEvent::CastIssueUpdated(inner) => serde_json::to_value(inner),
                 CdpEvent::DomAttributeModified(inner) => serde_json::to_value(inner),
@@ -716,7 +722,6 @@ pub mod events {
                 CdpEvent::DomStorageDomStorageItemRemoved(inner) => serde_json::to_value(inner),
                 CdpEvent::DomStorageDomStorageItemUpdated(inner) => serde_json::to_value(inner),
                 CdpEvent::DomStorageDomStorageItemsCleared(inner) => serde_json::to_value(inner),
-                CdpEvent::DatabaseAddDatabase(inner) => serde_json::to_value(inner),
                 CdpEvent::EmulationVirtualTimeBudgetExpired(inner) => serde_json::to_value(inner),
                 CdpEvent::InputDragIntercepted(inner) => serde_json::to_value(inner),
                 CdpEvent::InspectorDetached(inner) => serde_json::to_value(inner),
@@ -784,6 +789,7 @@ pub mod events {
                 CdpEvent::PageFrameNavigated(inner) => serde_json::to_value(inner),
                 CdpEvent::PageDocumentOpened(inner) => serde_json::to_value(inner),
                 CdpEvent::PageFrameResized(inner) => serde_json::to_value(inner),
+                CdpEvent::PageFrameStartedNavigating(inner) => serde_json::to_value(inner),
                 CdpEvent::PageFrameRequestedNavigation(inner) => serde_json::to_value(inner),
                 CdpEvent::PageFrameStartedLoading(inner) => serde_json::to_value(inner),
                 CdpEvent::PageFrameStoppedLoading(inner) => serde_json::to_value(inner),
@@ -860,6 +866,8 @@ pub mod events {
                 CdpEvent::WebAudioNodeParamConnected(inner) => serde_json::to_value(inner),
                 CdpEvent::WebAudioNodeParamDisconnected(inner) => serde_json::to_value(inner),
                 CdpEvent::WebAuthnCredentialAdded(inner) => serde_json::to_value(inner),
+                CdpEvent::WebAuthnCredentialDeleted(inner) => serde_json::to_value(inner),
+                CdpEvent::WebAuthnCredentialUpdated(inner) => serde_json::to_value(inner),
                 CdpEvent::WebAuthnCredentialAsserted(inner) => serde_json::to_value(inner),
                 CdpEvent::MediaPlayerPropertiesChanged(inner) => serde_json::to_value(inner),
                 CdpEvent::MediaPlayerEventsAdded(inner) => serde_json::to_value(inner),
@@ -882,7 +890,6 @@ pub mod events {
         }
         pub fn into_event(self) -> ::std::result::Result<Box<dyn super::Event>, serde_json::Value> {
             match self {
-                CdpEvent::DebuggerBreakpointResolved(event) => Ok(Box::new(event)),
                 CdpEvent::DebuggerPaused(event) => Ok(Box::new(event)),
                 CdpEvent::DebuggerResumed(event) => Ok(Box::new(event)),
                 CdpEvent::DebuggerScriptFailedToParse(event) => Ok(Box::new(*event)),
@@ -922,6 +929,7 @@ pub mod events {
                 CdpEvent::CssStyleSheetAdded(event) => Ok(Box::new(event)),
                 CdpEvent::CssStyleSheetChanged(event) => Ok(Box::new(event)),
                 CdpEvent::CssStyleSheetRemoved(event) => Ok(Box::new(event)),
+                CdpEvent::CssComputedStyleUpdated(event) => Ok(Box::new(event)),
                 CdpEvent::CastSinksUpdated(event) => Ok(Box::new(event)),
                 CdpEvent::CastIssueUpdated(event) => Ok(Box::new(event)),
                 CdpEvent::DomAttributeModified(event) => Ok(Box::new(event)),
@@ -944,7 +952,6 @@ pub mod events {
                 CdpEvent::DomStorageDomStorageItemRemoved(event) => Ok(Box::new(event)),
                 CdpEvent::DomStorageDomStorageItemUpdated(event) => Ok(Box::new(event)),
                 CdpEvent::DomStorageDomStorageItemsCleared(event) => Ok(Box::new(event)),
-                CdpEvent::DatabaseAddDatabase(event) => Ok(Box::new(event)),
                 CdpEvent::EmulationVirtualTimeBudgetExpired(event) => Ok(Box::new(event)),
                 CdpEvent::InputDragIntercepted(event) => Ok(Box::new(event)),
                 CdpEvent::InspectorDetached(event) => Ok(Box::new(event)),
@@ -1002,6 +1009,7 @@ pub mod events {
                 CdpEvent::PageFrameNavigated(event) => Ok(Box::new(*event)),
                 CdpEvent::PageDocumentOpened(event) => Ok(Box::new(*event)),
                 CdpEvent::PageFrameResized(event) => Ok(Box::new(event)),
+                CdpEvent::PageFrameStartedNavigating(event) => Ok(Box::new(event)),
                 CdpEvent::PageFrameRequestedNavigation(event) => Ok(Box::new(event)),
                 CdpEvent::PageFrameStartedLoading(event) => Ok(Box::new(event)),
                 CdpEvent::PageFrameStoppedLoading(event) => Ok(Box::new(event)),
@@ -1067,8 +1075,10 @@ pub mod events {
                 CdpEvent::WebAudioNodesDisconnected(event) => Ok(Box::new(event)),
                 CdpEvent::WebAudioNodeParamConnected(event) => Ok(Box::new(event)),
                 CdpEvent::WebAudioNodeParamDisconnected(event) => Ok(Box::new(event)),
-                CdpEvent::WebAuthnCredentialAdded(event) => Ok(Box::new(event)),
-                CdpEvent::WebAuthnCredentialAsserted(event) => Ok(Box::new(event)),
+                CdpEvent::WebAuthnCredentialAdded(event) => Ok(Box::new(*event)),
+                CdpEvent::WebAuthnCredentialDeleted(event) => Ok(Box::new(event)),
+                CdpEvent::WebAuthnCredentialUpdated(event) => Ok(Box::new(*event)),
+                CdpEvent::WebAuthnCredentialAsserted(event) => Ok(Box::new(*event)),
                 CdpEvent::MediaPlayerPropertiesChanged(event) => Ok(Box::new(event)),
                 CdpEvent::MediaPlayerEventsAdded(event) => Ok(Box::new(event)),
                 CdpEvent::MediaPlayerMessagesLogged(event) => Ok(Box::new(event)),
@@ -1156,7 +1166,7 @@ pub mod events {
                                 if params.is_some() {
                                     return Err(de::Error::duplicate_field("params"));
                                 }
-                                params = Some (match method . as_ref () . ok_or_else (|| de :: Error :: missing_field ("params")) ? . as_str () { super :: js_protocol :: debugger :: EventBreakpointResolved :: IDENTIFIER => CdpEvent :: DebuggerBreakpointResolved (map . next_value :: < super :: js_protocol :: debugger :: EventBreakpointResolved > () ?) , super :: js_protocol :: debugger :: EventPaused :: IDENTIFIER => CdpEvent :: DebuggerPaused (map . next_value :: < super :: js_protocol :: debugger :: EventPaused > () ?) , super :: js_protocol :: debugger :: EventResumed :: IDENTIFIER => CdpEvent :: DebuggerResumed (map . next_value :: < super :: js_protocol :: debugger :: EventResumed > () ?) , super :: js_protocol :: debugger :: EventScriptFailedToParse :: IDENTIFIER => CdpEvent :: DebuggerScriptFailedToParse (Box :: new (map . next_value :: < super :: js_protocol :: debugger :: EventScriptFailedToParse > () ?)) , super :: js_protocol :: debugger :: EventScriptParsed :: IDENTIFIER => CdpEvent :: DebuggerScriptParsed (Box :: new (map . next_value :: < super :: js_protocol :: debugger :: EventScriptParsed > () ?)) , super :: js_protocol :: heap_profiler :: EventAddHeapSnapshotChunk :: IDENTIFIER => CdpEvent :: HeapProfilerAddHeapSnapshotChunk (map . next_value :: < super :: js_protocol :: heap_profiler :: EventAddHeapSnapshotChunk > () ?) , super :: js_protocol :: heap_profiler :: EventHeapStatsUpdate :: IDENTIFIER => CdpEvent :: HeapProfilerHeapStatsUpdate (map . next_value :: < super :: js_protocol :: heap_profiler :: EventHeapStatsUpdate > () ?) , super :: js_protocol :: heap_profiler :: EventLastSeenObjectId :: IDENTIFIER => CdpEvent :: HeapProfilerLastSeenObjectId (map . next_value :: < super :: js_protocol :: heap_profiler :: EventLastSeenObjectId > () ?) , super :: js_protocol :: heap_profiler :: EventReportHeapSnapshotProgress :: IDENTIFIER => CdpEvent :: HeapProfilerReportHeapSnapshotProgress (map . next_value :: < super :: js_protocol :: heap_profiler :: EventReportHeapSnapshotProgress > () ?) , super :: js_protocol :: heap_profiler :: EventResetProfiles :: IDENTIFIER => CdpEvent :: HeapProfilerResetProfiles (map . next_value :: < super :: js_protocol :: heap_profiler :: EventResetProfiles > () ?) , super :: js_protocol :: profiler :: EventConsoleProfileFinished :: IDENTIFIER => CdpEvent :: ProfilerConsoleProfileFinished (map . next_value :: < super :: js_protocol :: profiler :: EventConsoleProfileFinished > () ?) , super :: js_protocol :: profiler :: EventConsoleProfileStarted :: IDENTIFIER => CdpEvent :: ProfilerConsoleProfileStarted (map . next_value :: < super :: js_protocol :: profiler :: EventConsoleProfileStarted > () ?) , super :: js_protocol :: profiler :: EventPreciseCoverageDeltaUpdate :: IDENTIFIER => CdpEvent :: ProfilerPreciseCoverageDeltaUpdate (map . next_value :: < super :: js_protocol :: profiler :: EventPreciseCoverageDeltaUpdate > () ?) , super :: js_protocol :: runtime :: EventBindingCalled :: IDENTIFIER => CdpEvent :: RuntimeBindingCalled (map . next_value :: < super :: js_protocol :: runtime :: EventBindingCalled > () ?) , super :: js_protocol :: runtime :: EventConsoleApiCalled :: IDENTIFIER => CdpEvent :: RuntimeConsoleApiCalled (map . next_value :: < super :: js_protocol :: runtime :: EventConsoleApiCalled > () ?) , super :: js_protocol :: runtime :: EventExceptionRevoked :: IDENTIFIER => CdpEvent :: RuntimeExceptionRevoked (map . next_value :: < super :: js_protocol :: runtime :: EventExceptionRevoked > () ?) , super :: js_protocol :: runtime :: EventExceptionThrown :: IDENTIFIER => CdpEvent :: RuntimeExceptionThrown (Box :: new (map . next_value :: < super :: js_protocol :: runtime :: EventExceptionThrown > () ?)) , super :: js_protocol :: runtime :: EventExecutionContextCreated :: IDENTIFIER => CdpEvent :: RuntimeExecutionContextCreated (map . next_value :: < super :: js_protocol :: runtime :: EventExecutionContextCreated > () ?) , super :: js_protocol :: runtime :: EventExecutionContextDestroyed :: IDENTIFIER => CdpEvent :: RuntimeExecutionContextDestroyed (map . next_value :: < super :: js_protocol :: runtime :: EventExecutionContextDestroyed > () ?) , super :: js_protocol :: runtime :: EventExecutionContextsCleared :: IDENTIFIER => CdpEvent :: RuntimeExecutionContextsCleared (map . next_value :: < super :: js_protocol :: runtime :: EventExecutionContextsCleared > () ?) , super :: js_protocol :: runtime :: EventInspectRequested :: IDENTIFIER => CdpEvent :: RuntimeInspectRequested (Box :: new (map . next_value :: < super :: js_protocol :: runtime :: EventInspectRequested > () ?)) , super :: browser_protocol :: accessibility :: EventLoadComplete :: IDENTIFIER => CdpEvent :: AccessibilityLoadComplete (Box :: new (map . next_value :: < super :: browser_protocol :: accessibility :: EventLoadComplete > () ?)) , super :: browser_protocol :: accessibility :: EventNodesUpdated :: IDENTIFIER => CdpEvent :: AccessibilityNodesUpdated (map . next_value :: < super :: browser_protocol :: accessibility :: EventNodesUpdated > () ?) , super :: browser_protocol :: animation :: EventAnimationCanceled :: IDENTIFIER => CdpEvent :: AnimationAnimationCanceled (map . next_value :: < super :: browser_protocol :: animation :: EventAnimationCanceled > () ?) , super :: browser_protocol :: animation :: EventAnimationCreated :: IDENTIFIER => CdpEvent :: AnimationAnimationCreated (map . next_value :: < super :: browser_protocol :: animation :: EventAnimationCreated > () ?) , super :: browser_protocol :: animation :: EventAnimationStarted :: IDENTIFIER => CdpEvent :: AnimationAnimationStarted (Box :: new (map . next_value :: < super :: browser_protocol :: animation :: EventAnimationStarted > () ?)) , super :: browser_protocol :: animation :: EventAnimationUpdated :: IDENTIFIER => CdpEvent :: AnimationAnimationUpdated (Box :: new (map . next_value :: < super :: browser_protocol :: animation :: EventAnimationUpdated > () ?)) , super :: browser_protocol :: audits :: EventIssueAdded :: IDENTIFIER => CdpEvent :: AuditsIssueAdded (Box :: new (map . next_value :: < super :: browser_protocol :: audits :: EventIssueAdded > () ?)) , super :: browser_protocol :: autofill :: EventAddressFormFilled :: IDENTIFIER => CdpEvent :: AutofillAddressFormFilled (map . next_value :: < super :: browser_protocol :: autofill :: EventAddressFormFilled > () ?) , super :: browser_protocol :: background_service :: EventRecordingStateChanged :: IDENTIFIER => CdpEvent :: BackgroundServiceRecordingStateChanged (map . next_value :: < super :: browser_protocol :: background_service :: EventRecordingStateChanged > () ?) , super :: browser_protocol :: background_service :: EventBackgroundServiceEventReceived :: IDENTIFIER => CdpEvent :: BackgroundServiceBackgroundServiceEventReceived (map . next_value :: < super :: browser_protocol :: background_service :: EventBackgroundServiceEventReceived > () ?) , super :: browser_protocol :: browser :: EventDownloadWillBegin :: IDENTIFIER => CdpEvent :: BrowserDownloadWillBegin (map . next_value :: < super :: browser_protocol :: browser :: EventDownloadWillBegin > () ?) , super :: browser_protocol :: browser :: EventDownloadProgress :: IDENTIFIER => CdpEvent :: BrowserDownloadProgress (map . next_value :: < super :: browser_protocol :: browser :: EventDownloadProgress > () ?) , super :: browser_protocol :: css :: EventFontsUpdated :: IDENTIFIER => CdpEvent :: CssFontsUpdated (Box :: new (map . next_value :: < super :: browser_protocol :: css :: EventFontsUpdated > () ?)) , super :: browser_protocol :: css :: EventMediaQueryResultChanged :: IDENTIFIER => CdpEvent :: CssMediaQueryResultChanged (map . next_value :: < super :: browser_protocol :: css :: EventMediaQueryResultChanged > () ?) , super :: browser_protocol :: css :: EventStyleSheetAdded :: IDENTIFIER => CdpEvent :: CssStyleSheetAdded (map . next_value :: < super :: browser_protocol :: css :: EventStyleSheetAdded > () ?) , super :: browser_protocol :: css :: EventStyleSheetChanged :: IDENTIFIER => CdpEvent :: CssStyleSheetChanged (map . next_value :: < super :: browser_protocol :: css :: EventStyleSheetChanged > () ?) , super :: browser_protocol :: css :: EventStyleSheetRemoved :: IDENTIFIER => CdpEvent :: CssStyleSheetRemoved (map . next_value :: < super :: browser_protocol :: css :: EventStyleSheetRemoved > () ?) , super :: browser_protocol :: cast :: EventSinksUpdated :: IDENTIFIER => CdpEvent :: CastSinksUpdated (map . next_value :: < super :: browser_protocol :: cast :: EventSinksUpdated > () ?) , super :: browser_protocol :: cast :: EventIssueUpdated :: IDENTIFIER => CdpEvent :: CastIssueUpdated (map . next_value :: < super :: browser_protocol :: cast :: EventIssueUpdated > () ?) , super :: browser_protocol :: dom :: EventAttributeModified :: IDENTIFIER => CdpEvent :: DomAttributeModified (map . next_value :: < super :: browser_protocol :: dom :: EventAttributeModified > () ?) , super :: browser_protocol :: dom :: EventAttributeRemoved :: IDENTIFIER => CdpEvent :: DomAttributeRemoved (map . next_value :: < super :: browser_protocol :: dom :: EventAttributeRemoved > () ?) , super :: browser_protocol :: dom :: EventCharacterDataModified :: IDENTIFIER => CdpEvent :: DomCharacterDataModified (map . next_value :: < super :: browser_protocol :: dom :: EventCharacterDataModified > () ?) , super :: browser_protocol :: dom :: EventChildNodeCountUpdated :: IDENTIFIER => CdpEvent :: DomChildNodeCountUpdated (map . next_value :: < super :: browser_protocol :: dom :: EventChildNodeCountUpdated > () ?) , super :: browser_protocol :: dom :: EventChildNodeInserted :: IDENTIFIER => CdpEvent :: DomChildNodeInserted (Box :: new (map . next_value :: < super :: browser_protocol :: dom :: EventChildNodeInserted > () ?)) , super :: browser_protocol :: dom :: EventChildNodeRemoved :: IDENTIFIER => CdpEvent :: DomChildNodeRemoved (map . next_value :: < super :: browser_protocol :: dom :: EventChildNodeRemoved > () ?) , super :: browser_protocol :: dom :: EventDistributedNodesUpdated :: IDENTIFIER => CdpEvent :: DomDistributedNodesUpdated (map . next_value :: < super :: browser_protocol :: dom :: EventDistributedNodesUpdated > () ?) , super :: browser_protocol :: dom :: EventDocumentUpdated :: IDENTIFIER => CdpEvent :: DomDocumentUpdated (map . next_value :: < super :: browser_protocol :: dom :: EventDocumentUpdated > () ?) , super :: browser_protocol :: dom :: EventInlineStyleInvalidated :: IDENTIFIER => CdpEvent :: DomInlineStyleInvalidated (map . next_value :: < super :: browser_protocol :: dom :: EventInlineStyleInvalidated > () ?) , super :: browser_protocol :: dom :: EventPseudoElementAdded :: IDENTIFIER => CdpEvent :: DomPseudoElementAdded (Box :: new (map . next_value :: < super :: browser_protocol :: dom :: EventPseudoElementAdded > () ?)) , super :: browser_protocol :: dom :: EventTopLayerElementsUpdated :: IDENTIFIER => CdpEvent :: DomTopLayerElementsUpdated (map . next_value :: < super :: browser_protocol :: dom :: EventTopLayerElementsUpdated > () ?) , super :: browser_protocol :: dom :: EventScrollableFlagUpdated :: IDENTIFIER => CdpEvent :: DomScrollableFlagUpdated (map . next_value :: < super :: browser_protocol :: dom :: EventScrollableFlagUpdated > () ?) , super :: browser_protocol :: dom :: EventPseudoElementRemoved :: IDENTIFIER => CdpEvent :: DomPseudoElementRemoved (map . next_value :: < super :: browser_protocol :: dom :: EventPseudoElementRemoved > () ?) , super :: browser_protocol :: dom :: EventSetChildNodes :: IDENTIFIER => CdpEvent :: DomSetChildNodes (map . next_value :: < super :: browser_protocol :: dom :: EventSetChildNodes > () ?) , super :: browser_protocol :: dom :: EventShadowRootPopped :: IDENTIFIER => CdpEvent :: DomShadowRootPopped (map . next_value :: < super :: browser_protocol :: dom :: EventShadowRootPopped > () ?) , super :: browser_protocol :: dom :: EventShadowRootPushed :: IDENTIFIER => CdpEvent :: DomShadowRootPushed (Box :: new (map . next_value :: < super :: browser_protocol :: dom :: EventShadowRootPushed > () ?)) , super :: browser_protocol :: dom_storage :: EventDomStorageItemAdded :: IDENTIFIER => CdpEvent :: DomStorageDomStorageItemAdded (map . next_value :: < super :: browser_protocol :: dom_storage :: EventDomStorageItemAdded > () ?) , super :: browser_protocol :: dom_storage :: EventDomStorageItemRemoved :: IDENTIFIER => CdpEvent :: DomStorageDomStorageItemRemoved (map . next_value :: < super :: browser_protocol :: dom_storage :: EventDomStorageItemRemoved > () ?) , super :: browser_protocol :: dom_storage :: EventDomStorageItemUpdated :: IDENTIFIER => CdpEvent :: DomStorageDomStorageItemUpdated (map . next_value :: < super :: browser_protocol :: dom_storage :: EventDomStorageItemUpdated > () ?) , super :: browser_protocol :: dom_storage :: EventDomStorageItemsCleared :: IDENTIFIER => CdpEvent :: DomStorageDomStorageItemsCleared (map . next_value :: < super :: browser_protocol :: dom_storage :: EventDomStorageItemsCleared > () ?) , super :: browser_protocol :: database :: EventAddDatabase :: IDENTIFIER => CdpEvent :: DatabaseAddDatabase (map . next_value :: < super :: browser_protocol :: database :: EventAddDatabase > () ?) , super :: browser_protocol :: emulation :: EventVirtualTimeBudgetExpired :: IDENTIFIER => CdpEvent :: EmulationVirtualTimeBudgetExpired (map . next_value :: < super :: browser_protocol :: emulation :: EventVirtualTimeBudgetExpired > () ?) , super :: browser_protocol :: input :: EventDragIntercepted :: IDENTIFIER => CdpEvent :: InputDragIntercepted (map . next_value :: < super :: browser_protocol :: input :: EventDragIntercepted > () ?) , super :: browser_protocol :: inspector :: EventDetached :: IDENTIFIER => CdpEvent :: InspectorDetached (map . next_value :: < super :: browser_protocol :: inspector :: EventDetached > () ?) , super :: browser_protocol :: inspector :: EventTargetCrashed :: IDENTIFIER => CdpEvent :: InspectorTargetCrashed (map . next_value :: < super :: browser_protocol :: inspector :: EventTargetCrashed > () ?) , super :: browser_protocol :: inspector :: EventTargetReloadedAfterCrash :: IDENTIFIER => CdpEvent :: InspectorTargetReloadedAfterCrash (map . next_value :: < super :: browser_protocol :: inspector :: EventTargetReloadedAfterCrash > () ?) , super :: browser_protocol :: layer_tree :: EventLayerPainted :: IDENTIFIER => CdpEvent :: LayerTreeLayerPainted (map . next_value :: < super :: browser_protocol :: layer_tree :: EventLayerPainted > () ?) , super :: browser_protocol :: layer_tree :: EventLayerTreeDidChange :: IDENTIFIER => CdpEvent :: LayerTreeLayerTreeDidChange (map . next_value :: < super :: browser_protocol :: layer_tree :: EventLayerTreeDidChange > () ?) , super :: browser_protocol :: log :: EventEntryAdded :: IDENTIFIER => CdpEvent :: LogEntryAdded (Box :: new (map . next_value :: < super :: browser_protocol :: log :: EventEntryAdded > () ?)) , super :: browser_protocol :: network :: EventDataReceived :: IDENTIFIER => CdpEvent :: NetworkDataReceived (map . next_value :: < super :: browser_protocol :: network :: EventDataReceived > () ?) , super :: browser_protocol :: network :: EventEventSourceMessageReceived :: IDENTIFIER => CdpEvent :: NetworkEventSourceMessageReceived (map . next_value :: < super :: browser_protocol :: network :: EventEventSourceMessageReceived > () ?) , super :: browser_protocol :: network :: EventLoadingFailed :: IDENTIFIER => CdpEvent :: NetworkLoadingFailed (map . next_value :: < super :: browser_protocol :: network :: EventLoadingFailed > () ?) , super :: browser_protocol :: network :: EventLoadingFinished :: IDENTIFIER => CdpEvent :: NetworkLoadingFinished (map . next_value :: < super :: browser_protocol :: network :: EventLoadingFinished > () ?) , super :: browser_protocol :: network :: EventRequestServedFromCache :: IDENTIFIER => CdpEvent :: NetworkRequestServedFromCache (map . next_value :: < super :: browser_protocol :: network :: EventRequestServedFromCache > () ?) , super :: browser_protocol :: network :: EventRequestWillBeSent :: IDENTIFIER => CdpEvent :: NetworkRequestWillBeSent (Box :: new (map . next_value :: < super :: browser_protocol :: network :: EventRequestWillBeSent > () ?)) , super :: browser_protocol :: network :: EventResourceChangedPriority :: IDENTIFIER => CdpEvent :: NetworkResourceChangedPriority (map . next_value :: < super :: browser_protocol :: network :: EventResourceChangedPriority > () ?) , super :: browser_protocol :: network :: EventSignedExchangeReceived :: IDENTIFIER => CdpEvent :: NetworkSignedExchangeReceived (Box :: new (map . next_value :: < super :: browser_protocol :: network :: EventSignedExchangeReceived > () ?)) , super :: browser_protocol :: network :: EventResponseReceived :: IDENTIFIER => CdpEvent :: NetworkResponseReceived (Box :: new (map . next_value :: < super :: browser_protocol :: network :: EventResponseReceived > () ?)) , super :: browser_protocol :: network :: EventWebSocketClosed :: IDENTIFIER => CdpEvent :: NetworkWebSocketClosed (map . next_value :: < super :: browser_protocol :: network :: EventWebSocketClosed > () ?) , super :: browser_protocol :: network :: EventWebSocketCreated :: IDENTIFIER => CdpEvent :: NetworkWebSocketCreated (Box :: new (map . next_value :: < super :: browser_protocol :: network :: EventWebSocketCreated > () ?)) , super :: browser_protocol :: network :: EventWebSocketFrameError :: IDENTIFIER => CdpEvent :: NetworkWebSocketFrameError (map . next_value :: < super :: browser_protocol :: network :: EventWebSocketFrameError > () ?) , super :: browser_protocol :: network :: EventWebSocketFrameReceived :: IDENTIFIER => CdpEvent :: NetworkWebSocketFrameReceived (map . next_value :: < super :: browser_protocol :: network :: EventWebSocketFrameReceived > () ?) , super :: browser_protocol :: network :: EventWebSocketFrameSent :: IDENTIFIER => CdpEvent :: NetworkWebSocketFrameSent (map . next_value :: < super :: browser_protocol :: network :: EventWebSocketFrameSent > () ?) , super :: browser_protocol :: network :: EventWebSocketHandshakeResponseReceived :: IDENTIFIER => CdpEvent :: NetworkWebSocketHandshakeResponseReceived (Box :: new (map . next_value :: < super :: browser_protocol :: network :: EventWebSocketHandshakeResponseReceived > () ?)) , super :: browser_protocol :: network :: EventWebSocketWillSendHandshakeRequest :: IDENTIFIER => CdpEvent :: NetworkWebSocketWillSendHandshakeRequest (map . next_value :: < super :: browser_protocol :: network :: EventWebSocketWillSendHandshakeRequest > () ?) , super :: browser_protocol :: network :: EventWebTransportCreated :: IDENTIFIER => CdpEvent :: NetworkWebTransportCreated (Box :: new (map . next_value :: < super :: browser_protocol :: network :: EventWebTransportCreated > () ?)) , super :: browser_protocol :: network :: EventWebTransportConnectionEstablished :: IDENTIFIER => CdpEvent :: NetworkWebTransportConnectionEstablished (map . next_value :: < super :: browser_protocol :: network :: EventWebTransportConnectionEstablished > () ?) , super :: browser_protocol :: network :: EventWebTransportClosed :: IDENTIFIER => CdpEvent :: NetworkWebTransportClosed (map . next_value :: < super :: browser_protocol :: network :: EventWebTransportClosed > () ?) , super :: browser_protocol :: network :: EventRequestWillBeSentExtraInfo :: IDENTIFIER => CdpEvent :: NetworkRequestWillBeSentExtraInfo (map . next_value :: < super :: browser_protocol :: network :: EventRequestWillBeSentExtraInfo > () ?) , super :: browser_protocol :: network :: EventResponseReceivedExtraInfo :: IDENTIFIER => CdpEvent :: NetworkResponseReceivedExtraInfo (Box :: new (map . next_value :: < super :: browser_protocol :: network :: EventResponseReceivedExtraInfo > () ?)) , super :: browser_protocol :: network :: EventResponseReceivedEarlyHints :: IDENTIFIER => CdpEvent :: NetworkResponseReceivedEarlyHints (map . next_value :: < super :: browser_protocol :: network :: EventResponseReceivedEarlyHints > () ?) , super :: browser_protocol :: network :: EventTrustTokenOperationDone :: IDENTIFIER => CdpEvent :: NetworkTrustTokenOperationDone (map . next_value :: < super :: browser_protocol :: network :: EventTrustTokenOperationDone > () ?) , super :: browser_protocol :: network :: EventPolicyUpdated :: IDENTIFIER => CdpEvent :: NetworkPolicyUpdated (map . next_value :: < super :: browser_protocol :: network :: EventPolicyUpdated > () ?) , super :: browser_protocol :: network :: EventSubresourceWebBundleMetadataReceived :: IDENTIFIER => CdpEvent :: NetworkSubresourceWebBundleMetadataReceived (map . next_value :: < super :: browser_protocol :: network :: EventSubresourceWebBundleMetadataReceived > () ?) , super :: browser_protocol :: network :: EventSubresourceWebBundleMetadataError :: IDENTIFIER => CdpEvent :: NetworkSubresourceWebBundleMetadataError (map . next_value :: < super :: browser_protocol :: network :: EventSubresourceWebBundleMetadataError > () ?) , super :: browser_protocol :: network :: EventSubresourceWebBundleInnerResponseParsed :: IDENTIFIER => CdpEvent :: NetworkSubresourceWebBundleInnerResponseParsed (map . next_value :: < super :: browser_protocol :: network :: EventSubresourceWebBundleInnerResponseParsed > () ?) , super :: browser_protocol :: network :: EventSubresourceWebBundleInnerResponseError :: IDENTIFIER => CdpEvent :: NetworkSubresourceWebBundleInnerResponseError (map . next_value :: < super :: browser_protocol :: network :: EventSubresourceWebBundleInnerResponseError > () ?) , super :: browser_protocol :: network :: EventReportingApiReportAdded :: IDENTIFIER => CdpEvent :: NetworkReportingApiReportAdded (map . next_value :: < super :: browser_protocol :: network :: EventReportingApiReportAdded > () ?) , super :: browser_protocol :: network :: EventReportingApiReportUpdated :: IDENTIFIER => CdpEvent :: NetworkReportingApiReportUpdated (map . next_value :: < super :: browser_protocol :: network :: EventReportingApiReportUpdated > () ?) , super :: browser_protocol :: network :: EventReportingApiEndpointsChangedForOrigin :: IDENTIFIER => CdpEvent :: NetworkReportingApiEndpointsChangedForOrigin (map . next_value :: < super :: browser_protocol :: network :: EventReportingApiEndpointsChangedForOrigin > () ?) , super :: browser_protocol :: overlay :: EventInspectNodeRequested :: IDENTIFIER => CdpEvent :: OverlayInspectNodeRequested (map . next_value :: < super :: browser_protocol :: overlay :: EventInspectNodeRequested > () ?) , super :: browser_protocol :: overlay :: EventNodeHighlightRequested :: IDENTIFIER => CdpEvent :: OverlayNodeHighlightRequested (map . next_value :: < super :: browser_protocol :: overlay :: EventNodeHighlightRequested > () ?) , super :: browser_protocol :: overlay :: EventScreenshotRequested :: IDENTIFIER => CdpEvent :: OverlayScreenshotRequested (map . next_value :: < super :: browser_protocol :: overlay :: EventScreenshotRequested > () ?) , super :: browser_protocol :: overlay :: EventInspectModeCanceled :: IDENTIFIER => CdpEvent :: OverlayInspectModeCanceled (map . next_value :: < super :: browser_protocol :: overlay :: EventInspectModeCanceled > () ?) , super :: browser_protocol :: page :: EventDomContentEventFired :: IDENTIFIER => CdpEvent :: PageDomContentEventFired (map . next_value :: < super :: browser_protocol :: page :: EventDomContentEventFired > () ?) , super :: browser_protocol :: page :: EventFileChooserOpened :: IDENTIFIER => CdpEvent :: PageFileChooserOpened (map . next_value :: < super :: browser_protocol :: page :: EventFileChooserOpened > () ?) , super :: browser_protocol :: page :: EventFrameAttached :: IDENTIFIER => CdpEvent :: PageFrameAttached (map . next_value :: < super :: browser_protocol :: page :: EventFrameAttached > () ?) , super :: browser_protocol :: page :: EventFrameDetached :: IDENTIFIER => CdpEvent :: PageFrameDetached (map . next_value :: < super :: browser_protocol :: page :: EventFrameDetached > () ?) , super :: browser_protocol :: page :: EventFrameSubtreeWillBeDetached :: IDENTIFIER => CdpEvent :: PageFrameSubtreeWillBeDetached (map . next_value :: < super :: browser_protocol :: page :: EventFrameSubtreeWillBeDetached > () ?) , super :: browser_protocol :: page :: EventFrameNavigated :: IDENTIFIER => CdpEvent :: PageFrameNavigated (Box :: new (map . next_value :: < super :: browser_protocol :: page :: EventFrameNavigated > () ?)) , super :: browser_protocol :: page :: EventDocumentOpened :: IDENTIFIER => CdpEvent :: PageDocumentOpened (Box :: new (map . next_value :: < super :: browser_protocol :: page :: EventDocumentOpened > () ?)) , super :: browser_protocol :: page :: EventFrameResized :: IDENTIFIER => CdpEvent :: PageFrameResized (map . next_value :: < super :: browser_protocol :: page :: EventFrameResized > () ?) , super :: browser_protocol :: page :: EventFrameRequestedNavigation :: IDENTIFIER => CdpEvent :: PageFrameRequestedNavigation (map . next_value :: < super :: browser_protocol :: page :: EventFrameRequestedNavigation > () ?) , super :: browser_protocol :: page :: EventFrameStartedLoading :: IDENTIFIER => CdpEvent :: PageFrameStartedLoading (map . next_value :: < super :: browser_protocol :: page :: EventFrameStartedLoading > () ?) , super :: browser_protocol :: page :: EventFrameStoppedLoading :: IDENTIFIER => CdpEvent :: PageFrameStoppedLoading (map . next_value :: < super :: browser_protocol :: page :: EventFrameStoppedLoading > () ?) , super :: browser_protocol :: page :: EventInterstitialHidden :: IDENTIFIER => CdpEvent :: PageInterstitialHidden (map . next_value :: < super :: browser_protocol :: page :: EventInterstitialHidden > () ?) , super :: browser_protocol :: page :: EventInterstitialShown :: IDENTIFIER => CdpEvent :: PageInterstitialShown (map . next_value :: < super :: browser_protocol :: page :: EventInterstitialShown > () ?) , super :: browser_protocol :: page :: EventJavascriptDialogClosed :: IDENTIFIER => CdpEvent :: PageJavascriptDialogClosed (map . next_value :: < super :: browser_protocol :: page :: EventJavascriptDialogClosed > () ?) , super :: browser_protocol :: page :: EventJavascriptDialogOpening :: IDENTIFIER => CdpEvent :: PageJavascriptDialogOpening (map . next_value :: < super :: browser_protocol :: page :: EventJavascriptDialogOpening > () ?) , super :: browser_protocol :: page :: EventLifecycleEvent :: IDENTIFIER => CdpEvent :: PageLifecycleEvent (map . next_value :: < super :: browser_protocol :: page :: EventLifecycleEvent > () ?) , super :: browser_protocol :: page :: EventBackForwardCacheNotUsed :: IDENTIFIER => CdpEvent :: PageBackForwardCacheNotUsed (map . next_value :: < super :: browser_protocol :: page :: EventBackForwardCacheNotUsed > () ?) , super :: browser_protocol :: page :: EventLoadEventFired :: IDENTIFIER => CdpEvent :: PageLoadEventFired (map . next_value :: < super :: browser_protocol :: page :: EventLoadEventFired > () ?) , super :: browser_protocol :: page :: EventNavigatedWithinDocument :: IDENTIFIER => CdpEvent :: PageNavigatedWithinDocument (map . next_value :: < super :: browser_protocol :: page :: EventNavigatedWithinDocument > () ?) , super :: browser_protocol :: page :: EventScreencastFrame :: IDENTIFIER => CdpEvent :: PageScreencastFrame (map . next_value :: < super :: browser_protocol :: page :: EventScreencastFrame > () ?) , super :: browser_protocol :: page :: EventScreencastVisibilityChanged :: IDENTIFIER => CdpEvent :: PageScreencastVisibilityChanged (map . next_value :: < super :: browser_protocol :: page :: EventScreencastVisibilityChanged > () ?) , super :: browser_protocol :: page :: EventWindowOpen :: IDENTIFIER => CdpEvent :: PageWindowOpen (map . next_value :: < super :: browser_protocol :: page :: EventWindowOpen > () ?) , super :: browser_protocol :: page :: EventCompilationCacheProduced :: IDENTIFIER => CdpEvent :: PageCompilationCacheProduced (map . next_value :: < super :: browser_protocol :: page :: EventCompilationCacheProduced > () ?) , super :: browser_protocol :: performance :: EventMetrics :: IDENTIFIER => CdpEvent :: PerformanceMetrics (map . next_value :: < super :: browser_protocol :: performance :: EventMetrics > () ?) , super :: browser_protocol :: performance_timeline :: EventTimelineEventAdded :: IDENTIFIER => CdpEvent :: PerformanceTimelineTimelineEventAdded (Box :: new (map . next_value :: < super :: browser_protocol :: performance_timeline :: EventTimelineEventAdded > () ?)) , super :: browser_protocol :: security :: EventVisibleSecurityStateChanged :: IDENTIFIER => CdpEvent :: SecurityVisibleSecurityStateChanged (Box :: new (map . next_value :: < super :: browser_protocol :: security :: EventVisibleSecurityStateChanged > () ?)) , super :: browser_protocol :: service_worker :: EventWorkerErrorReported :: IDENTIFIER => CdpEvent :: ServiceWorkerWorkerErrorReported (map . next_value :: < super :: browser_protocol :: service_worker :: EventWorkerErrorReported > () ?) , super :: browser_protocol :: service_worker :: EventWorkerRegistrationUpdated :: IDENTIFIER => CdpEvent :: ServiceWorkerWorkerRegistrationUpdated (map . next_value :: < super :: browser_protocol :: service_worker :: EventWorkerRegistrationUpdated > () ?) , super :: browser_protocol :: service_worker :: EventWorkerVersionUpdated :: IDENTIFIER => CdpEvent :: ServiceWorkerWorkerVersionUpdated (map . next_value :: < super :: browser_protocol :: service_worker :: EventWorkerVersionUpdated > () ?) , super :: browser_protocol :: storage :: EventCacheStorageContentUpdated :: IDENTIFIER => CdpEvent :: StorageCacheStorageContentUpdated (map . next_value :: < super :: browser_protocol :: storage :: EventCacheStorageContentUpdated > () ?) , super :: browser_protocol :: storage :: EventCacheStorageListUpdated :: IDENTIFIER => CdpEvent :: StorageCacheStorageListUpdated (map . next_value :: < super :: browser_protocol :: storage :: EventCacheStorageListUpdated > () ?) , super :: browser_protocol :: storage :: EventIndexedDbContentUpdated :: IDENTIFIER => CdpEvent :: StorageIndexedDbContentUpdated (map . next_value :: < super :: browser_protocol :: storage :: EventIndexedDbContentUpdated > () ?) , super :: browser_protocol :: storage :: EventIndexedDbListUpdated :: IDENTIFIER => CdpEvent :: StorageIndexedDbListUpdated (map . next_value :: < super :: browser_protocol :: storage :: EventIndexedDbListUpdated > () ?) , super :: browser_protocol :: storage :: EventInterestGroupAccessed :: IDENTIFIER => CdpEvent :: StorageInterestGroupAccessed (map . next_value :: < super :: browser_protocol :: storage :: EventInterestGroupAccessed > () ?) , super :: browser_protocol :: storage :: EventInterestGroupAuctionEventOccurred :: IDENTIFIER => CdpEvent :: StorageInterestGroupAuctionEventOccurred (map . next_value :: < super :: browser_protocol :: storage :: EventInterestGroupAuctionEventOccurred > () ?) , super :: browser_protocol :: storage :: EventInterestGroupAuctionNetworkRequestCreated :: IDENTIFIER => CdpEvent :: StorageInterestGroupAuctionNetworkRequestCreated (map . next_value :: < super :: browser_protocol :: storage :: EventInterestGroupAuctionNetworkRequestCreated > () ?) , super :: browser_protocol :: storage :: EventSharedStorageAccessed :: IDENTIFIER => CdpEvent :: StorageSharedStorageAccessed (Box :: new (map . next_value :: < super :: browser_protocol :: storage :: EventSharedStorageAccessed > () ?)) , super :: browser_protocol :: storage :: EventStorageBucketCreatedOrUpdated :: IDENTIFIER => CdpEvent :: StorageStorageBucketCreatedOrUpdated (map . next_value :: < super :: browser_protocol :: storage :: EventStorageBucketCreatedOrUpdated > () ?) , super :: browser_protocol :: storage :: EventStorageBucketDeleted :: IDENTIFIER => CdpEvent :: StorageStorageBucketDeleted (map . next_value :: < super :: browser_protocol :: storage :: EventStorageBucketDeleted > () ?) , super :: browser_protocol :: storage :: EventAttributionReportingSourceRegistered :: IDENTIFIER => CdpEvent :: StorageAttributionReportingSourceRegistered (Box :: new (map . next_value :: < super :: browser_protocol :: storage :: EventAttributionReportingSourceRegistered > () ?)) , super :: browser_protocol :: storage :: EventAttributionReportingTriggerRegistered :: IDENTIFIER => CdpEvent :: StorageAttributionReportingTriggerRegistered (Box :: new (map . next_value :: < super :: browser_protocol :: storage :: EventAttributionReportingTriggerRegistered > () ?)) , super :: browser_protocol :: target :: EventAttachedToTarget :: IDENTIFIER => CdpEvent :: TargetAttachedToTarget (Box :: new (map . next_value :: < super :: browser_protocol :: target :: EventAttachedToTarget > () ?)) , super :: browser_protocol :: target :: EventDetachedFromTarget :: IDENTIFIER => CdpEvent :: TargetDetachedFromTarget (map . next_value :: < super :: browser_protocol :: target :: EventDetachedFromTarget > () ?) , super :: browser_protocol :: target :: EventReceivedMessageFromTarget :: IDENTIFIER => CdpEvent :: TargetReceivedMessageFromTarget (map . next_value :: < super :: browser_protocol :: target :: EventReceivedMessageFromTarget > () ?) , super :: browser_protocol :: target :: EventTargetCreated :: IDENTIFIER => CdpEvent :: TargetTargetCreated (map . next_value :: < super :: browser_protocol :: target :: EventTargetCreated > () ?) , super :: browser_protocol :: target :: EventTargetDestroyed :: IDENTIFIER => CdpEvent :: TargetTargetDestroyed (map . next_value :: < super :: browser_protocol :: target :: EventTargetDestroyed > () ?) , super :: browser_protocol :: target :: EventTargetCrashed :: IDENTIFIER => CdpEvent :: TargetTargetCrashed (map . next_value :: < super :: browser_protocol :: target :: EventTargetCrashed > () ?) , super :: browser_protocol :: target :: EventTargetInfoChanged :: IDENTIFIER => CdpEvent :: TargetTargetInfoChanged (map . next_value :: < super :: browser_protocol :: target :: EventTargetInfoChanged > () ?) , super :: browser_protocol :: tethering :: EventAccepted :: IDENTIFIER => CdpEvent :: TetheringAccepted (map . next_value :: < super :: browser_protocol :: tethering :: EventAccepted > () ?) , super :: browser_protocol :: tracing :: EventBufferUsage :: IDENTIFIER => CdpEvent :: TracingBufferUsage (map . next_value :: < super :: browser_protocol :: tracing :: EventBufferUsage > () ?) , super :: browser_protocol :: tracing :: EventDataCollected :: IDENTIFIER => CdpEvent :: TracingDataCollected (map . next_value :: < super :: browser_protocol :: tracing :: EventDataCollected > () ?) , super :: browser_protocol :: tracing :: EventTracingComplete :: IDENTIFIER => CdpEvent :: TracingTracingComplete (map . next_value :: < super :: browser_protocol :: tracing :: EventTracingComplete > () ?) , super :: browser_protocol :: fetch :: EventRequestPaused :: IDENTIFIER => CdpEvent :: FetchRequestPaused (Box :: new (map . next_value :: < super :: browser_protocol :: fetch :: EventRequestPaused > () ?)) , super :: browser_protocol :: fetch :: EventAuthRequired :: IDENTIFIER => CdpEvent :: FetchAuthRequired (Box :: new (map . next_value :: < super :: browser_protocol :: fetch :: EventAuthRequired > () ?)) , super :: browser_protocol :: web_audio :: EventContextCreated :: IDENTIFIER => CdpEvent :: WebAudioContextCreated (map . next_value :: < super :: browser_protocol :: web_audio :: EventContextCreated > () ?) , super :: browser_protocol :: web_audio :: EventContextWillBeDestroyed :: IDENTIFIER => CdpEvent :: WebAudioContextWillBeDestroyed (map . next_value :: < super :: browser_protocol :: web_audio :: EventContextWillBeDestroyed > () ?) , super :: browser_protocol :: web_audio :: EventContextChanged :: IDENTIFIER => CdpEvent :: WebAudioContextChanged (map . next_value :: < super :: browser_protocol :: web_audio :: EventContextChanged > () ?) , super :: browser_protocol :: web_audio :: EventAudioListenerCreated :: IDENTIFIER => CdpEvent :: WebAudioAudioListenerCreated (map . next_value :: < super :: browser_protocol :: web_audio :: EventAudioListenerCreated > () ?) , super :: browser_protocol :: web_audio :: EventAudioListenerWillBeDestroyed :: IDENTIFIER => CdpEvent :: WebAudioAudioListenerWillBeDestroyed (map . next_value :: < super :: browser_protocol :: web_audio :: EventAudioListenerWillBeDestroyed > () ?) , super :: browser_protocol :: web_audio :: EventAudioNodeCreated :: IDENTIFIER => CdpEvent :: WebAudioAudioNodeCreated (map . next_value :: < super :: browser_protocol :: web_audio :: EventAudioNodeCreated > () ?) , super :: browser_protocol :: web_audio :: EventAudioNodeWillBeDestroyed :: IDENTIFIER => CdpEvent :: WebAudioAudioNodeWillBeDestroyed (map . next_value :: < super :: browser_protocol :: web_audio :: EventAudioNodeWillBeDestroyed > () ?) , super :: browser_protocol :: web_audio :: EventAudioParamCreated :: IDENTIFIER => CdpEvent :: WebAudioAudioParamCreated (map . next_value :: < super :: browser_protocol :: web_audio :: EventAudioParamCreated > () ?) , super :: browser_protocol :: web_audio :: EventAudioParamWillBeDestroyed :: IDENTIFIER => CdpEvent :: WebAudioAudioParamWillBeDestroyed (map . next_value :: < super :: browser_protocol :: web_audio :: EventAudioParamWillBeDestroyed > () ?) , super :: browser_protocol :: web_audio :: EventNodesConnected :: IDENTIFIER => CdpEvent :: WebAudioNodesConnected (map . next_value :: < super :: browser_protocol :: web_audio :: EventNodesConnected > () ?) , super :: browser_protocol :: web_audio :: EventNodesDisconnected :: IDENTIFIER => CdpEvent :: WebAudioNodesDisconnected (map . next_value :: < super :: browser_protocol :: web_audio :: EventNodesDisconnected > () ?) , super :: browser_protocol :: web_audio :: EventNodeParamConnected :: IDENTIFIER => CdpEvent :: WebAudioNodeParamConnected (map . next_value :: < super :: browser_protocol :: web_audio :: EventNodeParamConnected > () ?) , super :: browser_protocol :: web_audio :: EventNodeParamDisconnected :: IDENTIFIER => CdpEvent :: WebAudioNodeParamDisconnected (map . next_value :: < super :: browser_protocol :: web_audio :: EventNodeParamDisconnected > () ?) , super :: browser_protocol :: web_authn :: EventCredentialAdded :: IDENTIFIER => CdpEvent :: WebAuthnCredentialAdded (map . next_value :: < super :: browser_protocol :: web_authn :: EventCredentialAdded > () ?) , super :: browser_protocol :: web_authn :: EventCredentialAsserted :: IDENTIFIER => CdpEvent :: WebAuthnCredentialAsserted (map . next_value :: < super :: browser_protocol :: web_authn :: EventCredentialAsserted > () ?) , super :: browser_protocol :: media :: EventPlayerPropertiesChanged :: IDENTIFIER => CdpEvent :: MediaPlayerPropertiesChanged (map . next_value :: < super :: browser_protocol :: media :: EventPlayerPropertiesChanged > () ?) , super :: browser_protocol :: media :: EventPlayerEventsAdded :: IDENTIFIER => CdpEvent :: MediaPlayerEventsAdded (map . next_value :: < super :: browser_protocol :: media :: EventPlayerEventsAdded > () ?) , super :: browser_protocol :: media :: EventPlayerMessagesLogged :: IDENTIFIER => CdpEvent :: MediaPlayerMessagesLogged (map . next_value :: < super :: browser_protocol :: media :: EventPlayerMessagesLogged > () ?) , super :: browser_protocol :: media :: EventPlayerErrorsRaised :: IDENTIFIER => CdpEvent :: MediaPlayerErrorsRaised (map . next_value :: < super :: browser_protocol :: media :: EventPlayerErrorsRaised > () ?) , super :: browser_protocol :: media :: EventPlayersCreated :: IDENTIFIER => CdpEvent :: MediaPlayersCreated (map . next_value :: < super :: browser_protocol :: media :: EventPlayersCreated > () ?) , super :: browser_protocol :: device_access :: EventDeviceRequestPrompted :: IDENTIFIER => CdpEvent :: DeviceAccessDeviceRequestPrompted (map . next_value :: < super :: browser_protocol :: device_access :: EventDeviceRequestPrompted > () ?) , super :: browser_protocol :: preload :: EventRuleSetUpdated :: IDENTIFIER => CdpEvent :: PreloadRuleSetUpdated (map . next_value :: < super :: browser_protocol :: preload :: EventRuleSetUpdated > () ?) , super :: browser_protocol :: preload :: EventRuleSetRemoved :: IDENTIFIER => CdpEvent :: PreloadRuleSetRemoved (map . next_value :: < super :: browser_protocol :: preload :: EventRuleSetRemoved > () ?) , super :: browser_protocol :: preload :: EventPreloadEnabledStateUpdated :: IDENTIFIER => CdpEvent :: PreloadPreloadEnabledStateUpdated (map . next_value :: < super :: browser_protocol :: preload :: EventPreloadEnabledStateUpdated > () ?) , super :: browser_protocol :: preload :: EventPrefetchStatusUpdated :: IDENTIFIER => CdpEvent :: PreloadPrefetchStatusUpdated (Box :: new (map . next_value :: < super :: browser_protocol :: preload :: EventPrefetchStatusUpdated > () ?)) , super :: browser_protocol :: preload :: EventPrerenderStatusUpdated :: IDENTIFIER => CdpEvent :: PreloadPrerenderStatusUpdated (map . next_value :: < super :: browser_protocol :: preload :: EventPrerenderStatusUpdated > () ?) , super :: browser_protocol :: preload :: EventPreloadingAttemptSourcesUpdated :: IDENTIFIER => CdpEvent :: PreloadPreloadingAttemptSourcesUpdated (map . next_value :: < super :: browser_protocol :: preload :: EventPreloadingAttemptSourcesUpdated > () ?) , super :: browser_protocol :: fed_cm :: EventDialogShown :: IDENTIFIER => CdpEvent :: FedCmDialogShown (map . next_value :: < super :: browser_protocol :: fed_cm :: EventDialogShown > () ?) , super :: browser_protocol :: fed_cm :: EventDialogClosed :: IDENTIFIER => CdpEvent :: FedCmDialogClosed (map . next_value :: < super :: browser_protocol :: fed_cm :: EventDialogClosed > () ?) , _ => CdpEvent :: Other (map . next_value :: < serde_json :: Value > () ?) }) ;
+                                params = Some (match method . as_ref () . ok_or_else (|| de :: Error :: missing_field ("params")) ? . as_str () { super :: js_protocol :: debugger :: EventPaused :: IDENTIFIER => CdpEvent :: DebuggerPaused (map . next_value :: < super :: js_protocol :: debugger :: EventPaused > () ?) , super :: js_protocol :: debugger :: EventResumed :: IDENTIFIER => CdpEvent :: DebuggerResumed (map . next_value :: < super :: js_protocol :: debugger :: EventResumed > () ?) , super :: js_protocol :: debugger :: EventScriptFailedToParse :: IDENTIFIER => CdpEvent :: DebuggerScriptFailedToParse (Box :: new (map . next_value :: < super :: js_protocol :: debugger :: EventScriptFailedToParse > () ?)) , super :: js_protocol :: debugger :: EventScriptParsed :: IDENTIFIER => CdpEvent :: DebuggerScriptParsed (Box :: new (map . next_value :: < super :: js_protocol :: debugger :: EventScriptParsed > () ?)) , super :: js_protocol :: heap_profiler :: EventAddHeapSnapshotChunk :: IDENTIFIER => CdpEvent :: HeapProfilerAddHeapSnapshotChunk (map . next_value :: < super :: js_protocol :: heap_profiler :: EventAddHeapSnapshotChunk > () ?) , super :: js_protocol :: heap_profiler :: EventHeapStatsUpdate :: IDENTIFIER => CdpEvent :: HeapProfilerHeapStatsUpdate (map . next_value :: < super :: js_protocol :: heap_profiler :: EventHeapStatsUpdate > () ?) , super :: js_protocol :: heap_profiler :: EventLastSeenObjectId :: IDENTIFIER => CdpEvent :: HeapProfilerLastSeenObjectId (map . next_value :: < super :: js_protocol :: heap_profiler :: EventLastSeenObjectId > () ?) , super :: js_protocol :: heap_profiler :: EventReportHeapSnapshotProgress :: IDENTIFIER => CdpEvent :: HeapProfilerReportHeapSnapshotProgress (map . next_value :: < super :: js_protocol :: heap_profiler :: EventReportHeapSnapshotProgress > () ?) , super :: js_protocol :: heap_profiler :: EventResetProfiles :: IDENTIFIER => CdpEvent :: HeapProfilerResetProfiles (map . next_value :: < super :: js_protocol :: heap_profiler :: EventResetProfiles > () ?) , super :: js_protocol :: profiler :: EventConsoleProfileFinished :: IDENTIFIER => CdpEvent :: ProfilerConsoleProfileFinished (map . next_value :: < super :: js_protocol :: profiler :: EventConsoleProfileFinished > () ?) , super :: js_protocol :: profiler :: EventConsoleProfileStarted :: IDENTIFIER => CdpEvent :: ProfilerConsoleProfileStarted (map . next_value :: < super :: js_protocol :: profiler :: EventConsoleProfileStarted > () ?) , super :: js_protocol :: profiler :: EventPreciseCoverageDeltaUpdate :: IDENTIFIER => CdpEvent :: ProfilerPreciseCoverageDeltaUpdate (map . next_value :: < super :: js_protocol :: profiler :: EventPreciseCoverageDeltaUpdate > () ?) , super :: js_protocol :: runtime :: EventBindingCalled :: IDENTIFIER => CdpEvent :: RuntimeBindingCalled (map . next_value :: < super :: js_protocol :: runtime :: EventBindingCalled > () ?) , super :: js_protocol :: runtime :: EventConsoleApiCalled :: IDENTIFIER => CdpEvent :: RuntimeConsoleApiCalled (map . next_value :: < super :: js_protocol :: runtime :: EventConsoleApiCalled > () ?) , super :: js_protocol :: runtime :: EventExceptionRevoked :: IDENTIFIER => CdpEvent :: RuntimeExceptionRevoked (map . next_value :: < super :: js_protocol :: runtime :: EventExceptionRevoked > () ?) , super :: js_protocol :: runtime :: EventExceptionThrown :: IDENTIFIER => CdpEvent :: RuntimeExceptionThrown (Box :: new (map . next_value :: < super :: js_protocol :: runtime :: EventExceptionThrown > () ?)) , super :: js_protocol :: runtime :: EventExecutionContextCreated :: IDENTIFIER => CdpEvent :: RuntimeExecutionContextCreated (map . next_value :: < super :: js_protocol :: runtime :: EventExecutionContextCreated > () ?) , super :: js_protocol :: runtime :: EventExecutionContextDestroyed :: IDENTIFIER => CdpEvent :: RuntimeExecutionContextDestroyed (map . next_value :: < super :: js_protocol :: runtime :: EventExecutionContextDestroyed > () ?) , super :: js_protocol :: runtime :: EventExecutionContextsCleared :: IDENTIFIER => CdpEvent :: RuntimeExecutionContextsCleared (map . next_value :: < super :: js_protocol :: runtime :: EventExecutionContextsCleared > () ?) , super :: js_protocol :: runtime :: EventInspectRequested :: IDENTIFIER => CdpEvent :: RuntimeInspectRequested (Box :: new (map . next_value :: < super :: js_protocol :: runtime :: EventInspectRequested > () ?)) , super :: browser_protocol :: accessibility :: EventLoadComplete :: IDENTIFIER => CdpEvent :: AccessibilityLoadComplete (Box :: new (map . next_value :: < super :: browser_protocol :: accessibility :: EventLoadComplete > () ?)) , super :: browser_protocol :: accessibility :: EventNodesUpdated :: IDENTIFIER => CdpEvent :: AccessibilityNodesUpdated (map . next_value :: < super :: browser_protocol :: accessibility :: EventNodesUpdated > () ?) , super :: browser_protocol :: animation :: EventAnimationCanceled :: IDENTIFIER => CdpEvent :: AnimationAnimationCanceled (map . next_value :: < super :: browser_protocol :: animation :: EventAnimationCanceled > () ?) , super :: browser_protocol :: animation :: EventAnimationCreated :: IDENTIFIER => CdpEvent :: AnimationAnimationCreated (map . next_value :: < super :: browser_protocol :: animation :: EventAnimationCreated > () ?) , super :: browser_protocol :: animation :: EventAnimationStarted :: IDENTIFIER => CdpEvent :: AnimationAnimationStarted (Box :: new (map . next_value :: < super :: browser_protocol :: animation :: EventAnimationStarted > () ?)) , super :: browser_protocol :: animation :: EventAnimationUpdated :: IDENTIFIER => CdpEvent :: AnimationAnimationUpdated (Box :: new (map . next_value :: < super :: browser_protocol :: animation :: EventAnimationUpdated > () ?)) , super :: browser_protocol :: audits :: EventIssueAdded :: IDENTIFIER => CdpEvent :: AuditsIssueAdded (Box :: new (map . next_value :: < super :: browser_protocol :: audits :: EventIssueAdded > () ?)) , super :: browser_protocol :: autofill :: EventAddressFormFilled :: IDENTIFIER => CdpEvent :: AutofillAddressFormFilled (map . next_value :: < super :: browser_protocol :: autofill :: EventAddressFormFilled > () ?) , super :: browser_protocol :: background_service :: EventRecordingStateChanged :: IDENTIFIER => CdpEvent :: BackgroundServiceRecordingStateChanged (map . next_value :: < super :: browser_protocol :: background_service :: EventRecordingStateChanged > () ?) , super :: browser_protocol :: background_service :: EventBackgroundServiceEventReceived :: IDENTIFIER => CdpEvent :: BackgroundServiceBackgroundServiceEventReceived (map . next_value :: < super :: browser_protocol :: background_service :: EventBackgroundServiceEventReceived > () ?) , super :: browser_protocol :: browser :: EventDownloadWillBegin :: IDENTIFIER => CdpEvent :: BrowserDownloadWillBegin (map . next_value :: < super :: browser_protocol :: browser :: EventDownloadWillBegin > () ?) , super :: browser_protocol :: browser :: EventDownloadProgress :: IDENTIFIER => CdpEvent :: BrowserDownloadProgress (map . next_value :: < super :: browser_protocol :: browser :: EventDownloadProgress > () ?) , super :: browser_protocol :: css :: EventFontsUpdated :: IDENTIFIER => CdpEvent :: CssFontsUpdated (Box :: new (map . next_value :: < super :: browser_protocol :: css :: EventFontsUpdated > () ?)) , super :: browser_protocol :: css :: EventMediaQueryResultChanged :: IDENTIFIER => CdpEvent :: CssMediaQueryResultChanged (map . next_value :: < super :: browser_protocol :: css :: EventMediaQueryResultChanged > () ?) , super :: browser_protocol :: css :: EventStyleSheetAdded :: IDENTIFIER => CdpEvent :: CssStyleSheetAdded (map . next_value :: < super :: browser_protocol :: css :: EventStyleSheetAdded > () ?) , super :: browser_protocol :: css :: EventStyleSheetChanged :: IDENTIFIER => CdpEvent :: CssStyleSheetChanged (map . next_value :: < super :: browser_protocol :: css :: EventStyleSheetChanged > () ?) , super :: browser_protocol :: css :: EventStyleSheetRemoved :: IDENTIFIER => CdpEvent :: CssStyleSheetRemoved (map . next_value :: < super :: browser_protocol :: css :: EventStyleSheetRemoved > () ?) , super :: browser_protocol :: css :: EventComputedStyleUpdated :: IDENTIFIER => CdpEvent :: CssComputedStyleUpdated (map . next_value :: < super :: browser_protocol :: css :: EventComputedStyleUpdated > () ?) , super :: browser_protocol :: cast :: EventSinksUpdated :: IDENTIFIER => CdpEvent :: CastSinksUpdated (map . next_value :: < super :: browser_protocol :: cast :: EventSinksUpdated > () ?) , super :: browser_protocol :: cast :: EventIssueUpdated :: IDENTIFIER => CdpEvent :: CastIssueUpdated (map . next_value :: < super :: browser_protocol :: cast :: EventIssueUpdated > () ?) , super :: browser_protocol :: dom :: EventAttributeModified :: IDENTIFIER => CdpEvent :: DomAttributeModified (map . next_value :: < super :: browser_protocol :: dom :: EventAttributeModified > () ?) , super :: browser_protocol :: dom :: EventAttributeRemoved :: IDENTIFIER => CdpEvent :: DomAttributeRemoved (map . next_value :: < super :: browser_protocol :: dom :: EventAttributeRemoved > () ?) , super :: browser_protocol :: dom :: EventCharacterDataModified :: IDENTIFIER => CdpEvent :: DomCharacterDataModified (map . next_value :: < super :: browser_protocol :: dom :: EventCharacterDataModified > () ?) , super :: browser_protocol :: dom :: EventChildNodeCountUpdated :: IDENTIFIER => CdpEvent :: DomChildNodeCountUpdated (map . next_value :: < super :: browser_protocol :: dom :: EventChildNodeCountUpdated > () ?) , super :: browser_protocol :: dom :: EventChildNodeInserted :: IDENTIFIER => CdpEvent :: DomChildNodeInserted (Box :: new (map . next_value :: < super :: browser_protocol :: dom :: EventChildNodeInserted > () ?)) , super :: browser_protocol :: dom :: EventChildNodeRemoved :: IDENTIFIER => CdpEvent :: DomChildNodeRemoved (map . next_value :: < super :: browser_protocol :: dom :: EventChildNodeRemoved > () ?) , super :: browser_protocol :: dom :: EventDistributedNodesUpdated :: IDENTIFIER => CdpEvent :: DomDistributedNodesUpdated (map . next_value :: < super :: browser_protocol :: dom :: EventDistributedNodesUpdated > () ?) , super :: browser_protocol :: dom :: EventDocumentUpdated :: IDENTIFIER => CdpEvent :: DomDocumentUpdated (map . next_value :: < super :: browser_protocol :: dom :: EventDocumentUpdated > () ?) , super :: browser_protocol :: dom :: EventInlineStyleInvalidated :: IDENTIFIER => CdpEvent :: DomInlineStyleInvalidated (map . next_value :: < super :: browser_protocol :: dom :: EventInlineStyleInvalidated > () ?) , super :: browser_protocol :: dom :: EventPseudoElementAdded :: IDENTIFIER => CdpEvent :: DomPseudoElementAdded (Box :: new (map . next_value :: < super :: browser_protocol :: dom :: EventPseudoElementAdded > () ?)) , super :: browser_protocol :: dom :: EventTopLayerElementsUpdated :: IDENTIFIER => CdpEvent :: DomTopLayerElementsUpdated (map . next_value :: < super :: browser_protocol :: dom :: EventTopLayerElementsUpdated > () ?) , super :: browser_protocol :: dom :: EventScrollableFlagUpdated :: IDENTIFIER => CdpEvent :: DomScrollableFlagUpdated (map . next_value :: < super :: browser_protocol :: dom :: EventScrollableFlagUpdated > () ?) , super :: browser_protocol :: dom :: EventPseudoElementRemoved :: IDENTIFIER => CdpEvent :: DomPseudoElementRemoved (map . next_value :: < super :: browser_protocol :: dom :: EventPseudoElementRemoved > () ?) , super :: browser_protocol :: dom :: EventSetChildNodes :: IDENTIFIER => CdpEvent :: DomSetChildNodes (map . next_value :: < super :: browser_protocol :: dom :: EventSetChildNodes > () ?) , super :: browser_protocol :: dom :: EventShadowRootPopped :: IDENTIFIER => CdpEvent :: DomShadowRootPopped (map . next_value :: < super :: browser_protocol :: dom :: EventShadowRootPopped > () ?) , super :: browser_protocol :: dom :: EventShadowRootPushed :: IDENTIFIER => CdpEvent :: DomShadowRootPushed (Box :: new (map . next_value :: < super :: browser_protocol :: dom :: EventShadowRootPushed > () ?)) , super :: browser_protocol :: dom_storage :: EventDomStorageItemAdded :: IDENTIFIER => CdpEvent :: DomStorageDomStorageItemAdded (map . next_value :: < super :: browser_protocol :: dom_storage :: EventDomStorageItemAdded > () ?) , super :: browser_protocol :: dom_storage :: EventDomStorageItemRemoved :: IDENTIFIER => CdpEvent :: DomStorageDomStorageItemRemoved (map . next_value :: < super :: browser_protocol :: dom_storage :: EventDomStorageItemRemoved > () ?) , super :: browser_protocol :: dom_storage :: EventDomStorageItemUpdated :: IDENTIFIER => CdpEvent :: DomStorageDomStorageItemUpdated (map . next_value :: < super :: browser_protocol :: dom_storage :: EventDomStorageItemUpdated > () ?) , super :: browser_protocol :: dom_storage :: EventDomStorageItemsCleared :: IDENTIFIER => CdpEvent :: DomStorageDomStorageItemsCleared (map . next_value :: < super :: browser_protocol :: dom_storage :: EventDomStorageItemsCleared > () ?) , super :: browser_protocol :: emulation :: EventVirtualTimeBudgetExpired :: IDENTIFIER => CdpEvent :: EmulationVirtualTimeBudgetExpired (map . next_value :: < super :: browser_protocol :: emulation :: EventVirtualTimeBudgetExpired > () ?) , super :: browser_protocol :: input :: EventDragIntercepted :: IDENTIFIER => CdpEvent :: InputDragIntercepted (map . next_value :: < super :: browser_protocol :: input :: EventDragIntercepted > () ?) , super :: browser_protocol :: inspector :: EventDetached :: IDENTIFIER => CdpEvent :: InspectorDetached (map . next_value :: < super :: browser_protocol :: inspector :: EventDetached > () ?) , super :: browser_protocol :: inspector :: EventTargetCrashed :: IDENTIFIER => CdpEvent :: InspectorTargetCrashed (map . next_value :: < super :: browser_protocol :: inspector :: EventTargetCrashed > () ?) , super :: browser_protocol :: inspector :: EventTargetReloadedAfterCrash :: IDENTIFIER => CdpEvent :: InspectorTargetReloadedAfterCrash (map . next_value :: < super :: browser_protocol :: inspector :: EventTargetReloadedAfterCrash > () ?) , super :: browser_protocol :: layer_tree :: EventLayerPainted :: IDENTIFIER => CdpEvent :: LayerTreeLayerPainted (map . next_value :: < super :: browser_protocol :: layer_tree :: EventLayerPainted > () ?) , super :: browser_protocol :: layer_tree :: EventLayerTreeDidChange :: IDENTIFIER => CdpEvent :: LayerTreeLayerTreeDidChange (map . next_value :: < super :: browser_protocol :: layer_tree :: EventLayerTreeDidChange > () ?) , super :: browser_protocol :: log :: EventEntryAdded :: IDENTIFIER => CdpEvent :: LogEntryAdded (Box :: new (map . next_value :: < super :: browser_protocol :: log :: EventEntryAdded > () ?)) , super :: browser_protocol :: network :: EventDataReceived :: IDENTIFIER => CdpEvent :: NetworkDataReceived (map . next_value :: < super :: browser_protocol :: network :: EventDataReceived > () ?) , super :: browser_protocol :: network :: EventEventSourceMessageReceived :: IDENTIFIER => CdpEvent :: NetworkEventSourceMessageReceived (map . next_value :: < super :: browser_protocol :: network :: EventEventSourceMessageReceived > () ?) , super :: browser_protocol :: network :: EventLoadingFailed :: IDENTIFIER => CdpEvent :: NetworkLoadingFailed (map . next_value :: < super :: browser_protocol :: network :: EventLoadingFailed > () ?) , super :: browser_protocol :: network :: EventLoadingFinished :: IDENTIFIER => CdpEvent :: NetworkLoadingFinished (map . next_value :: < super :: browser_protocol :: network :: EventLoadingFinished > () ?) , super :: browser_protocol :: network :: EventRequestServedFromCache :: IDENTIFIER => CdpEvent :: NetworkRequestServedFromCache (map . next_value :: < super :: browser_protocol :: network :: EventRequestServedFromCache > () ?) , super :: browser_protocol :: network :: EventRequestWillBeSent :: IDENTIFIER => CdpEvent :: NetworkRequestWillBeSent (Box :: new (map . next_value :: < super :: browser_protocol :: network :: EventRequestWillBeSent > () ?)) , super :: browser_protocol :: network :: EventResourceChangedPriority :: IDENTIFIER => CdpEvent :: NetworkResourceChangedPriority (map . next_value :: < super :: browser_protocol :: network :: EventResourceChangedPriority > () ?) , super :: browser_protocol :: network :: EventSignedExchangeReceived :: IDENTIFIER => CdpEvent :: NetworkSignedExchangeReceived (Box :: new (map . next_value :: < super :: browser_protocol :: network :: EventSignedExchangeReceived > () ?)) , super :: browser_protocol :: network :: EventResponseReceived :: IDENTIFIER => CdpEvent :: NetworkResponseReceived (Box :: new (map . next_value :: < super :: browser_protocol :: network :: EventResponseReceived > () ?)) , super :: browser_protocol :: network :: EventWebSocketClosed :: IDENTIFIER => CdpEvent :: NetworkWebSocketClosed (map . next_value :: < super :: browser_protocol :: network :: EventWebSocketClosed > () ?) , super :: browser_protocol :: network :: EventWebSocketCreated :: IDENTIFIER => CdpEvent :: NetworkWebSocketCreated (Box :: new (map . next_value :: < super :: browser_protocol :: network :: EventWebSocketCreated > () ?)) , super :: browser_protocol :: network :: EventWebSocketFrameError :: IDENTIFIER => CdpEvent :: NetworkWebSocketFrameError (map . next_value :: < super :: browser_protocol :: network :: EventWebSocketFrameError > () ?) , super :: browser_protocol :: network :: EventWebSocketFrameReceived :: IDENTIFIER => CdpEvent :: NetworkWebSocketFrameReceived (map . next_value :: < super :: browser_protocol :: network :: EventWebSocketFrameReceived > () ?) , super :: browser_protocol :: network :: EventWebSocketFrameSent :: IDENTIFIER => CdpEvent :: NetworkWebSocketFrameSent (map . next_value :: < super :: browser_protocol :: network :: EventWebSocketFrameSent > () ?) , super :: browser_protocol :: network :: EventWebSocketHandshakeResponseReceived :: IDENTIFIER => CdpEvent :: NetworkWebSocketHandshakeResponseReceived (Box :: new (map . next_value :: < super :: browser_protocol :: network :: EventWebSocketHandshakeResponseReceived > () ?)) , super :: browser_protocol :: network :: EventWebSocketWillSendHandshakeRequest :: IDENTIFIER => CdpEvent :: NetworkWebSocketWillSendHandshakeRequest (map . next_value :: < super :: browser_protocol :: network :: EventWebSocketWillSendHandshakeRequest > () ?) , super :: browser_protocol :: network :: EventWebTransportCreated :: IDENTIFIER => CdpEvent :: NetworkWebTransportCreated (Box :: new (map . next_value :: < super :: browser_protocol :: network :: EventWebTransportCreated > () ?)) , super :: browser_protocol :: network :: EventWebTransportConnectionEstablished :: IDENTIFIER => CdpEvent :: NetworkWebTransportConnectionEstablished (map . next_value :: < super :: browser_protocol :: network :: EventWebTransportConnectionEstablished > () ?) , super :: browser_protocol :: network :: EventWebTransportClosed :: IDENTIFIER => CdpEvent :: NetworkWebTransportClosed (map . next_value :: < super :: browser_protocol :: network :: EventWebTransportClosed > () ?) , super :: browser_protocol :: network :: EventRequestWillBeSentExtraInfo :: IDENTIFIER => CdpEvent :: NetworkRequestWillBeSentExtraInfo (map . next_value :: < super :: browser_protocol :: network :: EventRequestWillBeSentExtraInfo > () ?) , super :: browser_protocol :: network :: EventResponseReceivedExtraInfo :: IDENTIFIER => CdpEvent :: NetworkResponseReceivedExtraInfo (Box :: new (map . next_value :: < super :: browser_protocol :: network :: EventResponseReceivedExtraInfo > () ?)) , super :: browser_protocol :: network :: EventResponseReceivedEarlyHints :: IDENTIFIER => CdpEvent :: NetworkResponseReceivedEarlyHints (map . next_value :: < super :: browser_protocol :: network :: EventResponseReceivedEarlyHints > () ?) , super :: browser_protocol :: network :: EventTrustTokenOperationDone :: IDENTIFIER => CdpEvent :: NetworkTrustTokenOperationDone (map . next_value :: < super :: browser_protocol :: network :: EventTrustTokenOperationDone > () ?) , super :: browser_protocol :: network :: EventPolicyUpdated :: IDENTIFIER => CdpEvent :: NetworkPolicyUpdated (map . next_value :: < super :: browser_protocol :: network :: EventPolicyUpdated > () ?) , super :: browser_protocol :: network :: EventSubresourceWebBundleMetadataReceived :: IDENTIFIER => CdpEvent :: NetworkSubresourceWebBundleMetadataReceived (map . next_value :: < super :: browser_protocol :: network :: EventSubresourceWebBundleMetadataReceived > () ?) , super :: browser_protocol :: network :: EventSubresourceWebBundleMetadataError :: IDENTIFIER => CdpEvent :: NetworkSubresourceWebBundleMetadataError (map . next_value :: < super :: browser_protocol :: network :: EventSubresourceWebBundleMetadataError > () ?) , super :: browser_protocol :: network :: EventSubresourceWebBundleInnerResponseParsed :: IDENTIFIER => CdpEvent :: NetworkSubresourceWebBundleInnerResponseParsed (map . next_value :: < super :: browser_protocol :: network :: EventSubresourceWebBundleInnerResponseParsed > () ?) , super :: browser_protocol :: network :: EventSubresourceWebBundleInnerResponseError :: IDENTIFIER => CdpEvent :: NetworkSubresourceWebBundleInnerResponseError (map . next_value :: < super :: browser_protocol :: network :: EventSubresourceWebBundleInnerResponseError > () ?) , super :: browser_protocol :: network :: EventReportingApiReportAdded :: IDENTIFIER => CdpEvent :: NetworkReportingApiReportAdded (map . next_value :: < super :: browser_protocol :: network :: EventReportingApiReportAdded > () ?) , super :: browser_protocol :: network :: EventReportingApiReportUpdated :: IDENTIFIER => CdpEvent :: NetworkReportingApiReportUpdated (map . next_value :: < super :: browser_protocol :: network :: EventReportingApiReportUpdated > () ?) , super :: browser_protocol :: network :: EventReportingApiEndpointsChangedForOrigin :: IDENTIFIER => CdpEvent :: NetworkReportingApiEndpointsChangedForOrigin (map . next_value :: < super :: browser_protocol :: network :: EventReportingApiEndpointsChangedForOrigin > () ?) , super :: browser_protocol :: overlay :: EventInspectNodeRequested :: IDENTIFIER => CdpEvent :: OverlayInspectNodeRequested (map . next_value :: < super :: browser_protocol :: overlay :: EventInspectNodeRequested > () ?) , super :: browser_protocol :: overlay :: EventNodeHighlightRequested :: IDENTIFIER => CdpEvent :: OverlayNodeHighlightRequested (map . next_value :: < super :: browser_protocol :: overlay :: EventNodeHighlightRequested > () ?) , super :: browser_protocol :: overlay :: EventScreenshotRequested :: IDENTIFIER => CdpEvent :: OverlayScreenshotRequested (map . next_value :: < super :: browser_protocol :: overlay :: EventScreenshotRequested > () ?) , super :: browser_protocol :: overlay :: EventInspectModeCanceled :: IDENTIFIER => CdpEvent :: OverlayInspectModeCanceled (map . next_value :: < super :: browser_protocol :: overlay :: EventInspectModeCanceled > () ?) , super :: browser_protocol :: page :: EventDomContentEventFired :: IDENTIFIER => CdpEvent :: PageDomContentEventFired (map . next_value :: < super :: browser_protocol :: page :: EventDomContentEventFired > () ?) , super :: browser_protocol :: page :: EventFileChooserOpened :: IDENTIFIER => CdpEvent :: PageFileChooserOpened (map . next_value :: < super :: browser_protocol :: page :: EventFileChooserOpened > () ?) , super :: browser_protocol :: page :: EventFrameAttached :: IDENTIFIER => CdpEvent :: PageFrameAttached (map . next_value :: < super :: browser_protocol :: page :: EventFrameAttached > () ?) , super :: browser_protocol :: page :: EventFrameDetached :: IDENTIFIER => CdpEvent :: PageFrameDetached (map . next_value :: < super :: browser_protocol :: page :: EventFrameDetached > () ?) , super :: browser_protocol :: page :: EventFrameSubtreeWillBeDetached :: IDENTIFIER => CdpEvent :: PageFrameSubtreeWillBeDetached (map . next_value :: < super :: browser_protocol :: page :: EventFrameSubtreeWillBeDetached > () ?) , super :: browser_protocol :: page :: EventFrameNavigated :: IDENTIFIER => CdpEvent :: PageFrameNavigated (Box :: new (map . next_value :: < super :: browser_protocol :: page :: EventFrameNavigated > () ?)) , super :: browser_protocol :: page :: EventDocumentOpened :: IDENTIFIER => CdpEvent :: PageDocumentOpened (Box :: new (map . next_value :: < super :: browser_protocol :: page :: EventDocumentOpened > () ?)) , super :: browser_protocol :: page :: EventFrameResized :: IDENTIFIER => CdpEvent :: PageFrameResized (map . next_value :: < super :: browser_protocol :: page :: EventFrameResized > () ?) , super :: browser_protocol :: page :: EventFrameStartedNavigating :: IDENTIFIER => CdpEvent :: PageFrameStartedNavigating (map . next_value :: < super :: browser_protocol :: page :: EventFrameStartedNavigating > () ?) , super :: browser_protocol :: page :: EventFrameRequestedNavigation :: IDENTIFIER => CdpEvent :: PageFrameRequestedNavigation (map . next_value :: < super :: browser_protocol :: page :: EventFrameRequestedNavigation > () ?) , super :: browser_protocol :: page :: EventFrameStartedLoading :: IDENTIFIER => CdpEvent :: PageFrameStartedLoading (map . next_value :: < super :: browser_protocol :: page :: EventFrameStartedLoading > () ?) , super :: browser_protocol :: page :: EventFrameStoppedLoading :: IDENTIFIER => CdpEvent :: PageFrameStoppedLoading (map . next_value :: < super :: browser_protocol :: page :: EventFrameStoppedLoading > () ?) , super :: browser_protocol :: page :: EventInterstitialHidden :: IDENTIFIER => CdpEvent :: PageInterstitialHidden (map . next_value :: < super :: browser_protocol :: page :: EventInterstitialHidden > () ?) , super :: browser_protocol :: page :: EventInterstitialShown :: IDENTIFIER => CdpEvent :: PageInterstitialShown (map . next_value :: < super :: browser_protocol :: page :: EventInterstitialShown > () ?) , super :: browser_protocol :: page :: EventJavascriptDialogClosed :: IDENTIFIER => CdpEvent :: PageJavascriptDialogClosed (map . next_value :: < super :: browser_protocol :: page :: EventJavascriptDialogClosed > () ?) , super :: browser_protocol :: page :: EventJavascriptDialogOpening :: IDENTIFIER => CdpEvent :: PageJavascriptDialogOpening (map . next_value :: < super :: browser_protocol :: page :: EventJavascriptDialogOpening > () ?) , super :: browser_protocol :: page :: EventLifecycleEvent :: IDENTIFIER => CdpEvent :: PageLifecycleEvent (map . next_value :: < super :: browser_protocol :: page :: EventLifecycleEvent > () ?) , super :: browser_protocol :: page :: EventBackForwardCacheNotUsed :: IDENTIFIER => CdpEvent :: PageBackForwardCacheNotUsed (map . next_value :: < super :: browser_protocol :: page :: EventBackForwardCacheNotUsed > () ?) , super :: browser_protocol :: page :: EventLoadEventFired :: IDENTIFIER => CdpEvent :: PageLoadEventFired (map . next_value :: < super :: browser_protocol :: page :: EventLoadEventFired > () ?) , super :: browser_protocol :: page :: EventNavigatedWithinDocument :: IDENTIFIER => CdpEvent :: PageNavigatedWithinDocument (map . next_value :: < super :: browser_protocol :: page :: EventNavigatedWithinDocument > () ?) , super :: browser_protocol :: page :: EventScreencastFrame :: IDENTIFIER => CdpEvent :: PageScreencastFrame (map . next_value :: < super :: browser_protocol :: page :: EventScreencastFrame > () ?) , super :: browser_protocol :: page :: EventScreencastVisibilityChanged :: IDENTIFIER => CdpEvent :: PageScreencastVisibilityChanged (map . next_value :: < super :: browser_protocol :: page :: EventScreencastVisibilityChanged > () ?) , super :: browser_protocol :: page :: EventWindowOpen :: IDENTIFIER => CdpEvent :: PageWindowOpen (map . next_value :: < super :: browser_protocol :: page :: EventWindowOpen > () ?) , super :: browser_protocol :: page :: EventCompilationCacheProduced :: IDENTIFIER => CdpEvent :: PageCompilationCacheProduced (map . next_value :: < super :: browser_protocol :: page :: EventCompilationCacheProduced > () ?) , super :: browser_protocol :: performance :: EventMetrics :: IDENTIFIER => CdpEvent :: PerformanceMetrics (map . next_value :: < super :: browser_protocol :: performance :: EventMetrics > () ?) , super :: browser_protocol :: performance_timeline :: EventTimelineEventAdded :: IDENTIFIER => CdpEvent :: PerformanceTimelineTimelineEventAdded (Box :: new (map . next_value :: < super :: browser_protocol :: performance_timeline :: EventTimelineEventAdded > () ?)) , super :: browser_protocol :: security :: EventVisibleSecurityStateChanged :: IDENTIFIER => CdpEvent :: SecurityVisibleSecurityStateChanged (Box :: new (map . next_value :: < super :: browser_protocol :: security :: EventVisibleSecurityStateChanged > () ?)) , super :: browser_protocol :: service_worker :: EventWorkerErrorReported :: IDENTIFIER => CdpEvent :: ServiceWorkerWorkerErrorReported (map . next_value :: < super :: browser_protocol :: service_worker :: EventWorkerErrorReported > () ?) , super :: browser_protocol :: service_worker :: EventWorkerRegistrationUpdated :: IDENTIFIER => CdpEvent :: ServiceWorkerWorkerRegistrationUpdated (map . next_value :: < super :: browser_protocol :: service_worker :: EventWorkerRegistrationUpdated > () ?) , super :: browser_protocol :: service_worker :: EventWorkerVersionUpdated :: IDENTIFIER => CdpEvent :: ServiceWorkerWorkerVersionUpdated (map . next_value :: < super :: browser_protocol :: service_worker :: EventWorkerVersionUpdated > () ?) , super :: browser_protocol :: storage :: EventCacheStorageContentUpdated :: IDENTIFIER => CdpEvent :: StorageCacheStorageContentUpdated (map . next_value :: < super :: browser_protocol :: storage :: EventCacheStorageContentUpdated > () ?) , super :: browser_protocol :: storage :: EventCacheStorageListUpdated :: IDENTIFIER => CdpEvent :: StorageCacheStorageListUpdated (map . next_value :: < super :: browser_protocol :: storage :: EventCacheStorageListUpdated > () ?) , super :: browser_protocol :: storage :: EventIndexedDbContentUpdated :: IDENTIFIER => CdpEvent :: StorageIndexedDbContentUpdated (map . next_value :: < super :: browser_protocol :: storage :: EventIndexedDbContentUpdated > () ?) , super :: browser_protocol :: storage :: EventIndexedDbListUpdated :: IDENTIFIER => CdpEvent :: StorageIndexedDbListUpdated (map . next_value :: < super :: browser_protocol :: storage :: EventIndexedDbListUpdated > () ?) , super :: browser_protocol :: storage :: EventInterestGroupAccessed :: IDENTIFIER => CdpEvent :: StorageInterestGroupAccessed (map . next_value :: < super :: browser_protocol :: storage :: EventInterestGroupAccessed > () ?) , super :: browser_protocol :: storage :: EventInterestGroupAuctionEventOccurred :: IDENTIFIER => CdpEvent :: StorageInterestGroupAuctionEventOccurred (map . next_value :: < super :: browser_protocol :: storage :: EventInterestGroupAuctionEventOccurred > () ?) , super :: browser_protocol :: storage :: EventInterestGroupAuctionNetworkRequestCreated :: IDENTIFIER => CdpEvent :: StorageInterestGroupAuctionNetworkRequestCreated (map . next_value :: < super :: browser_protocol :: storage :: EventInterestGroupAuctionNetworkRequestCreated > () ?) , super :: browser_protocol :: storage :: EventSharedStorageAccessed :: IDENTIFIER => CdpEvent :: StorageSharedStorageAccessed (Box :: new (map . next_value :: < super :: browser_protocol :: storage :: EventSharedStorageAccessed > () ?)) , super :: browser_protocol :: storage :: EventStorageBucketCreatedOrUpdated :: IDENTIFIER => CdpEvent :: StorageStorageBucketCreatedOrUpdated (map . next_value :: < super :: browser_protocol :: storage :: EventStorageBucketCreatedOrUpdated > () ?) , super :: browser_protocol :: storage :: EventStorageBucketDeleted :: IDENTIFIER => CdpEvent :: StorageStorageBucketDeleted (map . next_value :: < super :: browser_protocol :: storage :: EventStorageBucketDeleted > () ?) , super :: browser_protocol :: storage :: EventAttributionReportingSourceRegistered :: IDENTIFIER => CdpEvent :: StorageAttributionReportingSourceRegistered (Box :: new (map . next_value :: < super :: browser_protocol :: storage :: EventAttributionReportingSourceRegistered > () ?)) , super :: browser_protocol :: storage :: EventAttributionReportingTriggerRegistered :: IDENTIFIER => CdpEvent :: StorageAttributionReportingTriggerRegistered (Box :: new (map . next_value :: < super :: browser_protocol :: storage :: EventAttributionReportingTriggerRegistered > () ?)) , super :: browser_protocol :: target :: EventAttachedToTarget :: IDENTIFIER => CdpEvent :: TargetAttachedToTarget (Box :: new (map . next_value :: < super :: browser_protocol :: target :: EventAttachedToTarget > () ?)) , super :: browser_protocol :: target :: EventDetachedFromTarget :: IDENTIFIER => CdpEvent :: TargetDetachedFromTarget (map . next_value :: < super :: browser_protocol :: target :: EventDetachedFromTarget > () ?) , super :: browser_protocol :: target :: EventReceivedMessageFromTarget :: IDENTIFIER => CdpEvent :: TargetReceivedMessageFromTarget (map . next_value :: < super :: browser_protocol :: target :: EventReceivedMessageFromTarget > () ?) , super :: browser_protocol :: target :: EventTargetCreated :: IDENTIFIER => CdpEvent :: TargetTargetCreated (map . next_value :: < super :: browser_protocol :: target :: EventTargetCreated > () ?) , super :: browser_protocol :: target :: EventTargetDestroyed :: IDENTIFIER => CdpEvent :: TargetTargetDestroyed (map . next_value :: < super :: browser_protocol :: target :: EventTargetDestroyed > () ?) , super :: browser_protocol :: target :: EventTargetCrashed :: IDENTIFIER => CdpEvent :: TargetTargetCrashed (map . next_value :: < super :: browser_protocol :: target :: EventTargetCrashed > () ?) , super :: browser_protocol :: target :: EventTargetInfoChanged :: IDENTIFIER => CdpEvent :: TargetTargetInfoChanged (map . next_value :: < super :: browser_protocol :: target :: EventTargetInfoChanged > () ?) , super :: browser_protocol :: tethering :: EventAccepted :: IDENTIFIER => CdpEvent :: TetheringAccepted (map . next_value :: < super :: browser_protocol :: tethering :: EventAccepted > () ?) , super :: browser_protocol :: tracing :: EventBufferUsage :: IDENTIFIER => CdpEvent :: TracingBufferUsage (map . next_value :: < super :: browser_protocol :: tracing :: EventBufferUsage > () ?) , super :: browser_protocol :: tracing :: EventDataCollected :: IDENTIFIER => CdpEvent :: TracingDataCollected (map . next_value :: < super :: browser_protocol :: tracing :: EventDataCollected > () ?) , super :: browser_protocol :: tracing :: EventTracingComplete :: IDENTIFIER => CdpEvent :: TracingTracingComplete (map . next_value :: < super :: browser_protocol :: tracing :: EventTracingComplete > () ?) , super :: browser_protocol :: fetch :: EventRequestPaused :: IDENTIFIER => CdpEvent :: FetchRequestPaused (Box :: new (map . next_value :: < super :: browser_protocol :: fetch :: EventRequestPaused > () ?)) , super :: browser_protocol :: fetch :: EventAuthRequired :: IDENTIFIER => CdpEvent :: FetchAuthRequired (Box :: new (map . next_value :: < super :: browser_protocol :: fetch :: EventAuthRequired > () ?)) , super :: browser_protocol :: web_audio :: EventContextCreated :: IDENTIFIER => CdpEvent :: WebAudioContextCreated (map . next_value :: < super :: browser_protocol :: web_audio :: EventContextCreated > () ?) , super :: browser_protocol :: web_audio :: EventContextWillBeDestroyed :: IDENTIFIER => CdpEvent :: WebAudioContextWillBeDestroyed (map . next_value :: < super :: browser_protocol :: web_audio :: EventContextWillBeDestroyed > () ?) , super :: browser_protocol :: web_audio :: EventContextChanged :: IDENTIFIER => CdpEvent :: WebAudioContextChanged (map . next_value :: < super :: browser_protocol :: web_audio :: EventContextChanged > () ?) , super :: browser_protocol :: web_audio :: EventAudioListenerCreated :: IDENTIFIER => CdpEvent :: WebAudioAudioListenerCreated (map . next_value :: < super :: browser_protocol :: web_audio :: EventAudioListenerCreated > () ?) , super :: browser_protocol :: web_audio :: EventAudioListenerWillBeDestroyed :: IDENTIFIER => CdpEvent :: WebAudioAudioListenerWillBeDestroyed (map . next_value :: < super :: browser_protocol :: web_audio :: EventAudioListenerWillBeDestroyed > () ?) , super :: browser_protocol :: web_audio :: EventAudioNodeCreated :: IDENTIFIER => CdpEvent :: WebAudioAudioNodeCreated (map . next_value :: < super :: browser_protocol :: web_audio :: EventAudioNodeCreated > () ?) , super :: browser_protocol :: web_audio :: EventAudioNodeWillBeDestroyed :: IDENTIFIER => CdpEvent :: WebAudioAudioNodeWillBeDestroyed (map . next_value :: < super :: browser_protocol :: web_audio :: EventAudioNodeWillBeDestroyed > () ?) , super :: browser_protocol :: web_audio :: EventAudioParamCreated :: IDENTIFIER => CdpEvent :: WebAudioAudioParamCreated (map . next_value :: < super :: browser_protocol :: web_audio :: EventAudioParamCreated > () ?) , super :: browser_protocol :: web_audio :: EventAudioParamWillBeDestroyed :: IDENTIFIER => CdpEvent :: WebAudioAudioParamWillBeDestroyed (map . next_value :: < super :: browser_protocol :: web_audio :: EventAudioParamWillBeDestroyed > () ?) , super :: browser_protocol :: web_audio :: EventNodesConnected :: IDENTIFIER => CdpEvent :: WebAudioNodesConnected (map . next_value :: < super :: browser_protocol :: web_audio :: EventNodesConnected > () ?) , super :: browser_protocol :: web_audio :: EventNodesDisconnected :: IDENTIFIER => CdpEvent :: WebAudioNodesDisconnected (map . next_value :: < super :: browser_protocol :: web_audio :: EventNodesDisconnected > () ?) , super :: browser_protocol :: web_audio :: EventNodeParamConnected :: IDENTIFIER => CdpEvent :: WebAudioNodeParamConnected (map . next_value :: < super :: browser_protocol :: web_audio :: EventNodeParamConnected > () ?) , super :: browser_protocol :: web_audio :: EventNodeParamDisconnected :: IDENTIFIER => CdpEvent :: WebAudioNodeParamDisconnected (map . next_value :: < super :: browser_protocol :: web_audio :: EventNodeParamDisconnected > () ?) , super :: browser_protocol :: web_authn :: EventCredentialAdded :: IDENTIFIER => CdpEvent :: WebAuthnCredentialAdded (Box :: new (map . next_value :: < super :: browser_protocol :: web_authn :: EventCredentialAdded > () ?)) , super :: browser_protocol :: web_authn :: EventCredentialDeleted :: IDENTIFIER => CdpEvent :: WebAuthnCredentialDeleted (map . next_value :: < super :: browser_protocol :: web_authn :: EventCredentialDeleted > () ?) , super :: browser_protocol :: web_authn :: EventCredentialUpdated :: IDENTIFIER => CdpEvent :: WebAuthnCredentialUpdated (Box :: new (map . next_value :: < super :: browser_protocol :: web_authn :: EventCredentialUpdated > () ?)) , super :: browser_protocol :: web_authn :: EventCredentialAsserted :: IDENTIFIER => CdpEvent :: WebAuthnCredentialAsserted (Box :: new (map . next_value :: < super :: browser_protocol :: web_authn :: EventCredentialAsserted > () ?)) , super :: browser_protocol :: media :: EventPlayerPropertiesChanged :: IDENTIFIER => CdpEvent :: MediaPlayerPropertiesChanged (map . next_value :: < super :: browser_protocol :: media :: EventPlayerPropertiesChanged > () ?) , super :: browser_protocol :: media :: EventPlayerEventsAdded :: IDENTIFIER => CdpEvent :: MediaPlayerEventsAdded (map . next_value :: < super :: browser_protocol :: media :: EventPlayerEventsAdded > () ?) , super :: browser_protocol :: media :: EventPlayerMessagesLogged :: IDENTIFIER => CdpEvent :: MediaPlayerMessagesLogged (map . next_value :: < super :: browser_protocol :: media :: EventPlayerMessagesLogged > () ?) , super :: browser_protocol :: media :: EventPlayerErrorsRaised :: IDENTIFIER => CdpEvent :: MediaPlayerErrorsRaised (map . next_value :: < super :: browser_protocol :: media :: EventPlayerErrorsRaised > () ?) , super :: browser_protocol :: media :: EventPlayersCreated :: IDENTIFIER => CdpEvent :: MediaPlayersCreated (map . next_value :: < super :: browser_protocol :: media :: EventPlayersCreated > () ?) , super :: browser_protocol :: device_access :: EventDeviceRequestPrompted :: IDENTIFIER => CdpEvent :: DeviceAccessDeviceRequestPrompted (map . next_value :: < super :: browser_protocol :: device_access :: EventDeviceRequestPrompted > () ?) , super :: browser_protocol :: preload :: EventRuleSetUpdated :: IDENTIFIER => CdpEvent :: PreloadRuleSetUpdated (map . next_value :: < super :: browser_protocol :: preload :: EventRuleSetUpdated > () ?) , super :: browser_protocol :: preload :: EventRuleSetRemoved :: IDENTIFIER => CdpEvent :: PreloadRuleSetRemoved (map . next_value :: < super :: browser_protocol :: preload :: EventRuleSetRemoved > () ?) , super :: browser_protocol :: preload :: EventPreloadEnabledStateUpdated :: IDENTIFIER => CdpEvent :: PreloadPreloadEnabledStateUpdated (map . next_value :: < super :: browser_protocol :: preload :: EventPreloadEnabledStateUpdated > () ?) , super :: browser_protocol :: preload :: EventPrefetchStatusUpdated :: IDENTIFIER => CdpEvent :: PreloadPrefetchStatusUpdated (Box :: new (map . next_value :: < super :: browser_protocol :: preload :: EventPrefetchStatusUpdated > () ?)) , super :: browser_protocol :: preload :: EventPrerenderStatusUpdated :: IDENTIFIER => CdpEvent :: PreloadPrerenderStatusUpdated (map . next_value :: < super :: browser_protocol :: preload :: EventPrerenderStatusUpdated > () ?) , super :: browser_protocol :: preload :: EventPreloadingAttemptSourcesUpdated :: IDENTIFIER => CdpEvent :: PreloadPreloadingAttemptSourcesUpdated (map . next_value :: < super :: browser_protocol :: preload :: EventPreloadingAttemptSourcesUpdated > () ?) , super :: browser_protocol :: fed_cm :: EventDialogShown :: IDENTIFIER => CdpEvent :: FedCmDialogShown (map . next_value :: < super :: browser_protocol :: fed_cm :: EventDialogShown > () ?) , super :: browser_protocol :: fed_cm :: EventDialogClosed :: IDENTIFIER => CdpEvent :: FedCmDialogClosed (map . next_value :: < super :: browser_protocol :: fed_cm :: EventDialogClosed > () ?) , _ => CdpEvent :: Other (map . next_value :: < serde_json :: Value > () ?) }) ;
                             }
                         }
                     }
@@ -1182,20 +1192,6 @@ pub mod events {
                 session_id: self.session_id,
                 params: self.params.into_json()?,
             })
-        }
-    }
-    impl std::convert::TryFrom<CdpEvent> for super::js_protocol::debugger::EventBreakpointResolved {
-        type Error = CdpEvent;
-        fn try_from(event: CdpEvent) -> Result<Self, Self::Error> {
-            match event {
-                CdpEvent::DebuggerBreakpointResolved(val) => Ok(val),
-                _ => Err(event),
-            }
-        }
-    }
-    impl From<super::js_protocol::debugger::EventBreakpointResolved> for CdpEvent {
-        fn from(el: super::js_protocol::debugger::EventBreakpointResolved) -> CdpEvent {
-            CdpEvent::DebuggerBreakpointResolved(el)
         }
     }
     impl std::convert::TryFrom<CdpEvent> for super::js_protocol::debugger::EventPaused {
@@ -1742,6 +1738,20 @@ pub mod events {
             CdpEvent::CssStyleSheetRemoved(el)
         }
     }
+    impl std::convert::TryFrom<CdpEvent> for super::browser_protocol::css::EventComputedStyleUpdated {
+        type Error = CdpEvent;
+        fn try_from(event: CdpEvent) -> Result<Self, Self::Error> {
+            match event {
+                CdpEvent::CssComputedStyleUpdated(val) => Ok(val),
+                _ => Err(event),
+            }
+        }
+    }
+    impl From<super::browser_protocol::css::EventComputedStyleUpdated> for CdpEvent {
+        fn from(el: super::browser_protocol::css::EventComputedStyleUpdated) -> CdpEvent {
+            CdpEvent::CssComputedStyleUpdated(el)
+        }
+    }
     impl std::convert::TryFrom<CdpEvent> for super::browser_protocol::cast::EventSinksUpdated {
         type Error = CdpEvent;
         fn try_from(event: CdpEvent) -> Result<Self, Self::Error> {
@@ -2060,20 +2070,6 @@ pub mod events {
     impl From<super::browser_protocol::dom_storage::EventDomStorageItemsCleared> for CdpEvent {
         fn from(el: super::browser_protocol::dom_storage::EventDomStorageItemsCleared) -> CdpEvent {
             CdpEvent::DomStorageDomStorageItemsCleared(el)
-        }
-    }
-    impl std::convert::TryFrom<CdpEvent> for super::browser_protocol::database::EventAddDatabase {
-        type Error = CdpEvent;
-        fn try_from(event: CdpEvent) -> Result<Self, Self::Error> {
-            match event {
-                CdpEvent::DatabaseAddDatabase(val) => Ok(val),
-                _ => Err(event),
-            }
-        }
-    }
-    impl From<super::browser_protocol::database::EventAddDatabase> for CdpEvent {
-        fn from(el: super::browser_protocol::database::EventAddDatabase) -> CdpEvent {
-            CdpEvent::DatabaseAddDatabase(el)
         }
     }
     impl std::convert::TryFrom<CdpEvent>
@@ -2870,6 +2866,22 @@ pub mod events {
     impl From<super::browser_protocol::page::EventFrameResized> for CdpEvent {
         fn from(el: super::browser_protocol::page::EventFrameResized) -> CdpEvent {
             CdpEvent::PageFrameResized(el)
+        }
+    }
+    impl std::convert::TryFrom<CdpEvent>
+        for super::browser_protocol::page::EventFrameStartedNavigating
+    {
+        type Error = CdpEvent;
+        fn try_from(event: CdpEvent) -> Result<Self, Self::Error> {
+            match event {
+                CdpEvent::PageFrameStartedNavigating(val) => Ok(val),
+                _ => Err(event),
+            }
+        }
+    }
+    impl From<super::browser_protocol::page::EventFrameStartedNavigating> for CdpEvent {
+        fn from(el: super::browser_protocol::page::EventFrameStartedNavigating) -> CdpEvent {
+            CdpEvent::PageFrameStartedNavigating(el)
         }
     }
     impl std::convert::TryFrom<CdpEvent>
@@ -3798,14 +3810,46 @@ pub mod events {
         type Error = CdpEvent;
         fn try_from(event: CdpEvent) -> Result<Self, Self::Error> {
             match event {
-                CdpEvent::WebAuthnCredentialAdded(val) => Ok(val),
+                CdpEvent::WebAuthnCredentialAdded(val) => Ok(*val),
                 _ => Err(event),
             }
         }
     }
     impl From<super::browser_protocol::web_authn::EventCredentialAdded> for CdpEvent {
         fn from(el: super::browser_protocol::web_authn::EventCredentialAdded) -> CdpEvent {
-            CdpEvent::WebAuthnCredentialAdded(el)
+            CdpEvent::WebAuthnCredentialAdded(Box::new(el))
+        }
+    }
+    impl std::convert::TryFrom<CdpEvent>
+        for super::browser_protocol::web_authn::EventCredentialDeleted
+    {
+        type Error = CdpEvent;
+        fn try_from(event: CdpEvent) -> Result<Self, Self::Error> {
+            match event {
+                CdpEvent::WebAuthnCredentialDeleted(val) => Ok(val),
+                _ => Err(event),
+            }
+        }
+    }
+    impl From<super::browser_protocol::web_authn::EventCredentialDeleted> for CdpEvent {
+        fn from(el: super::browser_protocol::web_authn::EventCredentialDeleted) -> CdpEvent {
+            CdpEvent::WebAuthnCredentialDeleted(el)
+        }
+    }
+    impl std::convert::TryFrom<CdpEvent>
+        for super::browser_protocol::web_authn::EventCredentialUpdated
+    {
+        type Error = CdpEvent;
+        fn try_from(event: CdpEvent) -> Result<Self, Self::Error> {
+            match event {
+                CdpEvent::WebAuthnCredentialUpdated(val) => Ok(*val),
+                _ => Err(event),
+            }
+        }
+    }
+    impl From<super::browser_protocol::web_authn::EventCredentialUpdated> for CdpEvent {
+        fn from(el: super::browser_protocol::web_authn::EventCredentialUpdated) -> CdpEvent {
+            CdpEvent::WebAuthnCredentialUpdated(Box::new(el))
         }
     }
     impl std::convert::TryFrom<CdpEvent>
@@ -3814,14 +3858,14 @@ pub mod events {
         type Error = CdpEvent;
         fn try_from(event: CdpEvent) -> Result<Self, Self::Error> {
             match event {
-                CdpEvent::WebAuthnCredentialAsserted(val) => Ok(val),
+                CdpEvent::WebAuthnCredentialAsserted(val) => Ok(*val),
                 _ => Err(event),
             }
         }
     }
     impl From<super::browser_protocol::web_authn::EventCredentialAsserted> for CdpEvent {
         fn from(el: super::browser_protocol::web_authn::EventCredentialAsserted) -> CdpEvent {
-            CdpEvent::WebAuthnCredentialAsserted(el)
+            CdpEvent::WebAuthnCredentialAsserted(Box::new(el))
         }
     }
     impl std::convert::TryFrom<CdpEvent>
@@ -4034,19 +4078,6 @@ pub mod events {
     impl From<super::browser_protocol::fed_cm::EventDialogClosed> for CdpEvent {
         fn from(el: super::browser_protocol::fed_cm::EventDialogClosed) -> CdpEvent {
             CdpEvent::FedCmDialogClosed(el)
-        }
-    }
-    impl super::sealed::SealedEvent for super::js_protocol::debugger::EventBreakpointResolved {
-        fn as_any(&self) -> &dyn ::std::any::Any {
-            self
-        }
-    }
-    impl super::IntoEventKind for super::js_protocol::debugger::EventBreakpointResolved {
-        fn event_kind() -> super::EventKind
-        where
-            Self: Sized + 'static,
-        {
-            super::EventKind::BuiltIn
         }
     }
     impl super::sealed::SealedEvent for super::js_protocol::debugger::EventPaused {
@@ -4540,6 +4571,19 @@ pub mod events {
             super::EventKind::BuiltIn
         }
     }
+    impl super::sealed::SealedEvent for super::browser_protocol::css::EventComputedStyleUpdated {
+        fn as_any(&self) -> &dyn ::std::any::Any {
+            self
+        }
+    }
+    impl super::IntoEventKind for super::browser_protocol::css::EventComputedStyleUpdated {
+        fn event_kind() -> super::EventKind
+        where
+            Self: Sized + 'static,
+        {
+            super::EventKind::BuiltIn
+        }
+    }
     impl super::sealed::SealedEvent for super::browser_protocol::cast::EventSinksUpdated {
         fn as_any(&self) -> &dyn ::std::any::Any {
             self
@@ -4825,19 +4869,6 @@ pub mod events {
         }
     }
     impl super::IntoEventKind for super::browser_protocol::dom_storage::EventDomStorageItemsCleared {
-        fn event_kind() -> super::EventKind
-        where
-            Self: Sized + 'static,
-        {
-            super::EventKind::BuiltIn
-        }
-    }
-    impl super::sealed::SealedEvent for super::browser_protocol::database::EventAddDatabase {
-        fn as_any(&self) -> &dyn ::std::any::Any {
-            self
-        }
-    }
-    impl super::IntoEventKind for super::browser_protocol::database::EventAddDatabase {
         fn event_kind() -> super::EventKind
         where
             Self: Sized + 'static,
@@ -5547,6 +5578,19 @@ pub mod events {
         }
     }
     impl super::IntoEventKind for super::browser_protocol::page::EventFrameResized {
+        fn event_kind() -> super::EventKind
+        where
+            Self: Sized + 'static,
+        {
+            super::EventKind::BuiltIn
+        }
+    }
+    impl super::sealed::SealedEvent for super::browser_protocol::page::EventFrameStartedNavigating {
+        fn as_any(&self) -> &dyn ::std::any::Any {
+            self
+        }
+    }
+    impl super::IntoEventKind for super::browser_protocol::page::EventFrameStartedNavigating {
         fn event_kind() -> super::EventKind
         where
             Self: Sized + 'static,
@@ -6382,6 +6426,32 @@ pub mod events {
             super::EventKind::BuiltIn
         }
     }
+    impl super::sealed::SealedEvent for super::browser_protocol::web_authn::EventCredentialDeleted {
+        fn as_any(&self) -> &dyn ::std::any::Any {
+            self
+        }
+    }
+    impl super::IntoEventKind for super::browser_protocol::web_authn::EventCredentialDeleted {
+        fn event_kind() -> super::EventKind
+        where
+            Self: Sized + 'static,
+        {
+            super::EventKind::BuiltIn
+        }
+    }
+    impl super::sealed::SealedEvent for super::browser_protocol::web_authn::EventCredentialUpdated {
+        fn as_any(&self) -> &dyn ::std::any::Any {
+            self
+        }
+    }
+    impl super::IntoEventKind for super::browser_protocol::web_authn::EventCredentialUpdated {
+        fn event_kind() -> super::EventKind
+        where
+            Self: Sized + 'static,
+        {
+            super::EventKind::BuiltIn
+        }
+    }
     impl super::sealed::SealedEvent for super::browser_protocol::web_authn::EventCredentialAsserted {
         fn as_any(&self) -> &dyn ::std::any::Any {
             self
@@ -6590,9 +6660,6 @@ pub mod events {
     macro_rules! consume_event {
         (match $ ev : ident { $ builtin : expr , $ custom : expr }) => {{
             match $ev {
-                CdpEvent::DebuggerBreakpointResolved(event) => {
-                    $builtin(event);
-                }
                 CdpEvent::DebuggerPaused(event) => {
                     $builtin(event);
                 }
@@ -6704,6 +6771,9 @@ pub mod events {
                 CdpEvent::CssStyleSheetRemoved(event) => {
                     $builtin(event);
                 }
+                CdpEvent::CssComputedStyleUpdated(event) => {
+                    $builtin(event);
+                }
                 CdpEvent::CastSinksUpdated(event) => {
                     $builtin(event);
                 }
@@ -6768,9 +6838,6 @@ pub mod events {
                     $builtin(event);
                 }
                 CdpEvent::DomStorageDomStorageItemsCleared(event) => {
-                    $builtin(event);
-                }
-                CdpEvent::DatabaseAddDatabase(event) => {
                     $builtin(event);
                 }
                 CdpEvent::EmulationVirtualTimeBudgetExpired(event) => {
@@ -6924,6 +6991,9 @@ pub mod events {
                     $builtin(*event);
                 }
                 CdpEvent::PageFrameResized(event) => {
+                    $builtin(event);
+                }
+                CdpEvent::PageFrameStartedNavigating(event) => {
                     $builtin(event);
                 }
                 CdpEvent::PageFrameRequestedNavigation(event) => {
@@ -7104,10 +7174,16 @@ pub mod events {
                     $builtin(event);
                 }
                 CdpEvent::WebAuthnCredentialAdded(event) => {
+                    $builtin(*event);
+                }
+                CdpEvent::WebAuthnCredentialDeleted(event) => {
                     $builtin(event);
                 }
+                CdpEvent::WebAuthnCredentialUpdated(event) => {
+                    $builtin(*event);
+                }
                 CdpEvent::WebAuthnCredentialAsserted(event) => {
-                    $builtin(event);
+                    $builtin(*event);
                 }
                 CdpEvent::MediaPlayerPropertiesChanged(event) => {
                     $builtin(event);
@@ -7958,8 +8034,6 @@ pub mod js_protocol {
         #[doc = "Type of the debug symbols."]
         #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
         pub enum DebugSymbolsType {
-            #[serde(rename = "None")]
-            None,
             #[serde(rename = "SourceMap")]
             SourceMap,
             #[serde(rename = "EmbeddedDWARF")]
@@ -7970,7 +8044,6 @@ pub mod js_protocol {
         impl AsRef<str> for DebugSymbolsType {
             fn as_ref(&self) -> &str {
                 match self {
-                    DebugSymbolsType::None => "None",
                     DebugSymbolsType::SourceMap => "SourceMap",
                     DebugSymbolsType::EmbeddedDwarf => "EmbeddedDWARF",
                     DebugSymbolsType::ExternalDwarf => "ExternalDWARF",
@@ -7981,7 +8054,6 @@ pub mod js_protocol {
             type Err = String;
             fn from_str(s: &str) -> Result<Self, Self::Err> {
                 match s {
-                    "None" | "none" => Ok(DebugSymbolsType::None),
                     "SourceMap" | "sourcemap" => Ok(DebugSymbolsType::SourceMap),
                     "EmbeddedDWARF" | "EmbeddedDwarf" | "embeddeddwarf" => {
                         Ok(DebugSymbolsType::EmbeddedDwarf)
@@ -8031,6 +8103,59 @@ pub mod js_protocol {
         }
         impl DebugSymbols {
             pub const IDENTIFIER: &'static str = "Debugger.DebugSymbols";
+        }
+        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+        pub struct ResolvedBreakpoint {
+            #[doc = "Breakpoint unique identifier."]
+            #[serde(rename = "breakpointId")]
+            pub breakpoint_id: BreakpointId,
+            #[doc = "Actual breakpoint location."]
+            #[serde(rename = "location")]
+            pub location: Location,
+        }
+        impl ResolvedBreakpoint {
+            pub fn new(
+                breakpoint_id: impl Into<BreakpointId>,
+                location: impl Into<Location>,
+            ) -> Self {
+                Self {
+                    breakpoint_id: breakpoint_id.into(),
+                    location: location.into(),
+                }
+            }
+        }
+        impl ResolvedBreakpoint {
+            pub fn builder() -> ResolvedBreakpointBuilder {
+                ResolvedBreakpointBuilder::default()
+            }
+        }
+        #[derive(Default, Clone)]
+        pub struct ResolvedBreakpointBuilder {
+            breakpoint_id: Option<BreakpointId>,
+            location: Option<Location>,
+        }
+        impl ResolvedBreakpointBuilder {
+            pub fn breakpoint_id(mut self, breakpoint_id: impl Into<BreakpointId>) -> Self {
+                self.breakpoint_id = Some(breakpoint_id.into());
+                self
+            }
+            pub fn location(mut self, location: impl Into<Location>) -> Self {
+                self.location = Some(location.into());
+                self
+            }
+            pub fn build(self) -> Result<ResolvedBreakpoint, String> {
+                Ok(ResolvedBreakpoint {
+                    breakpoint_id: self.breakpoint_id.ok_or_else(|| {
+                        format!("Field `{}` is mandatory.", std::stringify!(breakpoint_id))
+                    })?,
+                    location: self.location.ok_or_else(|| {
+                        format!("Field `{}` is mandatory.", std::stringify!(location))
+                    })?,
+                })
+            }
+        }
+        impl ResolvedBreakpoint {
+            pub const IDENTIFIER: &'static str = "Debugger.ResolvedBreakpoint";
         }
         #[doc = "Continues execution until specific location is reached.\n[continueToLocation](https://chromedevtools.github.io/devtools-protocol/tot/Debugger/#method-continueToLocation)"]
         #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -9435,6 +9560,75 @@ pub mod js_protocol {
         impl chromiumoxide_types::Command for SetAsyncCallStackDepthParams {
             type Response = SetAsyncCallStackDepthReturns;
         }
+        #[doc = "Replace previous blackbox execution contexts with passed ones. Forces backend to skip\nstepping/pausing in scripts in these execution contexts. VM will try to leave blackboxed script by\nperforming 'step in' several times, finally resorting to 'step out' if unsuccessful.\n[setBlackboxExecutionContexts](https://chromedevtools.github.io/devtools-protocol/tot/Debugger/#method-setBlackboxExecutionContexts)"]
+        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+        pub struct SetBlackboxExecutionContextsParams {
+            #[doc = "Array of execution context unique ids for the debugger to ignore."]
+            #[serde(rename = "uniqueIds")]
+            #[serde(skip_serializing_if = "Vec::is_empty")]
+            pub unique_ids: Vec<String>,
+        }
+        impl SetBlackboxExecutionContextsParams {
+            pub fn new(unique_ids: Vec<String>) -> Self {
+                Self { unique_ids }
+            }
+        }
+        impl SetBlackboxExecutionContextsParams {
+            pub fn builder() -> SetBlackboxExecutionContextsParamsBuilder {
+                SetBlackboxExecutionContextsParamsBuilder::default()
+            }
+        }
+        #[derive(Default, Clone)]
+        pub struct SetBlackboxExecutionContextsParamsBuilder {
+            unique_ids: Option<Vec<String>>,
+        }
+        impl SetBlackboxExecutionContextsParamsBuilder {
+            pub fn unique_id(mut self, unique_id: impl Into<String>) -> Self {
+                let v = self.unique_ids.get_or_insert(Vec::new());
+                v.push(unique_id.into());
+                self
+            }
+            pub fn unique_ids<I, S>(mut self, unique_ids: I) -> Self
+            where
+                I: IntoIterator<Item = S>,
+                S: Into<String>,
+            {
+                let v = self.unique_ids.get_or_insert(Vec::new());
+                for val in unique_ids {
+                    v.push(val.into());
+                }
+                self
+            }
+            pub fn build(self) -> Result<SetBlackboxExecutionContextsParams, String> {
+                Ok(SetBlackboxExecutionContextsParams {
+                    unique_ids: self.unique_ids.ok_or_else(|| {
+                        format!("Field `{}` is mandatory.", std::stringify!(unique_ids))
+                    })?,
+                })
+            }
+        }
+        impl SetBlackboxExecutionContextsParams {
+            pub const IDENTIFIER: &'static str = "Debugger.setBlackboxExecutionContexts";
+        }
+        impl chromiumoxide_types::Method for SetBlackboxExecutionContextsParams {
+            fn identifier(&self) -> chromiumoxide_types::MethodId {
+                Self::IDENTIFIER.into()
+            }
+        }
+        impl chromiumoxide_types::MethodType for SetBlackboxExecutionContextsParams {
+            fn method_id() -> chromiumoxide_types::MethodId
+            where
+                Self: Sized,
+            {
+                Self::IDENTIFIER.into()
+            }
+        }
+        #[doc = "Replace previous blackbox execution contexts with passed ones. Forces backend to skip\nstepping/pausing in scripts in these execution contexts. VM will try to leave blackboxed script by\nperforming 'step in' several times, finally resorting to 'step out' if unsuccessful.\n[setBlackboxExecutionContexts](https://chromedevtools.github.io/devtools-protocol/tot/Debugger/#method-setBlackboxExecutionContexts)"]
+        #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+        pub struct SetBlackboxExecutionContextsReturns {}
+        impl chromiumoxide_types::Command for SetBlackboxExecutionContextsParams {
+            type Response = SetBlackboxExecutionContextsReturns;
+        }
         #[doc = "Replace previous blackbox patterns with passed ones. Forces backend to skip stepping/pausing in\nscripts with url matching one of the patterns. VM will try to leave blackboxed script by\nperforming 'step in' several times, finally resorting to 'step out' if unsuccessful.\n[setBlackboxPatterns](https://chromedevtools.github.io/devtools-protocol/tot/Debugger/#method-setBlackboxPatterns)"]
         #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
         pub struct SetBlackboxPatternsParams {
@@ -9442,10 +9636,17 @@ pub mod js_protocol {
             #[serde(rename = "patterns")]
             #[serde(skip_serializing_if = "Vec::is_empty")]
             pub patterns: Vec<String>,
+            #[doc = "If true, also ignore scripts with no source url."]
+            #[serde(rename = "skipAnonymous")]
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub skip_anonymous: Option<bool>,
         }
         impl SetBlackboxPatternsParams {
             pub fn new(patterns: Vec<String>) -> Self {
-                Self { patterns }
+                Self {
+                    patterns,
+                    skip_anonymous: None,
+                }
             }
         }
         impl SetBlackboxPatternsParams {
@@ -9456,6 +9657,7 @@ pub mod js_protocol {
         #[derive(Default, Clone)]
         pub struct SetBlackboxPatternsParamsBuilder {
             patterns: Option<Vec<String>>,
+            skip_anonymous: Option<bool>,
         }
         impl SetBlackboxPatternsParamsBuilder {
             pub fn pattern(mut self, pattern: impl Into<String>) -> Self {
@@ -9474,11 +9676,16 @@ pub mod js_protocol {
                 }
                 self
             }
+            pub fn skip_anonymous(mut self, skip_anonymous: impl Into<bool>) -> Self {
+                self.skip_anonymous = Some(skip_anonymous.into());
+                self
+            }
             pub fn build(self) -> Result<SetBlackboxPatternsParams, String> {
                 Ok(SetBlackboxPatternsParams {
                     patterns: self.patterns.ok_or_else(|| {
                         format!("Field `{}` is mandatory.", std::stringify!(patterns))
                     })?,
+                    skip_anonymous: self.skip_anonymous,
                 })
             }
         }
@@ -10813,32 +11020,6 @@ pub mod js_protocol {
         impl chromiumoxide_types::Command for StepOverParams {
             type Response = StepOverReturns;
         }
-        #[doc = "Fired when breakpoint is resolved to an actual script and location.\n[breakpointResolved](https://chromedevtools.github.io/devtools-protocol/tot/Debugger/#event-breakpointResolved)"]
-        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-        pub struct EventBreakpointResolved {
-            #[doc = "Breakpoint unique identifier."]
-            #[serde(rename = "breakpointId")]
-            pub breakpoint_id: BreakpointId,
-            #[doc = "Actual breakpoint location."]
-            #[serde(rename = "location")]
-            pub location: Location,
-        }
-        impl EventBreakpointResolved {
-            pub const IDENTIFIER: &'static str = "Debugger.breakpointResolved";
-        }
-        impl chromiumoxide_types::Method for EventBreakpointResolved {
-            fn identifier(&self) -> chromiumoxide_types::MethodId {
-                Self::IDENTIFIER.into()
-            }
-        }
-        impl chromiumoxide_types::MethodType for EventBreakpointResolved {
-            fn method_id() -> chromiumoxide_types::MethodId
-            where
-                Self: Sized,
-            {
-                Self::IDENTIFIER.into()
-            }
-        }
         #[doc = "Fired when the virtual machine stopped on breakpoint or exception or any other stop criteria.\n[paused](https://chromedevtools.github.io/devtools-protocol/tot/Debugger/#event-paused)"]
         #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
         pub struct EventPaused {
@@ -11005,6 +11186,9 @@ pub mod js_protocol {
             #[doc = "Content hash of the script, SHA-256."]
             #[serde(rename = "hash")]
             pub hash: String,
+            #[doc = "For Wasm modules, the content of the `build_id` custom section."]
+            #[serde(rename = "buildId")]
+            pub build_id: String,
             #[doc = "Embedder-specific auxiliary data likely matching {isDefault: boolean, type: 'default'|'isolated'|'worker', frameId: string}"]
             #[serde(rename = "executionContextAuxData")]
             #[serde(skip_serializing_if = "Option::is_none")]
@@ -11087,6 +11271,9 @@ pub mod js_protocol {
             #[doc = "Content hash of the script, SHA-256."]
             #[serde(rename = "hash")]
             pub hash: String,
+            #[doc = "For Wasm modules, the content of the `build_id` custom section."]
+            #[serde(rename = "buildId")]
+            pub build_id: String,
             #[doc = "Embedder-specific auxiliary data likely matching {isDefault: boolean, type: 'default'|'isolated'|'worker', frameId: string}"]
             #[serde(rename = "executionContextAuxData")]
             #[serde(skip_serializing_if = "Option::is_none")]
@@ -11125,14 +11312,18 @@ pub mod js_protocol {
             #[serde(default)]
             #[serde(deserialize_with = "super::super::de::deserialize_from_str_optional")]
             pub script_language: Option<super::debugger::ScriptLanguage>,
-            #[doc = "If the scriptLanguage is WebASsembly, the source of debug symbols for the module."]
+            #[doc = "If the scriptLanguage is WebAssembly, the source of debug symbols for the module."]
             #[serde(rename = "debugSymbols")]
             #[serde(skip_serializing_if = "Option::is_none")]
-            pub debug_symbols: Option<super::debugger::DebugSymbols>,
+            pub debug_symbols: Option<Vec<super::debugger::DebugSymbols>>,
             #[doc = "The name the embedder supplied for this script."]
             #[serde(rename = "embedderName")]
             #[serde(skip_serializing_if = "Option::is_none")]
             pub embedder_name: Option<String>,
+            #[doc = "The list of set breakpoints in this script if calls to `setBreakpointByUrl`\nmatches this script's URL or hash. Clients that use this list can ignore the\n`breakpointResolved` event. They are equivalent."]
+            #[serde(rename = "resolvedBreakpoints")]
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub resolved_breakpoints: Option<Vec<ResolvedBreakpoint>>,
         }
         impl EventScriptParsed {
             pub const IDENTIFIER: &'static str = "Debugger.scriptParsed";
@@ -16473,18 +16664,31 @@ pub mod js_protocol {
         #[doc = "Returns the JavaScript heap usage.\nIt is the total usage of the corresponding isolate not scoped to a particular Runtime.\n[getHeapUsage](https://chromedevtools.github.io/devtools-protocol/tot/Runtime/#method-getHeapUsage)"]
         #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
         pub struct GetHeapUsageReturns {
-            #[doc = "Used heap size in bytes."]
+            #[doc = "Used JavaScript heap size in bytes."]
             #[serde(rename = "usedSize")]
             pub used_size: f64,
-            #[doc = "Allocated heap size in bytes."]
+            #[doc = "Allocated JavaScript heap size in bytes."]
             #[serde(rename = "totalSize")]
             pub total_size: f64,
+            #[doc = "Used size in bytes in the embedder's garbage-collected heap."]
+            #[serde(rename = "embedderHeapUsedSize")]
+            pub embedder_heap_used_size: f64,
+            #[doc = "Size in bytes of backing storage for array buffers and external strings."]
+            #[serde(rename = "backingStorageSize")]
+            pub backing_storage_size: f64,
         }
         impl GetHeapUsageReturns {
-            pub fn new(used_size: impl Into<f64>, total_size: impl Into<f64>) -> Self {
+            pub fn new(
+                used_size: impl Into<f64>,
+                total_size: impl Into<f64>,
+                embedder_heap_used_size: impl Into<f64>,
+                backing_storage_size: impl Into<f64>,
+            ) -> Self {
                 Self {
                     used_size: used_size.into(),
                     total_size: total_size.into(),
+                    embedder_heap_used_size: embedder_heap_used_size.into(),
+                    backing_storage_size: backing_storage_size.into(),
                 }
             }
         }
@@ -16497,6 +16701,8 @@ pub mod js_protocol {
         pub struct GetHeapUsageReturnsBuilder {
             used_size: Option<f64>,
             total_size: Option<f64>,
+            embedder_heap_used_size: Option<f64>,
+            backing_storage_size: Option<f64>,
         }
         impl GetHeapUsageReturnsBuilder {
             pub fn used_size(mut self, used_size: impl Into<f64>) -> Self {
@@ -16507,6 +16713,17 @@ pub mod js_protocol {
                 self.total_size = Some(total_size.into());
                 self
             }
+            pub fn embedder_heap_used_size(
+                mut self,
+                embedder_heap_used_size: impl Into<f64>,
+            ) -> Self {
+                self.embedder_heap_used_size = Some(embedder_heap_used_size.into());
+                self
+            }
+            pub fn backing_storage_size(mut self, backing_storage_size: impl Into<f64>) -> Self {
+                self.backing_storage_size = Some(backing_storage_size.into());
+                self
+            }
             pub fn build(self) -> Result<GetHeapUsageReturns, String> {
                 Ok(GetHeapUsageReturns {
                     used_size: self.used_size.ok_or_else(|| {
@@ -16514,6 +16731,18 @@ pub mod js_protocol {
                     })?,
                     total_size: self.total_size.ok_or_else(|| {
                         format!("Field `{}` is mandatory.", std::stringify!(total_size))
+                    })?,
+                    embedder_heap_used_size: self.embedder_heap_used_size.ok_or_else(|| {
+                        format!(
+                            "Field `{}` is mandatory.",
+                            std::stringify!(embedder_heap_used_size)
+                        )
+                    })?,
+                    backing_storage_size: self.backing_storage_size.ok_or_else(|| {
+                        format!(
+                            "Field `{}` is mandatory.",
+                            std::stringify!(backing_storage_size)
+                        )
                     })?,
                 })
             }
@@ -18588,6 +18817,8 @@ pub mod browser_protocol {
         #[doc = "Values of AXProperty name:\n- from 'busy' to 'roledescription': states which apply to every AX node\n- from 'live' to 'root': attributes which apply to nodes in live regions\n- from 'autocomplete' to 'valuetext': attributes which apply to widgets\n- from 'checked' to 'selected': states which apply to widgets\n- from 'activedescendant' to 'owns' - relationships between elements other than parent/child/sibling."]
         #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
         pub enum AxPropertyName {
+            #[serde(rename = "actions")]
+            Actions,
             #[serde(rename = "busy")]
             Busy,
             #[serde(rename = "disabled")]
@@ -18672,6 +18903,7 @@ pub mod browser_protocol {
         impl AsRef<str> for AxPropertyName {
             fn as_ref(&self) -> &str {
                 match self {
+                    AxPropertyName::Actions => "actions",
                     AxPropertyName::Busy => "busy",
                     AxPropertyName::Disabled => "disabled",
                     AxPropertyName::Editable => "editable",
@@ -18719,6 +18951,7 @@ pub mod browser_protocol {
             type Err = String;
             fn from_str(s: &str) -> Result<Self, Self::Err> {
                 match s {
+                    "actions" | "Actions" => Ok(AxPropertyName::Actions),
                     "busy" | "Busy" => Ok(AxPropertyName::Busy),
                     "disabled" | "Disabled" => Ok(AxPropertyName::Disabled),
                     "editable" | "Editable" => Ok(AxPropertyName::Editable),
@@ -21118,17 +21351,22 @@ pub mod browser_protocol {
         pub struct AffectedRequest {
             #[doc = "The unique request id."]
             #[serde(rename = "requestId")]
-            pub request_id: super::network::RequestId,
-            #[serde(rename = "url")]
             #[serde(skip_serializing_if = "Option::is_none")]
-            pub url: Option<String>,
+            pub request_id: Option<super::network::RequestId>,
+            #[serde(rename = "url")]
+            pub url: String,
         }
         impl AffectedRequest {
-            pub fn new(request_id: impl Into<super::network::RequestId>) -> Self {
+            pub fn new(url: impl Into<String>) -> Self {
                 Self {
-                    request_id: request_id.into(),
-                    url: None,
+                    url: url.into(),
+                    request_id: None,
                 }
+            }
+        }
+        impl<T: Into<String>> From<T> for AffectedRequest {
+            fn from(url: T) -> Self {
+                AffectedRequest::new(url)
             }
         }
         impl AffectedRequest {
@@ -21152,10 +21390,10 @@ pub mod browser_protocol {
             }
             pub fn build(self) -> Result<AffectedRequest, String> {
                 Ok(AffectedRequest {
-                    request_id: self.request_id.ok_or_else(|| {
-                        format!("Field `{}` is mandatory.", std::stringify!(request_id))
-                    })?,
-                    url: self.url,
+                    request_id: self.request_id,
+                    url: self
+                        .url
+                        .ok_or_else(|| format!("Field `{}` is mandatory.", std::stringify!(url)))?,
                 })
             }
         }
@@ -21220,6 +21458,10 @@ pub mod browser_protocol {
             ExcludeThirdPartyCookieBlockedInFirstPartySet,
             #[serde(rename = "ExcludeThirdPartyPhaseout")]
             ExcludeThirdPartyPhaseout,
+            #[serde(rename = "ExcludePortMismatch")]
+            ExcludePortMismatch,
+            #[serde(rename = "ExcludeSchemeMismatch")]
+            ExcludeSchemeMismatch,
         }
         impl AsRef<str> for CookieExclusionReason {
             fn as_ref(&self) -> &str {
@@ -21241,6 +21483,8 @@ pub mod browser_protocol {
                         "ExcludeThirdPartyCookieBlockedInFirstPartySet"
                     }
                     CookieExclusionReason::ExcludeThirdPartyPhaseout => "ExcludeThirdPartyPhaseout",
+                    CookieExclusionReason::ExcludePortMismatch => "ExcludePortMismatch",
+                    CookieExclusionReason::ExcludeSchemeMismatch => "ExcludeSchemeMismatch",
                 }
             }
         }
@@ -21277,6 +21521,12 @@ pub mod browser_protocol {
                     "ExcludeThirdPartyPhaseout" | "excludethirdpartyphaseout" => {
                         Ok(CookieExclusionReason::ExcludeThirdPartyPhaseout)
                     }
+                    "ExcludePortMismatch" | "excludeportmismatch" => {
+                        Ok(CookieExclusionReason::ExcludePortMismatch)
+                    }
+                    "ExcludeSchemeMismatch" | "excludeschememismatch" => {
+                        Ok(CookieExclusionReason::ExcludeSchemeMismatch)
+                    }
                     _ => Err(s.to_string()),
                 }
             }
@@ -21307,6 +21557,10 @@ pub mod browser_protocol {
             WarnThirdPartyPhaseout,
             #[serde(rename = "WarnCrossSiteRedirectDowngradeChangesInclusion")]
             WarnCrossSiteRedirectDowngradeChangesInclusion,
+            #[serde(rename = "WarnDeprecationTrialMetadata")]
+            WarnDeprecationTrialMetadata,
+            #[serde(rename = "WarnThirdPartyCookieHeuristic")]
+            WarnThirdPartyCookieHeuristic,
         }
         impl AsRef<str> for CookieWarningReason {
             fn as_ref(&self) -> &str {
@@ -21340,6 +21594,12 @@ pub mod browser_protocol {
                     CookieWarningReason::WarnThirdPartyPhaseout => "WarnThirdPartyPhaseout",
                     CookieWarningReason::WarnCrossSiteRedirectDowngradeChangesInclusion => {
                         "WarnCrossSiteRedirectDowngradeChangesInclusion"
+                    }
+                    CookieWarningReason::WarnDeprecationTrialMetadata => {
+                        "WarnDeprecationTrialMetadata"
+                    }
+                    CookieWarningReason::WarnThirdPartyCookieHeuristic => {
+                        "WarnThirdPartyCookieHeuristic"
                     }
                 }
             }
@@ -21391,6 +21651,12 @@ pub mod browser_protocol {
                     | "warncrosssiteredirectdowngradechangesinclusion" => {
                         Ok(CookieWarningReason::WarnCrossSiteRedirectDowngradeChangesInclusion)
                     }
+                    "WarnDeprecationTrialMetadata" | "warndeprecationtrialmetadata" => {
+                        Ok(CookieWarningReason::WarnDeprecationTrialMetadata)
+                    }
+                    "WarnThirdPartyCookieHeuristic" | "warnthirdpartycookieheuristic" => {
+                        Ok(CookieWarningReason::WarnThirdPartyCookieHeuristic)
+                    }
                     _ => Err(s.to_string()),
                 }
             }
@@ -21419,6 +21685,89 @@ pub mod browser_protocol {
                     _ => Err(s.to_string()),
                 }
             }
+        }
+        #[doc = "Represents the category of insight that a cookie issue falls under."]
+        #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+        pub enum InsightType {
+            #[doc = "Cookie domain has an entry in third-party cookie migration readiness\nlist:\nhttps://github.com/privacysandbox/privacy-sandbox-dev-support/blob/main/3pc-migration-readiness.md"]
+            #[serde(rename = "GitHubResource")]
+            GitHubResource,
+            #[doc = "Cookie is exempted due to a grace period:\nhttps://developers.google.com/privacy-sandbox/cookies/temporary-exceptions/grace-period"]
+            #[serde(rename = "GracePeriod")]
+            GracePeriod,
+            #[doc = "Cookie is exempted due a heuristics-based exemptiuon:\nhttps://developers.google.com/privacy-sandbox/cookies/temporary-exceptions/heuristics-based-exception"]
+            #[serde(rename = "Heuristics")]
+            Heuristics,
+        }
+        impl AsRef<str> for InsightType {
+            fn as_ref(&self) -> &str {
+                match self {
+                    InsightType::GitHubResource => "GitHubResource",
+                    InsightType::GracePeriod => "GracePeriod",
+                    InsightType::Heuristics => "Heuristics",
+                }
+            }
+        }
+        impl ::std::str::FromStr for InsightType {
+            type Err = String;
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
+                match s {
+                    "GitHubResource" | "githubresource" => Ok(InsightType::GitHubResource),
+                    "GracePeriod" | "graceperiod" => Ok(InsightType::GracePeriod),
+                    "Heuristics" | "heuristics" => Ok(InsightType::Heuristics),
+                    _ => Err(s.to_string()),
+                }
+            }
+        }
+        #[doc = "Information about the suggested solution to a cookie issue.\n[CookieIssueInsight](https://chromedevtools.github.io/devtools-protocol/tot/Audits/#type-CookieIssueInsight)"]
+        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+        pub struct CookieIssueInsight {
+            #[serde(rename = "type")]
+            #[serde(deserialize_with = "super::super::de::deserialize_from_str")]
+            pub r#type: InsightType,
+            #[doc = "Link to table entry in third-party cookie migration readiness list."]
+            #[serde(rename = "tableEntryUrl")]
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub table_entry_url: Option<String>,
+        }
+        impl CookieIssueInsight {
+            pub fn new(r#type: impl Into<InsightType>) -> Self {
+                Self {
+                    r#type: r#type.into(),
+                    table_entry_url: None,
+                }
+            }
+        }
+        impl CookieIssueInsight {
+            pub fn builder() -> CookieIssueInsightBuilder {
+                CookieIssueInsightBuilder::default()
+            }
+        }
+        #[derive(Default, Clone)]
+        pub struct CookieIssueInsightBuilder {
+            r#type: Option<InsightType>,
+            table_entry_url: Option<String>,
+        }
+        impl CookieIssueInsightBuilder {
+            pub fn r#type(mut self, r#type: impl Into<InsightType>) -> Self {
+                self.r#type = Some(r#type.into());
+                self
+            }
+            pub fn table_entry_url(mut self, table_entry_url: impl Into<String>) -> Self {
+                self.table_entry_url = Some(table_entry_url.into());
+                self
+            }
+            pub fn build(self) -> Result<CookieIssueInsight, String> {
+                Ok(CookieIssueInsight {
+                    r#type: self.r#type.ok_or_else(|| {
+                        format!("Field `{}` is mandatory.", std::stringify!(r#type))
+                    })?,
+                    table_entry_url: self.table_entry_url,
+                })
+            }
+        }
+        impl CookieIssueInsight {
+            pub const IDENTIFIER: &'static str = "Audits.CookieIssueInsight";
         }
         #[doc = "This information is currently necessary, as the front-end has a difficult\ntime finding a specific cookie. With this, we can convey specific error\ninformation without the cookie.\n[CookieIssueDetails](https://chromedevtools.github.io/devtools-protocol/tot/Audits/#type-CookieIssueDetails)"]
         #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -21449,6 +21798,10 @@ pub mod browser_protocol {
             #[serde(rename = "request")]
             #[serde(skip_serializing_if = "Option::is_none")]
             pub request: Option<AffectedRequest>,
+            #[doc = "The recommended solution to the issue."]
+            #[serde(rename = "insight")]
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub insight: Option<CookieIssueInsight>,
         }
         impl CookieIssueDetails {
             pub fn new(
@@ -21465,6 +21818,7 @@ pub mod browser_protocol {
                     site_for_cookies: None,
                     cookie_url: None,
                     request: None,
+                    insight: None,
                 }
             }
         }
@@ -21483,6 +21837,7 @@ pub mod browser_protocol {
             site_for_cookies: Option<String>,
             cookie_url: Option<String>,
             request: Option<AffectedRequest>,
+            insight: Option<CookieIssueInsight>,
         }
         impl CookieIssueDetailsBuilder {
             pub fn cookie(mut self, cookie: impl Into<AffectedCookie>) -> Self {
@@ -21547,6 +21902,10 @@ pub mod browser_protocol {
                 self.request = Some(request.into());
                 self
             }
+            pub fn insight(mut self, insight: impl Into<CookieIssueInsight>) -> Self {
+                self.insight = Some(insight.into());
+                self
+            }
             pub fn build(self) -> Result<CookieIssueDetails, String> {
                 Ok(CookieIssueDetails {
                     cookie: self.cookie,
@@ -21569,6 +21928,7 @@ pub mod browser_protocol {
                     site_for_cookies: self.site_for_cookies,
                     cookie_url: self.cookie_url,
                     request: self.request,
+                    insight: self.insight,
                 })
             }
         }
@@ -21888,16 +22248,18 @@ pub mod browser_protocol {
             CorpNotSameOriginAfterDefaultedToSameOriginByCoepAndDip,
             #[serde(rename = "CorpNotSameSite")]
             CorpNotSameSite,
+            #[serde(rename = "SRIMessageSignatureMismatch")]
+            SriMessageSignatureMismatch,
         }
         impl AsRef<str> for BlockedByResponseReason {
             fn as_ref(&self) -> &str {
-                match self { BlockedByResponseReason :: CoepFrameResourceNeedsCoepHeader => "CoepFrameResourceNeedsCoepHeader" , BlockedByResponseReason :: CoopSandboxedIFrameCannotNavigateToCoopPage => "CoopSandboxedIFrameCannotNavigateToCoopPage" , BlockedByResponseReason :: CorpNotSameOrigin => "CorpNotSameOrigin" , BlockedByResponseReason :: CorpNotSameOriginAfterDefaultedToSameOriginByCoep => "CorpNotSameOriginAfterDefaultedToSameOriginByCoep" , BlockedByResponseReason :: CorpNotSameOriginAfterDefaultedToSameOriginByDip => "CorpNotSameOriginAfterDefaultedToSameOriginByDip" , BlockedByResponseReason :: CorpNotSameOriginAfterDefaultedToSameOriginByCoepAndDip => "CorpNotSameOriginAfterDefaultedToSameOriginByCoepAndDip" , BlockedByResponseReason :: CorpNotSameSite => "CorpNotSameSite" }
+                match self { BlockedByResponseReason :: CoepFrameResourceNeedsCoepHeader => "CoepFrameResourceNeedsCoepHeader" , BlockedByResponseReason :: CoopSandboxedIFrameCannotNavigateToCoopPage => "CoopSandboxedIFrameCannotNavigateToCoopPage" , BlockedByResponseReason :: CorpNotSameOrigin => "CorpNotSameOrigin" , BlockedByResponseReason :: CorpNotSameOriginAfterDefaultedToSameOriginByCoep => "CorpNotSameOriginAfterDefaultedToSameOriginByCoep" , BlockedByResponseReason :: CorpNotSameOriginAfterDefaultedToSameOriginByDip => "CorpNotSameOriginAfterDefaultedToSameOriginByDip" , BlockedByResponseReason :: CorpNotSameOriginAfterDefaultedToSameOriginByCoepAndDip => "CorpNotSameOriginAfterDefaultedToSameOriginByCoepAndDip" , BlockedByResponseReason :: CorpNotSameSite => "CorpNotSameSite" , BlockedByResponseReason :: SriMessageSignatureMismatch => "SRIMessageSignatureMismatch" }
             }
         }
         impl ::std::str::FromStr for BlockedByResponseReason {
             type Err = String;
             fn from_str(s: &str) -> Result<Self, Self::Err> {
-                match s { "CoepFrameResourceNeedsCoepHeader" | "coepframeresourceneedscoepheader" => Ok (BlockedByResponseReason :: CoepFrameResourceNeedsCoepHeader) , "CoopSandboxedIFrameCannotNavigateToCoopPage" | "coopsandboxediframecannotnavigatetocooppage" => Ok (BlockedByResponseReason :: CoopSandboxedIFrameCannotNavigateToCoopPage) , "CorpNotSameOrigin" | "corpnotsameorigin" => Ok (BlockedByResponseReason :: CorpNotSameOrigin) , "CorpNotSameOriginAfterDefaultedToSameOriginByCoep" | "corpnotsameoriginafterdefaultedtosameoriginbycoep" => Ok (BlockedByResponseReason :: CorpNotSameOriginAfterDefaultedToSameOriginByCoep) , "CorpNotSameOriginAfterDefaultedToSameOriginByDip" | "corpnotsameoriginafterdefaultedtosameoriginbydip" => Ok (BlockedByResponseReason :: CorpNotSameOriginAfterDefaultedToSameOriginByDip) , "CorpNotSameOriginAfterDefaultedToSameOriginByCoepAndDip" | "corpnotsameoriginafterdefaultedtosameoriginbycoepanddip" => Ok (BlockedByResponseReason :: CorpNotSameOriginAfterDefaultedToSameOriginByCoepAndDip) , "CorpNotSameSite" | "corpnotsamesite" => Ok (BlockedByResponseReason :: CorpNotSameSite) , _ => Err (s . to_string ()) }
+                match s { "CoepFrameResourceNeedsCoepHeader" | "coepframeresourceneedscoepheader" => Ok (BlockedByResponseReason :: CoepFrameResourceNeedsCoepHeader) , "CoopSandboxedIFrameCannotNavigateToCoopPage" | "coopsandboxediframecannotnavigatetocooppage" => Ok (BlockedByResponseReason :: CoopSandboxedIFrameCannotNavigateToCoopPage) , "CorpNotSameOrigin" | "corpnotsameorigin" => Ok (BlockedByResponseReason :: CorpNotSameOrigin) , "CorpNotSameOriginAfterDefaultedToSameOriginByCoep" | "corpnotsameoriginafterdefaultedtosameoriginbycoep" => Ok (BlockedByResponseReason :: CorpNotSameOriginAfterDefaultedToSameOriginByCoep) , "CorpNotSameOriginAfterDefaultedToSameOriginByDip" | "corpnotsameoriginafterdefaultedtosameoriginbydip" => Ok (BlockedByResponseReason :: CorpNotSameOriginAfterDefaultedToSameOriginByDip) , "CorpNotSameOriginAfterDefaultedToSameOriginByCoepAndDip" | "corpnotsameoriginafterdefaultedtosameoriginbycoepanddip" => Ok (BlockedByResponseReason :: CorpNotSameOriginAfterDefaultedToSameOriginByCoepAndDip) , "CorpNotSameSite" | "corpnotsamesite" => Ok (BlockedByResponseReason :: CorpNotSameSite) , "SRIMessageSignatureMismatch" | "SriMessageSignatureMismatch" | "srimessagesignaturemismatch" => Ok (BlockedByResponseReason :: SriMessageSignatureMismatch) , _ => Err (s . to_string ()) }
             }
         }
         #[doc = "Details for a request that has been blocked with the BLOCKED_BY_RESPONSE\ncode. Currently only used for COEP/COOP, but may be extended to include\nsome CSP errors in the future.\n[BlockedByResponseIssueDetails](https://chromedevtools.github.io/devtools-protocol/tot/Audits/#type-BlockedByResponseIssueDetails)"]
@@ -23648,14 +24010,16 @@ pub mod browser_protocol {
             NotSignedInWithIdp,
             #[serde(rename = "MissingTransientUserActivation")]
             MissingTransientUserActivation,
-            #[serde(rename = "ReplacedByButtonMode")]
-            ReplacedByButtonMode,
+            #[serde(rename = "ReplacedByActiveMode")]
+            ReplacedByActiveMode,
             #[serde(rename = "InvalidFieldsSpecified")]
             InvalidFieldsSpecified,
             #[serde(rename = "RelyingPartyOriginIsOpaque")]
             RelyingPartyOriginIsOpaque,
             #[serde(rename = "TypeNotMatching")]
             TypeNotMatching,
+            #[serde(rename = "UiDismissedNoEmbargo")]
+            UiDismissedNoEmbargo,
         }
         impl AsRef<str> for FederatedAuthRequestIssueReason {
             fn as_ref(&self) -> &str {
@@ -23743,7 +24107,7 @@ pub mod browser_protocol {
                     FederatedAuthRequestIssueReason::MissingTransientUserActivation => {
                         "MissingTransientUserActivation"
                     }
-                    FederatedAuthRequestIssueReason::ReplacedByButtonMode => "ReplacedByButtonMode",
+                    FederatedAuthRequestIssueReason::ReplacedByActiveMode => "ReplacedByActiveMode",
                     FederatedAuthRequestIssueReason::InvalidFieldsSpecified => {
                         "InvalidFieldsSpecified"
                     }
@@ -23751,6 +24115,7 @@ pub mod browser_protocol {
                         "RelyingPartyOriginIsOpaque"
                     }
                     FederatedAuthRequestIssueReason::TypeNotMatching => "TypeNotMatching",
+                    FederatedAuthRequestIssueReason::UiDismissedNoEmbargo => "UiDismissedNoEmbargo",
                 }
             }
         }
@@ -23879,8 +24244,8 @@ pub mod browser_protocol {
                     "MissingTransientUserActivation" | "missingtransientuseractivation" => {
                         Ok(FederatedAuthRequestIssueReason::MissingTransientUserActivation)
                     }
-                    "ReplacedByButtonMode" | "replacedbybuttonmode" => {
-                        Ok(FederatedAuthRequestIssueReason::ReplacedByButtonMode)
+                    "ReplacedByActiveMode" | "replacedbyactivemode" => {
+                        Ok(FederatedAuthRequestIssueReason::ReplacedByActiveMode)
                     }
                     "InvalidFieldsSpecified" | "invalidfieldsspecified" => {
                         Ok(FederatedAuthRequestIssueReason::InvalidFieldsSpecified)
@@ -23890,6 +24255,9 @@ pub mod browser_protocol {
                     }
                     "TypeNotMatching" | "typenotmatching" => {
                         Ok(FederatedAuthRequestIssueReason::TypeNotMatching)
+                    }
+                    "UiDismissedNoEmbargo" | "uidismissednoembargo" => {
+                        Ok(FederatedAuthRequestIssueReason::UiDismissedNoEmbargo)
                     }
                     _ => Err(s.to_string()),
                 }
@@ -24130,6 +24498,149 @@ pub mod browser_protocol {
         }
         impl FailedRequestInfo {
             pub const IDENTIFIER: &'static str = "Audits.FailedRequestInfo";
+        }
+        #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+        pub enum SelectElementAccessibilityIssueReason {
+            #[serde(rename = "DisallowedSelectChild")]
+            DisallowedSelectChild,
+            #[serde(rename = "DisallowedOptGroupChild")]
+            DisallowedOptGroupChild,
+            #[serde(rename = "NonPhrasingContentOptionChild")]
+            NonPhrasingContentOptionChild,
+            #[serde(rename = "InteractiveContentOptionChild")]
+            InteractiveContentOptionChild,
+            #[serde(rename = "InteractiveContentLegendChild")]
+            InteractiveContentLegendChild,
+        }
+        impl AsRef<str> for SelectElementAccessibilityIssueReason {
+            fn as_ref(&self) -> &str {
+                match self {
+                    SelectElementAccessibilityIssueReason::DisallowedSelectChild => {
+                        "DisallowedSelectChild"
+                    }
+                    SelectElementAccessibilityIssueReason::DisallowedOptGroupChild => {
+                        "DisallowedOptGroupChild"
+                    }
+                    SelectElementAccessibilityIssueReason::NonPhrasingContentOptionChild => {
+                        "NonPhrasingContentOptionChild"
+                    }
+                    SelectElementAccessibilityIssueReason::InteractiveContentOptionChild => {
+                        "InteractiveContentOptionChild"
+                    }
+                    SelectElementAccessibilityIssueReason::InteractiveContentLegendChild => {
+                        "InteractiveContentLegendChild"
+                    }
+                }
+            }
+        }
+        impl ::std::str::FromStr for SelectElementAccessibilityIssueReason {
+            type Err = String;
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
+                match s {
+                    "DisallowedSelectChild" | "disallowedselectchild" => {
+                        Ok(SelectElementAccessibilityIssueReason::DisallowedSelectChild)
+                    }
+                    "DisallowedOptGroupChild" | "disallowedoptgroupchild" => {
+                        Ok(SelectElementAccessibilityIssueReason::DisallowedOptGroupChild)
+                    }
+                    "NonPhrasingContentOptionChild" | "nonphrasingcontentoptionchild" => {
+                        Ok(SelectElementAccessibilityIssueReason::NonPhrasingContentOptionChild)
+                    }
+                    "InteractiveContentOptionChild" | "interactivecontentoptionchild" => {
+                        Ok(SelectElementAccessibilityIssueReason::InteractiveContentOptionChild)
+                    }
+                    "InteractiveContentLegendChild" | "interactivecontentlegendchild" => {
+                        Ok(SelectElementAccessibilityIssueReason::InteractiveContentLegendChild)
+                    }
+                    _ => Err(s.to_string()),
+                }
+            }
+        }
+        #[doc = "This issue warns about errors in the select element content model.\n[SelectElementAccessibilityIssueDetails](https://chromedevtools.github.io/devtools-protocol/tot/Audits/#type-SelectElementAccessibilityIssueDetails)"]
+        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+        pub struct SelectElementAccessibilityIssueDetails {
+            #[serde(rename = "nodeId")]
+            pub node_id: super::dom::BackendNodeId,
+            #[serde(rename = "selectElementAccessibilityIssueReason")]
+            #[serde(deserialize_with = "super::super::de::deserialize_from_str")]
+            pub select_element_accessibility_issue_reason: SelectElementAccessibilityIssueReason,
+            #[serde(rename = "hasDisallowedAttributes")]
+            pub has_disallowed_attributes: bool,
+        }
+        impl SelectElementAccessibilityIssueDetails {
+            pub fn new(
+                node_id: impl Into<super::dom::BackendNodeId>,
+                select_element_accessibility_issue_reason: impl Into<
+                    SelectElementAccessibilityIssueReason,
+                >,
+                has_disallowed_attributes: impl Into<bool>,
+            ) -> Self {
+                Self {
+                    node_id: node_id.into(),
+                    select_element_accessibility_issue_reason:
+                        select_element_accessibility_issue_reason.into(),
+                    has_disallowed_attributes: has_disallowed_attributes.into(),
+                }
+            }
+        }
+        impl SelectElementAccessibilityIssueDetails {
+            pub fn builder() -> SelectElementAccessibilityIssueDetailsBuilder {
+                SelectElementAccessibilityIssueDetailsBuilder::default()
+            }
+        }
+        #[derive(Default, Clone)]
+        pub struct SelectElementAccessibilityIssueDetailsBuilder {
+            node_id: Option<super::dom::BackendNodeId>,
+            select_element_accessibility_issue_reason:
+                Option<SelectElementAccessibilityIssueReason>,
+            has_disallowed_attributes: Option<bool>,
+        }
+        impl SelectElementAccessibilityIssueDetailsBuilder {
+            pub fn node_id(mut self, node_id: impl Into<super::dom::BackendNodeId>) -> Self {
+                self.node_id = Some(node_id.into());
+                self
+            }
+            pub fn select_element_accessibility_issue_reason(
+                mut self,
+                select_element_accessibility_issue_reason: impl Into<
+                    SelectElementAccessibilityIssueReason,
+                >,
+            ) -> Self {
+                self.select_element_accessibility_issue_reason =
+                    Some(select_element_accessibility_issue_reason.into());
+                self
+            }
+            pub fn has_disallowed_attributes(
+                mut self,
+                has_disallowed_attributes: impl Into<bool>,
+            ) -> Self {
+                self.has_disallowed_attributes = Some(has_disallowed_attributes.into());
+                self
+            }
+            pub fn build(self) -> Result<SelectElementAccessibilityIssueDetails, String> {
+                Ok(SelectElementAccessibilityIssueDetails {
+                    node_id: self.node_id.ok_or_else(|| {
+                        format!("Field `{}` is mandatory.", std::stringify!(node_id))
+                    })?,
+                    select_element_accessibility_issue_reason: self
+                        .select_element_accessibility_issue_reason
+                        .ok_or_else(|| {
+                            format!(
+                                "Field `{}` is mandatory.",
+                                std::stringify!(select_element_accessibility_issue_reason)
+                            )
+                        })?,
+                    has_disallowed_attributes: self.has_disallowed_attributes.ok_or_else(|| {
+                        format!(
+                            "Field `{}` is mandatory.",
+                            std::stringify!(has_disallowed_attributes)
+                        )
+                    })?,
+                })
+            }
+        }
+        impl SelectElementAccessibilityIssueDetails {
+            pub const IDENTIFIER: &'static str = "Audits.SelectElementAccessibilityIssueDetails";
         }
         #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
         pub enum StyleSheetLoadingIssueReason {
@@ -24407,6 +24918,8 @@ pub mod browser_protocol {
             PropertyRuleIssue,
             #[serde(rename = "SharedDictionaryIssue")]
             SharedDictionaryIssue,
+            #[serde(rename = "SelectElementAccessibilityIssue")]
+            SelectElementAccessibilityIssue,
         }
         impl AsRef<str> for InspectorIssueCode {
             fn as_ref(&self) -> &str {
@@ -24436,6 +24949,9 @@ pub mod browser_protocol {
                     }
                     InspectorIssueCode::PropertyRuleIssue => "PropertyRuleIssue",
                     InspectorIssueCode::SharedDictionaryIssue => "SharedDictionaryIssue",
+                    InspectorIssueCode::SelectElementAccessibilityIssue => {
+                        "SelectElementAccessibilityIssue"
+                    }
                 }
             }
         }
@@ -24497,6 +25013,9 @@ pub mod browser_protocol {
                     }
                     "SharedDictionaryIssue" | "shareddictionaryissue" => {
                         Ok(InspectorIssueCode::SharedDictionaryIssue)
+                    }
+                    "SelectElementAccessibilityIssue" | "selectelementaccessibilityissue" => {
+                        Ok(InspectorIssueCode::SelectElementAccessibilityIssue)
                     }
                     _ => Err(s.to_string()),
                 }
@@ -24567,6 +25086,10 @@ pub mod browser_protocol {
             #[serde(rename = "sharedDictionaryIssueDetails")]
             #[serde(skip_serializing_if = "Option::is_none")]
             pub shared_dictionary_issue_details: Option<SharedDictionaryIssueDetails>,
+            #[serde(rename = "selectElementAccessibilityIssueDetails")]
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub select_element_accessibility_issue_details:
+                Option<SelectElementAccessibilityIssueDetails>,
         }
         impl InspectorIssueDetails {
             pub fn builder() -> InspectorIssueDetailsBuilder {
@@ -24597,6 +25120,8 @@ pub mod browser_protocol {
             federated_auth_user_info_request_issue_details:
                 Option<FederatedAuthUserInfoRequestIssueDetails>,
             shared_dictionary_issue_details: Option<SharedDictionaryIssueDetails>,
+            select_element_accessibility_issue_details:
+                Option<SelectElementAccessibilityIssueDetails>,
         }
         impl InspectorIssueDetailsBuilder {
             pub fn cookie_issue_details(
@@ -24751,6 +25276,16 @@ pub mod browser_protocol {
                 self.shared_dictionary_issue_details = Some(shared_dictionary_issue_details.into());
                 self
             }
+            pub fn select_element_accessibility_issue_details(
+                mut self,
+                select_element_accessibility_issue_details: impl Into<
+                    SelectElementAccessibilityIssueDetails,
+                >,
+            ) -> Self {
+                self.select_element_accessibility_issue_details =
+                    Some(select_element_accessibility_issue_details.into());
+                self
+            }
             pub fn build(self) -> InspectorIssueDetails {
                 InspectorIssueDetails {
                     cookie_issue_details: self.cookie_issue_details,
@@ -24776,6 +25311,8 @@ pub mod browser_protocol {
                     federated_auth_user_info_request_issue_details: self
                         .federated_auth_user_info_request_issue_details,
                     shared_dictionary_issue_details: self.shared_dictionary_issue_details,
+                    select_element_accessibility_issue_details: self
+                        .select_element_accessibility_issue_details,
                 }
             }
         }
@@ -27107,14 +27644,18 @@ pub mod browser_protocol {
         }
         #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
         pub enum PermissionType {
-            #[serde(rename = "accessibilityEvents")]
-            AccessibilityEvents,
+            #[serde(rename = "ar")]
+            Ar,
             #[serde(rename = "audioCapture")]
             AudioCapture,
-            #[serde(rename = "backgroundSync")]
-            BackgroundSync,
+            #[serde(rename = "automaticFullscreen")]
+            AutomaticFullscreen,
             #[serde(rename = "backgroundFetch")]
             BackgroundFetch,
+            #[serde(rename = "backgroundSync")]
+            BackgroundSync,
+            #[serde(rename = "cameraPanTiltZoom")]
+            CameraPanTiltZoom,
             #[serde(rename = "capturedSurfaceControl")]
             CapturedSurfaceControl,
             #[serde(rename = "clipboardReadWrite")]
@@ -27125,12 +27666,14 @@ pub mod browser_protocol {
             DisplayCapture,
             #[serde(rename = "durableStorage")]
             DurableStorage,
-            #[serde(rename = "flash")]
-            Flash,
             #[serde(rename = "geolocation")]
             Geolocation,
+            #[serde(rename = "handTracking")]
+            HandTracking,
             #[serde(rename = "idleDetection")]
             IdleDetection,
+            #[serde(rename = "keyboardLock")]
+            KeyboardLock,
             #[serde(rename = "localFonts")]
             LocalFonts,
             #[serde(rename = "midi")]
@@ -27145,44 +27688,53 @@ pub mod browser_protocol {
             PaymentHandler,
             #[serde(rename = "periodicBackgroundSync")]
             PeriodicBackgroundSync,
+            #[serde(rename = "pointerLock")]
+            PointerLock,
             #[serde(rename = "protectedMediaIdentifier")]
             ProtectedMediaIdentifier,
             #[serde(rename = "sensors")]
             Sensors,
-            #[serde(rename = "storageAccess")]
-            StorageAccess,
+            #[serde(rename = "smartCard")]
+            SmartCard,
             #[serde(rename = "speakerSelection")]
             SpeakerSelection,
+            #[serde(rename = "storageAccess")]
+            StorageAccess,
             #[serde(rename = "topLevelStorageAccess")]
             TopLevelStorageAccess,
             #[serde(rename = "videoCapture")]
             VideoCapture,
-            #[serde(rename = "videoCapturePanTiltZoom")]
-            VideoCapturePanTiltZoom,
+            #[serde(rename = "vr")]
+            Vr,
             #[serde(rename = "wakeLockScreen")]
             WakeLockScreen,
             #[serde(rename = "wakeLockSystem")]
             WakeLockSystem,
             #[serde(rename = "webAppInstallation")]
             WebAppInstallation,
+            #[serde(rename = "webPrinting")]
+            WebPrinting,
             #[serde(rename = "windowManagement")]
             WindowManagement,
         }
         impl AsRef<str> for PermissionType {
             fn as_ref(&self) -> &str {
                 match self {
-                    PermissionType::AccessibilityEvents => "accessibilityEvents",
+                    PermissionType::Ar => "ar",
                     PermissionType::AudioCapture => "audioCapture",
-                    PermissionType::BackgroundSync => "backgroundSync",
+                    PermissionType::AutomaticFullscreen => "automaticFullscreen",
                     PermissionType::BackgroundFetch => "backgroundFetch",
+                    PermissionType::BackgroundSync => "backgroundSync",
+                    PermissionType::CameraPanTiltZoom => "cameraPanTiltZoom",
                     PermissionType::CapturedSurfaceControl => "capturedSurfaceControl",
                     PermissionType::ClipboardReadWrite => "clipboardReadWrite",
                     PermissionType::ClipboardSanitizedWrite => "clipboardSanitizedWrite",
                     PermissionType::DisplayCapture => "displayCapture",
                     PermissionType::DurableStorage => "durableStorage",
-                    PermissionType::Flash => "flash",
                     PermissionType::Geolocation => "geolocation",
+                    PermissionType::HandTracking => "handTracking",
                     PermissionType::IdleDetection => "idleDetection",
+                    PermissionType::KeyboardLock => "keyboardLock",
                     PermissionType::LocalFonts => "localFonts",
                     PermissionType::Midi => "midi",
                     PermissionType::MidiSysex => "midiSysex",
@@ -27190,16 +27742,19 @@ pub mod browser_protocol {
                     PermissionType::Notifications => "notifications",
                     PermissionType::PaymentHandler => "paymentHandler",
                     PermissionType::PeriodicBackgroundSync => "periodicBackgroundSync",
+                    PermissionType::PointerLock => "pointerLock",
                     PermissionType::ProtectedMediaIdentifier => "protectedMediaIdentifier",
                     PermissionType::Sensors => "sensors",
-                    PermissionType::StorageAccess => "storageAccess",
+                    PermissionType::SmartCard => "smartCard",
                     PermissionType::SpeakerSelection => "speakerSelection",
+                    PermissionType::StorageAccess => "storageAccess",
                     PermissionType::TopLevelStorageAccess => "topLevelStorageAccess",
                     PermissionType::VideoCapture => "videoCapture",
-                    PermissionType::VideoCapturePanTiltZoom => "videoCapturePanTiltZoom",
+                    PermissionType::Vr => "vr",
                     PermissionType::WakeLockScreen => "wakeLockScreen",
                     PermissionType::WakeLockSystem => "wakeLockSystem",
                     PermissionType::WebAppInstallation => "webAppInstallation",
+                    PermissionType::WebPrinting => "webPrinting",
                     PermissionType::WindowManagement => "windowManagement",
                 }
             }
@@ -27208,17 +27763,21 @@ pub mod browser_protocol {
             type Err = String;
             fn from_str(s: &str) -> Result<Self, Self::Err> {
                 match s {
-                    "accessibilityEvents" | "AccessibilityEvents" | "accessibilityevents" => {
-                        Ok(PermissionType::AccessibilityEvents)
-                    }
+                    "ar" | "Ar" => Ok(PermissionType::Ar),
                     "audioCapture" | "AudioCapture" | "audiocapture" => {
                         Ok(PermissionType::AudioCapture)
+                    }
+                    "automaticFullscreen" | "AutomaticFullscreen" | "automaticfullscreen" => {
+                        Ok(PermissionType::AutomaticFullscreen)
+                    }
+                    "backgroundFetch" | "BackgroundFetch" | "backgroundfetch" => {
+                        Ok(PermissionType::BackgroundFetch)
                     }
                     "backgroundSync" | "BackgroundSync" | "backgroundsync" => {
                         Ok(PermissionType::BackgroundSync)
                     }
-                    "backgroundFetch" | "BackgroundFetch" | "backgroundfetch" => {
-                        Ok(PermissionType::BackgroundFetch)
+                    "cameraPanTiltZoom" | "CameraPanTiltZoom" | "camerapantiltzoom" => {
+                        Ok(PermissionType::CameraPanTiltZoom)
                     }
                     "capturedSurfaceControl"
                     | "CapturedSurfaceControl"
@@ -27235,10 +27794,15 @@ pub mod browser_protocol {
                     "durableStorage" | "DurableStorage" | "durablestorage" => {
                         Ok(PermissionType::DurableStorage)
                     }
-                    "flash" | "Flash" => Ok(PermissionType::Flash),
                     "geolocation" | "Geolocation" => Ok(PermissionType::Geolocation),
+                    "handTracking" | "HandTracking" | "handtracking" => {
+                        Ok(PermissionType::HandTracking)
+                    }
                     "idleDetection" | "IdleDetection" | "idledetection" => {
                         Ok(PermissionType::IdleDetection)
+                    }
+                    "keyboardLock" | "KeyboardLock" | "keyboardlock" => {
+                        Ok(PermissionType::KeyboardLock)
                     }
                     "localFonts" | "LocalFonts" | "localfonts" => Ok(PermissionType::LocalFonts),
                     "midi" | "Midi" => Ok(PermissionType::Midi),
@@ -27251,15 +27815,19 @@ pub mod browser_protocol {
                     "periodicBackgroundSync"
                     | "PeriodicBackgroundSync"
                     | "periodicbackgroundsync" => Ok(PermissionType::PeriodicBackgroundSync),
+                    "pointerLock" | "PointerLock" | "pointerlock" => {
+                        Ok(PermissionType::PointerLock)
+                    }
                     "protectedMediaIdentifier"
                     | "ProtectedMediaIdentifier"
                     | "protectedmediaidentifier" => Ok(PermissionType::ProtectedMediaIdentifier),
                     "sensors" | "Sensors" => Ok(PermissionType::Sensors),
-                    "storageAccess" | "StorageAccess" | "storageaccess" => {
-                        Ok(PermissionType::StorageAccess)
-                    }
+                    "smartCard" | "SmartCard" | "smartcard" => Ok(PermissionType::SmartCard),
                     "speakerSelection" | "SpeakerSelection" | "speakerselection" => {
                         Ok(PermissionType::SpeakerSelection)
+                    }
+                    "storageAccess" | "StorageAccess" | "storageaccess" => {
+                        Ok(PermissionType::StorageAccess)
                     }
                     "topLevelStorageAccess" | "TopLevelStorageAccess" | "toplevelstorageaccess" => {
                         Ok(PermissionType::TopLevelStorageAccess)
@@ -27267,9 +27835,7 @@ pub mod browser_protocol {
                     "videoCapture" | "VideoCapture" | "videocapture" => {
                         Ok(PermissionType::VideoCapture)
                     }
-                    "videoCapturePanTiltZoom"
-                    | "VideoCapturePanTiltZoom"
-                    | "videocapturepantiltzoom" => Ok(PermissionType::VideoCapturePanTiltZoom),
+                    "vr" | "Vr" => Ok(PermissionType::Vr),
                     "wakeLockScreen" | "WakeLockScreen" | "wakelockscreen" => {
                         Ok(PermissionType::WakeLockScreen)
                     }
@@ -27278,6 +27844,9 @@ pub mod browser_protocol {
                     }
                     "webAppInstallation" | "WebAppInstallation" | "webappinstallation" => {
                         Ok(PermissionType::WebAppInstallation)
+                    }
+                    "webPrinting" | "WebPrinting" | "webprinting" => {
+                        Ok(PermissionType::WebPrinting)
                     }
                     "windowManagement" | "WindowManagement" | "windowmanagement" => {
                         Ok(PermissionType::WindowManagement)
@@ -29191,6 +29760,56 @@ pub mod browser_protocol {
         impl PseudoElementMatches {
             pub const IDENTIFIER: &'static str = "CSS.PseudoElementMatches";
         }
+        #[doc = "CSS style coming from animations with the name of the animation.\n[CSSAnimationStyle](https://chromedevtools.github.io/devtools-protocol/tot/CSS/#type-CSSAnimationStyle)"]
+        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+        pub struct CssAnimationStyle {
+            #[doc = "The name of the animation."]
+            #[serde(rename = "name")]
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub name: Option<String>,
+            #[doc = "The style coming from the animation."]
+            #[serde(rename = "style")]
+            pub style: CssStyle,
+        }
+        impl CssAnimationStyle {
+            pub fn new(style: impl Into<CssStyle>) -> Self {
+                Self {
+                    style: style.into(),
+                    name: None,
+                }
+            }
+        }
+        impl CssAnimationStyle {
+            pub fn builder() -> CssAnimationStyleBuilder {
+                CssAnimationStyleBuilder::default()
+            }
+        }
+        #[derive(Default, Clone)]
+        pub struct CssAnimationStyleBuilder {
+            name: Option<String>,
+            style: Option<CssStyle>,
+        }
+        impl CssAnimationStyleBuilder {
+            pub fn name(mut self, name: impl Into<String>) -> Self {
+                self.name = Some(name.into());
+                self
+            }
+            pub fn style(mut self, style: impl Into<CssStyle>) -> Self {
+                self.style = Some(style.into());
+                self
+            }
+            pub fn build(self) -> Result<CssAnimationStyle, String> {
+                Ok(CssAnimationStyle {
+                    name: self.name,
+                    style: self.style.ok_or_else(|| {
+                        format!("Field `{}` is mandatory.", std::stringify!(style))
+                    })?,
+                })
+            }
+        }
+        impl CssAnimationStyle {
+            pub const IDENTIFIER: &'static str = "CSS.CSSAnimationStyle";
+        }
         #[doc = "Inherited CSS rule collection from ancestor node.\n[InheritedStyleEntry](https://chromedevtools.github.io/devtools-protocol/tot/CSS/#type-InheritedStyleEntry)"]
         #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
         pub struct InheritedStyleEntry {
@@ -29256,6 +29875,62 @@ pub mod browser_protocol {
         }
         impl InheritedStyleEntry {
             pub const IDENTIFIER: &'static str = "CSS.InheritedStyleEntry";
+        }
+        #[doc = "Inherited CSS style collection for animated styles from ancestor node.\n[InheritedAnimatedStyleEntry](https://chromedevtools.github.io/devtools-protocol/tot/CSS/#type-InheritedAnimatedStyleEntry)"]
+        #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+        pub struct InheritedAnimatedStyleEntry {
+            #[doc = "Styles coming from the animations of the ancestor, if any, in the style inheritance chain."]
+            #[serde(rename = "animationStyles")]
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub animation_styles: Option<Vec<CssAnimationStyle>>,
+            #[doc = "The style coming from the transitions of the ancestor, if any, in the style inheritance chain."]
+            #[serde(rename = "transitionsStyle")]
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub transitions_style: Option<CssStyle>,
+        }
+        impl InheritedAnimatedStyleEntry {
+            pub fn builder() -> InheritedAnimatedStyleEntryBuilder {
+                InheritedAnimatedStyleEntryBuilder::default()
+            }
+        }
+        #[derive(Default, Clone)]
+        pub struct InheritedAnimatedStyleEntryBuilder {
+            animation_styles: Option<Vec<CssAnimationStyle>>,
+            transitions_style: Option<CssStyle>,
+        }
+        impl InheritedAnimatedStyleEntryBuilder {
+            pub fn animation_style(
+                mut self,
+                animation_style: impl Into<CssAnimationStyle>,
+            ) -> Self {
+                let v = self.animation_styles.get_or_insert(Vec::new());
+                v.push(animation_style.into());
+                self
+            }
+            pub fn animation_styles<I, S>(mut self, animation_styles: I) -> Self
+            where
+                I: IntoIterator<Item = S>,
+                S: Into<CssAnimationStyle>,
+            {
+                let v = self.animation_styles.get_or_insert(Vec::new());
+                for val in animation_styles {
+                    v.push(val.into());
+                }
+                self
+            }
+            pub fn transitions_style(mut self, transitions_style: impl Into<CssStyle>) -> Self {
+                self.transitions_style = Some(transitions_style.into());
+                self
+            }
+            pub fn build(self) -> InheritedAnimatedStyleEntry {
+                InheritedAnimatedStyleEntry {
+                    animation_styles: self.animation_styles,
+                    transitions_style: self.transitions_style,
+                }
+            }
+        }
+        impl InheritedAnimatedStyleEntry {
+            pub const IDENTIFIER: &'static str = "CSS.InheritedAnimatedStyleEntry";
         }
         #[doc = "Inherited pseudo element matches from pseudos of an ancestor node.\n[InheritedPseudoElementMatches](https://chromedevtools.github.io/devtools-protocol/tot/CSS/#type-InheritedPseudoElementMatches)"]
         #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -29831,6 +30506,10 @@ pub mod browser_protocol {
             #[serde(rename = "ruleTypes")]
             #[serde(skip_serializing_if = "Option::is_none")]
             pub rule_types: Option<Vec<CssRuleType>>,
+            #[doc = "@starting-style CSS at-rule array.\nThe array enumerates @starting-style at-rules starting with the innermost one, going outwards."]
+            #[serde(rename = "startingStyles")]
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub starting_styles: Option<Vec<CssStartingStyle>>,
         }
         impl CssRule {
             pub fn new(
@@ -29850,6 +30529,7 @@ pub mod browser_protocol {
                     layers: None,
                     scopes: None,
                     rule_types: None,
+                    starting_styles: None,
                 }
             }
         }
@@ -29871,6 +30551,7 @@ pub mod browser_protocol {
             layers: Option<Vec<CssLayer>>,
             scopes: Option<Vec<CssScope>>,
             rule_types: Option<Vec<CssRuleType>>,
+            starting_styles: Option<Vec<CssStartingStyle>>,
         }
         impl CssRuleBuilder {
             pub fn style_sheet_id(mut self, style_sheet_id: impl Into<StyleSheetId>) -> Self {
@@ -30004,6 +30685,22 @@ pub mod browser_protocol {
                 }
                 self
             }
+            pub fn starting_style(mut self, starting_style: impl Into<CssStartingStyle>) -> Self {
+                let v = self.starting_styles.get_or_insert(Vec::new());
+                v.push(starting_style.into());
+                self
+            }
+            pub fn starting_styles<I, S>(mut self, starting_styles: I) -> Self
+            where
+                I: IntoIterator<Item = S>,
+                S: Into<CssStartingStyle>,
+            {
+                let v = self.starting_styles.get_or_insert(Vec::new());
+                for val in starting_styles {
+                    v.push(val.into());
+                }
+                self
+            }
             pub fn build(self) -> Result<CssRule, String> {
                 Ok(CssRule {
                     style_sheet_id: self.style_sheet_id,
@@ -30023,6 +30720,7 @@ pub mod browser_protocol {
                     layers: self.layers,
                     scopes: self.scopes,
                     rule_types: self.rule_types,
+                    starting_styles: self.starting_styles,
                 })
             }
         }
@@ -30044,6 +30742,8 @@ pub mod browser_protocol {
             ScopeRule,
             #[serde(rename = "StyleRule")]
             StyleRule,
+            #[serde(rename = "StartingStyleRule")]
+            StartingStyleRule,
         }
         impl AsRef<str> for CssRuleType {
             fn as_ref(&self) -> &str {
@@ -30054,6 +30754,7 @@ pub mod browser_protocol {
                     CssRuleType::LayerRule => "LayerRule",
                     CssRuleType::ScopeRule => "ScopeRule",
                     CssRuleType::StyleRule => "StyleRule",
+                    CssRuleType::StartingStyleRule => "StartingStyleRule",
                 }
             }
         }
@@ -30067,6 +30768,7 @@ pub mod browser_protocol {
                     "LayerRule" | "layerrule" => Ok(CssRuleType::LayerRule),
                     "ScopeRule" | "scoperule" => Ok(CssRuleType::ScopeRule),
                     "StyleRule" | "stylerule" => Ok(CssRuleType::StyleRule),
+                    "StartingStyleRule" | "startingstylerule" => Ok(CssRuleType::StartingStyleRule),
                     _ => Err(s.to_string()),
                 }
             }
@@ -30930,6 +31632,10 @@ pub mod browser_protocol {
             #[serde(default)]
             #[serde(deserialize_with = "super::super::de::deserialize_from_str_optional")]
             pub logical_axes: Option<super::dom::LogicalAxes>,
+            #[doc = "true if the query contains scroll-state() queries."]
+            #[serde(rename = "queriesScrollState")]
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub queries_scroll_state: Option<bool>,
         }
         impl CssContainerQuery {
             pub fn new(text: impl Into<String>) -> Self {
@@ -30940,6 +31646,7 @@ pub mod browser_protocol {
                     name: None,
                     physical_axes: None,
                     logical_axes: None,
+                    queries_scroll_state: None,
                 }
             }
         }
@@ -30961,6 +31668,7 @@ pub mod browser_protocol {
             name: Option<String>,
             physical_axes: Option<super::dom::PhysicalAxes>,
             logical_axes: Option<super::dom::LogicalAxes>,
+            queries_scroll_state: Option<bool>,
         }
         impl CssContainerQueryBuilder {
             pub fn text(mut self, text: impl Into<String>) -> Self {
@@ -30993,6 +31701,10 @@ pub mod browser_protocol {
                 self.logical_axes = Some(logical_axes.into());
                 self
             }
+            pub fn queries_scroll_state(mut self, queries_scroll_state: impl Into<bool>) -> Self {
+                self.queries_scroll_state = Some(queries_scroll_state.into());
+                self
+            }
             pub fn build(self) -> Result<CssContainerQuery, String> {
                 Ok(CssContainerQuery {
                     text: self.text.ok_or_else(|| {
@@ -31003,6 +31715,7 @@ pub mod browser_protocol {
                     name: self.name,
                     physical_axes: self.physical_axes,
                     logical_axes: self.logical_axes,
+                    queries_scroll_state: self.queries_scroll_state,
                 })
             }
         }
@@ -31213,6 +31926,47 @@ pub mod browser_protocol {
         }
         impl CssLayer {
             pub const IDENTIFIER: &'static str = "CSS.CSSLayer";
+        }
+        #[doc = "CSS Starting Style at-rule descriptor.\n[CSSStartingStyle](https://chromedevtools.github.io/devtools-protocol/tot/CSS/#type-CSSStartingStyle)"]
+        #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+        pub struct CssStartingStyle {
+            #[doc = "The associated rule header range in the enclosing stylesheet (if\navailable)."]
+            #[serde(rename = "range")]
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub range: Option<SourceRange>,
+            #[doc = "Identifier of the stylesheet containing this object (if exists)."]
+            #[serde(rename = "styleSheetId")]
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub style_sheet_id: Option<StyleSheetId>,
+        }
+        impl CssStartingStyle {
+            pub fn builder() -> CssStartingStyleBuilder {
+                CssStartingStyleBuilder::default()
+            }
+        }
+        #[derive(Default, Clone)]
+        pub struct CssStartingStyleBuilder {
+            range: Option<SourceRange>,
+            style_sheet_id: Option<StyleSheetId>,
+        }
+        impl CssStartingStyleBuilder {
+            pub fn range(mut self, range: impl Into<SourceRange>) -> Self {
+                self.range = Some(range.into());
+                self
+            }
+            pub fn style_sheet_id(mut self, style_sheet_id: impl Into<StyleSheetId>) -> Self {
+                self.style_sheet_id = Some(style_sheet_id.into());
+                self
+            }
+            pub fn build(self) -> CssStartingStyle {
+                CssStartingStyle {
+                    range: self.range,
+                    style_sheet_id: self.style_sheet_id,
+                }
+            }
+        }
+        impl CssStartingStyle {
+            pub const IDENTIFIER: &'static str = "CSS.CSSStartingStyle";
         }
         #[doc = "CSS Layer data.\n[CSSLayerData](https://chromedevtools.github.io/devtools-protocol/tot/CSS/#type-CSSLayerData)"]
         #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -32433,11 +33187,16 @@ pub mod browser_protocol {
             #[doc = "Identifier of the frame where \"via-inspector\" stylesheet should be created."]
             #[serde(rename = "frameId")]
             pub frame_id: super::page::FrameId,
+            #[doc = "If true, creates a new stylesheet for every call. If false,\nreturns a stylesheet previously created by a call with force=false\nfor the frame's document if it exists or creates a new stylesheet\n(default: false)."]
+            #[serde(rename = "force")]
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub force: Option<bool>,
         }
         impl CreateStyleSheetParams {
             pub fn new(frame_id: impl Into<super::page::FrameId>) -> Self {
                 Self {
                     frame_id: frame_id.into(),
+                    force: None,
                 }
             }
         }
@@ -32449,10 +33208,15 @@ pub mod browser_protocol {
         #[derive(Default, Clone)]
         pub struct CreateStyleSheetParamsBuilder {
             frame_id: Option<super::page::FrameId>,
+            force: Option<bool>,
         }
         impl CreateStyleSheetParamsBuilder {
             pub fn frame_id(mut self, frame_id: impl Into<super::page::FrameId>) -> Self {
                 self.frame_id = Some(frame_id.into());
+                self
+            }
+            pub fn force(mut self, force: impl Into<bool>) -> Self {
+                self.force = Some(force.into());
                 self
             }
             pub fn build(self) -> Result<CreateStyleSheetParams, String> {
@@ -32460,6 +33224,7 @@ pub mod browser_protocol {
                     frame_id: self.frame_id.ok_or_else(|| {
                         format!("Field `{}` is mandatory.", std::stringify!(frame_id))
                     })?,
+                    force: self.force,
                 })
             }
         }
@@ -32656,6 +33421,76 @@ pub mod browser_protocol {
         pub struct ForcePseudoStateReturns {}
         impl chromiumoxide_types::Command for ForcePseudoStateParams {
             type Response = ForcePseudoStateReturns;
+        }
+        #[doc = "Ensures that the given node is in its starting-style state.\n[forceStartingStyle](https://chromedevtools.github.io/devtools-protocol/tot/CSS/#method-forceStartingStyle)"]
+        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+        pub struct ForceStartingStyleParams {
+            #[doc = "The element id for which to force the starting-style state."]
+            #[serde(rename = "nodeId")]
+            pub node_id: super::dom::NodeId,
+            #[doc = "Boolean indicating if this is on or off."]
+            #[serde(rename = "forced")]
+            pub forced: bool,
+        }
+        impl ForceStartingStyleParams {
+            pub fn new(node_id: impl Into<super::dom::NodeId>, forced: impl Into<bool>) -> Self {
+                Self {
+                    node_id: node_id.into(),
+                    forced: forced.into(),
+                }
+            }
+        }
+        impl ForceStartingStyleParams {
+            pub fn builder() -> ForceStartingStyleParamsBuilder {
+                ForceStartingStyleParamsBuilder::default()
+            }
+        }
+        #[derive(Default, Clone)]
+        pub struct ForceStartingStyleParamsBuilder {
+            node_id: Option<super::dom::NodeId>,
+            forced: Option<bool>,
+        }
+        impl ForceStartingStyleParamsBuilder {
+            pub fn node_id(mut self, node_id: impl Into<super::dom::NodeId>) -> Self {
+                self.node_id = Some(node_id.into());
+                self
+            }
+            pub fn forced(mut self, forced: impl Into<bool>) -> Self {
+                self.forced = Some(forced.into());
+                self
+            }
+            pub fn build(self) -> Result<ForceStartingStyleParams, String> {
+                Ok(ForceStartingStyleParams {
+                    node_id: self.node_id.ok_or_else(|| {
+                        format!("Field `{}` is mandatory.", std::stringify!(node_id))
+                    })?,
+                    forced: self.forced.ok_or_else(|| {
+                        format!("Field `{}` is mandatory.", std::stringify!(forced))
+                    })?,
+                })
+            }
+        }
+        impl ForceStartingStyleParams {
+            pub const IDENTIFIER: &'static str = "CSS.forceStartingStyle";
+        }
+        impl chromiumoxide_types::Method for ForceStartingStyleParams {
+            fn identifier(&self) -> chromiumoxide_types::MethodId {
+                Self::IDENTIFIER.into()
+            }
+        }
+        impl chromiumoxide_types::MethodType for ForceStartingStyleParams {
+            fn method_id() -> chromiumoxide_types::MethodId
+            where
+                Self: Sized,
+            {
+                Self::IDENTIFIER.into()
+            }
+        }
+        #[doc = "Ensures that the given node is in its starting-style state.\n[forceStartingStyle](https://chromedevtools.github.io/devtools-protocol/tot/CSS/#method-forceStartingStyle)"]
+        #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+        pub struct ForceStartingStyleReturns {}
+        impl chromiumoxide_types::Command for ForceStartingStyleParams {
+            type Response = ForceStartingStyleReturns;
         }
         #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
         pub struct GetBackgroundColorsParams {
@@ -32874,6 +33709,284 @@ pub mod browser_protocol {
         impl chromiumoxide_types::Command for GetComputedStyleForNodeParams {
             type Response = GetComputedStyleForNodeReturns;
         }
+        #[doc = "Resolve the specified values in the context of the provided element.\nFor example, a value of '1em' is evaluated according to the computed\n'font-size' of the element and a value 'calc(1px + 2px)' will be\nresolved to '3px'.\n[resolveValues](https://chromedevtools.github.io/devtools-protocol/tot/CSS/#method-resolveValues)"]
+        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+        pub struct ResolveValuesParams {
+            #[doc = "Substitution functions (var()/env()/attr()) and cascade-dependent\nkeywords (revert/revert-layer) do not work."]
+            #[serde(rename = "values")]
+            #[serde(skip_serializing_if = "Vec::is_empty")]
+            pub values: Vec<String>,
+            #[doc = "Id of the node in whose context the expression is evaluated"]
+            #[serde(rename = "nodeId")]
+            pub node_id: super::dom::NodeId,
+            #[doc = "Only longhands and custom property names are accepted."]
+            #[serde(rename = "propertyName")]
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub property_name: Option<String>,
+            #[doc = "Pseudo element type, only works for pseudo elements that generate\nelements in the tree, such as ::before and ::after."]
+            #[serde(rename = "pseudoType")]
+            #[serde(skip_serializing_if = "Option::is_none")]
+            #[serde(default)]
+            #[serde(deserialize_with = "super::super::de::deserialize_from_str_optional")]
+            pub pseudo_type: Option<super::dom::PseudoType>,
+            #[doc = "Pseudo element custom ident."]
+            #[serde(rename = "pseudoIdentifier")]
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub pseudo_identifier: Option<String>,
+        }
+        impl ResolveValuesParams {
+            pub fn new(values: Vec<String>, node_id: impl Into<super::dom::NodeId>) -> Self {
+                Self {
+                    values,
+                    node_id: node_id.into(),
+                    property_name: None,
+                    pseudo_type: None,
+                    pseudo_identifier: None,
+                }
+            }
+        }
+        impl ResolveValuesParams {
+            pub fn builder() -> ResolveValuesParamsBuilder {
+                ResolveValuesParamsBuilder::default()
+            }
+        }
+        #[derive(Default, Clone)]
+        pub struct ResolveValuesParamsBuilder {
+            values: Option<Vec<String>>,
+            node_id: Option<super::dom::NodeId>,
+            property_name: Option<String>,
+            pseudo_type: Option<super::dom::PseudoType>,
+            pseudo_identifier: Option<String>,
+        }
+        impl ResolveValuesParamsBuilder {
+            pub fn value(mut self, value: impl Into<String>) -> Self {
+                let v = self.values.get_or_insert(Vec::new());
+                v.push(value.into());
+                self
+            }
+            pub fn values<I, S>(mut self, values: I) -> Self
+            where
+                I: IntoIterator<Item = S>,
+                S: Into<String>,
+            {
+                let v = self.values.get_or_insert(Vec::new());
+                for val in values {
+                    v.push(val.into());
+                }
+                self
+            }
+            pub fn node_id(mut self, node_id: impl Into<super::dom::NodeId>) -> Self {
+                self.node_id = Some(node_id.into());
+                self
+            }
+            pub fn property_name(mut self, property_name: impl Into<String>) -> Self {
+                self.property_name = Some(property_name.into());
+                self
+            }
+            pub fn pseudo_type(mut self, pseudo_type: impl Into<super::dom::PseudoType>) -> Self {
+                self.pseudo_type = Some(pseudo_type.into());
+                self
+            }
+            pub fn pseudo_identifier(mut self, pseudo_identifier: impl Into<String>) -> Self {
+                self.pseudo_identifier = Some(pseudo_identifier.into());
+                self
+            }
+            pub fn build(self) -> Result<ResolveValuesParams, String> {
+                Ok(ResolveValuesParams {
+                    values: self.values.ok_or_else(|| {
+                        format!("Field `{}` is mandatory.", std::stringify!(values))
+                    })?,
+                    node_id: self.node_id.ok_or_else(|| {
+                        format!("Field `{}` is mandatory.", std::stringify!(node_id))
+                    })?,
+                    property_name: self.property_name,
+                    pseudo_type: self.pseudo_type,
+                    pseudo_identifier: self.pseudo_identifier,
+                })
+            }
+        }
+        impl ResolveValuesParams {
+            pub const IDENTIFIER: &'static str = "CSS.resolveValues";
+        }
+        impl chromiumoxide_types::Method for ResolveValuesParams {
+            fn identifier(&self) -> chromiumoxide_types::MethodId {
+                Self::IDENTIFIER.into()
+            }
+        }
+        impl chromiumoxide_types::MethodType for ResolveValuesParams {
+            fn method_id() -> chromiumoxide_types::MethodId
+            where
+                Self: Sized,
+            {
+                Self::IDENTIFIER.into()
+            }
+        }
+        #[doc = "Resolve the specified values in the context of the provided element.\nFor example, a value of '1em' is evaluated according to the computed\n'font-size' of the element and a value 'calc(1px + 2px)' will be\nresolved to '3px'.\n[resolveValues](https://chromedevtools.github.io/devtools-protocol/tot/CSS/#method-resolveValues)"]
+        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+        pub struct ResolveValuesReturns {
+            #[serde(rename = "results")]
+            #[serde(skip_serializing_if = "Vec::is_empty")]
+            pub results: Vec<String>,
+        }
+        impl ResolveValuesReturns {
+            pub fn new(results: Vec<String>) -> Self {
+                Self { results }
+            }
+        }
+        impl ResolveValuesReturns {
+            pub fn builder() -> ResolveValuesReturnsBuilder {
+                ResolveValuesReturnsBuilder::default()
+            }
+        }
+        #[derive(Default, Clone)]
+        pub struct ResolveValuesReturnsBuilder {
+            results: Option<Vec<String>>,
+        }
+        impl ResolveValuesReturnsBuilder {
+            pub fn result(mut self, result: impl Into<String>) -> Self {
+                let v = self.results.get_or_insert(Vec::new());
+                v.push(result.into());
+                self
+            }
+            pub fn results<I, S>(mut self, results: I) -> Self
+            where
+                I: IntoIterator<Item = S>,
+                S: Into<String>,
+            {
+                let v = self.results.get_or_insert(Vec::new());
+                for val in results {
+                    v.push(val.into());
+                }
+                self
+            }
+            pub fn build(self) -> Result<ResolveValuesReturns, String> {
+                Ok(ResolveValuesReturns {
+                    results: self.results.ok_or_else(|| {
+                        format!("Field `{}` is mandatory.", std::stringify!(results))
+                    })?,
+                })
+            }
+        }
+        impl chromiumoxide_types::Command for ResolveValuesParams {
+            type Response = ResolveValuesReturns;
+        }
+        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+        pub struct GetLonghandPropertiesParams {
+            #[serde(rename = "shorthandName")]
+            pub shorthand_name: String,
+            #[serde(rename = "value")]
+            pub value: String,
+        }
+        impl GetLonghandPropertiesParams {
+            pub fn new(shorthand_name: impl Into<String>, value: impl Into<String>) -> Self {
+                Self {
+                    shorthand_name: shorthand_name.into(),
+                    value: value.into(),
+                }
+            }
+        }
+        impl GetLonghandPropertiesParams {
+            pub fn builder() -> GetLonghandPropertiesParamsBuilder {
+                GetLonghandPropertiesParamsBuilder::default()
+            }
+        }
+        #[derive(Default, Clone)]
+        pub struct GetLonghandPropertiesParamsBuilder {
+            shorthand_name: Option<String>,
+            value: Option<String>,
+        }
+        impl GetLonghandPropertiesParamsBuilder {
+            pub fn shorthand_name(mut self, shorthand_name: impl Into<String>) -> Self {
+                self.shorthand_name = Some(shorthand_name.into());
+                self
+            }
+            pub fn value(mut self, value: impl Into<String>) -> Self {
+                self.value = Some(value.into());
+                self
+            }
+            pub fn build(self) -> Result<GetLonghandPropertiesParams, String> {
+                Ok(GetLonghandPropertiesParams {
+                    shorthand_name: self.shorthand_name.ok_or_else(|| {
+                        format!("Field `{}` is mandatory.", std::stringify!(shorthand_name))
+                    })?,
+                    value: self.value.ok_or_else(|| {
+                        format!("Field `{}` is mandatory.", std::stringify!(value))
+                    })?,
+                })
+            }
+        }
+        impl GetLonghandPropertiesParams {
+            pub const IDENTIFIER: &'static str = "CSS.getLonghandProperties";
+        }
+        impl chromiumoxide_types::Method for GetLonghandPropertiesParams {
+            fn identifier(&self) -> chromiumoxide_types::MethodId {
+                Self::IDENTIFIER.into()
+            }
+        }
+        impl chromiumoxide_types::MethodType for GetLonghandPropertiesParams {
+            fn method_id() -> chromiumoxide_types::MethodId
+            where
+                Self: Sized,
+            {
+                Self::IDENTIFIER.into()
+            }
+        }
+        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+        pub struct GetLonghandPropertiesReturns {
+            #[serde(rename = "longhandProperties")]
+            #[serde(skip_serializing_if = "Vec::is_empty")]
+            pub longhand_properties: Vec<CssProperty>,
+        }
+        impl GetLonghandPropertiesReturns {
+            pub fn new(longhand_properties: Vec<CssProperty>) -> Self {
+                Self {
+                    longhand_properties,
+                }
+            }
+        }
+        impl GetLonghandPropertiesReturns {
+            pub fn builder() -> GetLonghandPropertiesReturnsBuilder {
+                GetLonghandPropertiesReturnsBuilder::default()
+            }
+        }
+        #[derive(Default, Clone)]
+        pub struct GetLonghandPropertiesReturnsBuilder {
+            longhand_properties: Option<Vec<CssProperty>>,
+        }
+        impl GetLonghandPropertiesReturnsBuilder {
+            pub fn longhand_propertie(
+                mut self,
+                longhand_propertie: impl Into<CssProperty>,
+            ) -> Self {
+                let v = self.longhand_properties.get_or_insert(Vec::new());
+                v.push(longhand_propertie.into());
+                self
+            }
+            pub fn longhand_properties<I, S>(mut self, longhand_properties: I) -> Self
+            where
+                I: IntoIterator<Item = S>,
+                S: Into<CssProperty>,
+            {
+                let v = self.longhand_properties.get_or_insert(Vec::new());
+                for val in longhand_properties {
+                    v.push(val.into());
+                }
+                self
+            }
+            pub fn build(self) -> Result<GetLonghandPropertiesReturns, String> {
+                Ok(GetLonghandPropertiesReturns {
+                    longhand_properties: self.longhand_properties.ok_or_else(|| {
+                        format!(
+                            "Field `{}` is mandatory.",
+                            std::stringify!(longhand_properties)
+                        )
+                    })?,
+                })
+            }
+        }
+        impl chromiumoxide_types::Command for GetLonghandPropertiesParams {
+            type Response = GetLonghandPropertiesReturns;
+        }
         #[doc = "Returns the styles defined inline (explicitly in the \"style\" attribute and implicitly, using DOM\nattributes) for a DOM node identified by `nodeId`.\n[getInlineStylesForNode](https://chromedevtools.github.io/devtools-protocol/tot/CSS/#method-getInlineStylesForNode)"]
         #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
         pub struct GetInlineStylesForNodeParams {
@@ -32965,6 +34078,135 @@ pub mod browser_protocol {
         }
         impl chromiumoxide_types::Command for GetInlineStylesForNodeParams {
             type Response = GetInlineStylesForNodeReturns;
+        }
+        #[doc = "Returns the styles coming from animations & transitions\nincluding the animation & transition styles coming from inheritance chain.\n[getAnimatedStylesForNode](https://chromedevtools.github.io/devtools-protocol/tot/CSS/#method-getAnimatedStylesForNode)"]
+        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+        pub struct GetAnimatedStylesForNodeParams {
+            #[serde(rename = "nodeId")]
+            pub node_id: super::dom::NodeId,
+        }
+        impl GetAnimatedStylesForNodeParams {
+            pub fn new(node_id: impl Into<super::dom::NodeId>) -> Self {
+                Self {
+                    node_id: node_id.into(),
+                }
+            }
+        }
+        impl GetAnimatedStylesForNodeParams {
+            pub fn builder() -> GetAnimatedStylesForNodeParamsBuilder {
+                GetAnimatedStylesForNodeParamsBuilder::default()
+            }
+        }
+        #[derive(Default, Clone)]
+        pub struct GetAnimatedStylesForNodeParamsBuilder {
+            node_id: Option<super::dom::NodeId>,
+        }
+        impl GetAnimatedStylesForNodeParamsBuilder {
+            pub fn node_id(mut self, node_id: impl Into<super::dom::NodeId>) -> Self {
+                self.node_id = Some(node_id.into());
+                self
+            }
+            pub fn build(self) -> Result<GetAnimatedStylesForNodeParams, String> {
+                Ok(GetAnimatedStylesForNodeParams {
+                    node_id: self.node_id.ok_or_else(|| {
+                        format!("Field `{}` is mandatory.", std::stringify!(node_id))
+                    })?,
+                })
+            }
+        }
+        impl GetAnimatedStylesForNodeParams {
+            pub const IDENTIFIER: &'static str = "CSS.getAnimatedStylesForNode";
+        }
+        impl chromiumoxide_types::Method for GetAnimatedStylesForNodeParams {
+            fn identifier(&self) -> chromiumoxide_types::MethodId {
+                Self::IDENTIFIER.into()
+            }
+        }
+        impl chromiumoxide_types::MethodType for GetAnimatedStylesForNodeParams {
+            fn method_id() -> chromiumoxide_types::MethodId
+            where
+                Self: Sized,
+            {
+                Self::IDENTIFIER.into()
+            }
+        }
+        #[doc = "Returns the styles coming from animations & transitions\nincluding the animation & transition styles coming from inheritance chain.\n[getAnimatedStylesForNode](https://chromedevtools.github.io/devtools-protocol/tot/CSS/#method-getAnimatedStylesForNode)"]
+        #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+        pub struct GetAnimatedStylesForNodeReturns {
+            #[doc = "Styles coming from animations."]
+            #[serde(rename = "animationStyles")]
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub animation_styles: Option<Vec<CssAnimationStyle>>,
+            #[doc = "Style coming from transitions."]
+            #[serde(rename = "transitionsStyle")]
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub transitions_style: Option<CssStyle>,
+            #[doc = "Inherited style entries for animationsStyle and transitionsStyle from\nthe inheritance chain of the element."]
+            #[serde(rename = "inherited")]
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub inherited: Option<Vec<InheritedAnimatedStyleEntry>>,
+        }
+        impl GetAnimatedStylesForNodeReturns {
+            pub fn builder() -> GetAnimatedStylesForNodeReturnsBuilder {
+                GetAnimatedStylesForNodeReturnsBuilder::default()
+            }
+        }
+        #[derive(Default, Clone)]
+        pub struct GetAnimatedStylesForNodeReturnsBuilder {
+            animation_styles: Option<Vec<CssAnimationStyle>>,
+            transitions_style: Option<CssStyle>,
+            inherited: Option<Vec<InheritedAnimatedStyleEntry>>,
+        }
+        impl GetAnimatedStylesForNodeReturnsBuilder {
+            pub fn animation_style(
+                mut self,
+                animation_style: impl Into<CssAnimationStyle>,
+            ) -> Self {
+                let v = self.animation_styles.get_or_insert(Vec::new());
+                v.push(animation_style.into());
+                self
+            }
+            pub fn animation_styles<I, S>(mut self, animation_styles: I) -> Self
+            where
+                I: IntoIterator<Item = S>,
+                S: Into<CssAnimationStyle>,
+            {
+                let v = self.animation_styles.get_or_insert(Vec::new());
+                for val in animation_styles {
+                    v.push(val.into());
+                }
+                self
+            }
+            pub fn transitions_style(mut self, transitions_style: impl Into<CssStyle>) -> Self {
+                self.transitions_style = Some(transitions_style.into());
+                self
+            }
+            pub fn inherited(mut self, inherited: impl Into<InheritedAnimatedStyleEntry>) -> Self {
+                let v = self.inherited.get_or_insert(Vec::new());
+                v.push(inherited.into());
+                self
+            }
+            pub fn inheriteds<I, S>(mut self, inheriteds: I) -> Self
+            where
+                I: IntoIterator<Item = S>,
+                S: Into<InheritedAnimatedStyleEntry>,
+            {
+                let v = self.inherited.get_or_insert(Vec::new());
+                for val in inheriteds {
+                    v.push(val.into());
+                }
+                self
+            }
+            pub fn build(self) -> GetAnimatedStylesForNodeReturns {
+                GetAnimatedStylesForNodeReturns {
+                    animation_styles: self.animation_styles,
+                    transitions_style: self.transitions_style,
+                    inherited: self.inherited,
+                }
+            }
+        }
+        impl chromiumoxide_types::Command for GetAnimatedStylesForNodeParams {
+            type Response = GetAnimatedStylesForNodeReturns;
         }
         #[doc = "Returns requested styles for a DOM node identified by `nodeId`.\n[getMatchedStylesForNode](https://chromedevtools.github.io/devtools-protocol/tot/CSS/#method-getMatchedStylesForNode)"]
         #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -33755,6 +34997,55 @@ pub mod browser_protocol {
         }
         impl chromiumoxide_types::Command for GetLocationForSelectorParams {
             type Response = GetLocationForSelectorReturns;
+        }
+        #[doc = "Starts tracking the given node for the computed style updates\nand whenever the computed style is updated for node, it queues\na `computedStyleUpdated` event with throttling.\nThere can only be 1 node tracked for computed style updates\nso passing a new node id removes tracking from the previous node.\nPass `undefined` to disable tracking.\n[trackComputedStyleUpdatesForNode](https://chromedevtools.github.io/devtools-protocol/tot/CSS/#method-trackComputedStyleUpdatesForNode)"]
+        #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+        pub struct TrackComputedStyleUpdatesForNodeParams {
+            #[serde(rename = "nodeId")]
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub node_id: Option<super::dom::NodeId>,
+        }
+        impl TrackComputedStyleUpdatesForNodeParams {
+            pub fn builder() -> TrackComputedStyleUpdatesForNodeParamsBuilder {
+                TrackComputedStyleUpdatesForNodeParamsBuilder::default()
+            }
+        }
+        #[derive(Default, Clone)]
+        pub struct TrackComputedStyleUpdatesForNodeParamsBuilder {
+            node_id: Option<super::dom::NodeId>,
+        }
+        impl TrackComputedStyleUpdatesForNodeParamsBuilder {
+            pub fn node_id(mut self, node_id: impl Into<super::dom::NodeId>) -> Self {
+                self.node_id = Some(node_id.into());
+                self
+            }
+            pub fn build(self) -> TrackComputedStyleUpdatesForNodeParams {
+                TrackComputedStyleUpdatesForNodeParams {
+                    node_id: self.node_id,
+                }
+            }
+        }
+        impl TrackComputedStyleUpdatesForNodeParams {
+            pub const IDENTIFIER: &'static str = "CSS.trackComputedStyleUpdatesForNode";
+        }
+        impl chromiumoxide_types::Method for TrackComputedStyleUpdatesForNodeParams {
+            fn identifier(&self) -> chromiumoxide_types::MethodId {
+                Self::IDENTIFIER.into()
+            }
+        }
+        impl chromiumoxide_types::MethodType for TrackComputedStyleUpdatesForNodeParams {
+            fn method_id() -> chromiumoxide_types::MethodId
+            where
+                Self: Sized,
+            {
+                Self::IDENTIFIER.into()
+            }
+        }
+        #[doc = "Starts tracking the given node for the computed style updates\nand whenever the computed style is updated for node, it queues\na `computedStyleUpdated` event with throttling.\nThere can only be 1 node tracked for computed style updates\nso passing a new node id removes tracking from the previous node.\nPass `undefined` to disable tracking.\n[trackComputedStyleUpdatesForNode](https://chromedevtools.github.io/devtools-protocol/tot/CSS/#method-trackComputedStyleUpdatesForNode)"]
+        #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+        pub struct TrackComputedStyleUpdatesForNodeReturns {}
+        impl chromiumoxide_types::Command for TrackComputedStyleUpdatesForNodeParams {
+            type Response = TrackComputedStyleUpdatesForNodeReturns;
         }
         #[doc = "Starts tracking the given computed styles for updates. The specified array of properties\nreplaces the one previously specified. Pass empty array to disable tracking.\nUse takeComputedStyleUpdates to retrieve the list of nodes that had properties modified.\nThe changes to computed style properties are only tracked for nodes pushed to the front-end\nby the DOM agent. If no changes to the tracked properties occur after the node has been pushed\nto the front-end, no updates will be issued for the node.\n[trackComputedStyleUpdates](https://chromedevtools.github.io/devtools-protocol/tot/CSS/#method-trackComputedStyleUpdates)"]
         #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -35366,6 +36657,28 @@ pub mod browser_protocol {
                 Self::IDENTIFIER.into()
             }
         }
+        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+        pub struct EventComputedStyleUpdated {
+            #[doc = "The node id that has updated computed styles."]
+            #[serde(rename = "nodeId")]
+            pub node_id: super::dom::NodeId,
+        }
+        impl EventComputedStyleUpdated {
+            pub const IDENTIFIER: &'static str = "CSS.computedStyleUpdated";
+        }
+        impl chromiumoxide_types::Method for EventComputedStyleUpdated {
+            fn identifier(&self) -> chromiumoxide_types::MethodId {
+                Self::IDENTIFIER.into()
+            }
+        }
+        impl chromiumoxide_types::MethodType for EventComputedStyleUpdated {
+            fn method_id() -> chromiumoxide_types::MethodId
+            where
+                Self: Sized,
+            {
+                Self::IDENTIFIER.into()
+            }
+        }
     }
     pub mod cache_storage {
         use serde::{Deserialize, Serialize};
@@ -36834,10 +38147,14 @@ pub mod browser_protocol {
             FirstLine,
             #[serde(rename = "first-letter")]
             FirstLetter,
+            #[serde(rename = "checkmark")]
+            Checkmark,
             #[serde(rename = "before")]
             Before,
             #[serde(rename = "after")]
             After,
+            #[serde(rename = "picker-icon")]
+            PickerIcon,
             #[serde(rename = "marker")]
             Marker,
             #[serde(rename = "backdrop")]
@@ -36862,10 +38179,8 @@ pub mod browser_protocol {
             ScrollMarker,
             #[serde(rename = "scroll-marker-group")]
             ScrollMarkerGroup,
-            #[serde(rename = "scroll-next-button")]
-            ScrollNextButton,
-            #[serde(rename = "scroll-prev-button")]
-            ScrollPrevButton,
+            #[serde(rename = "scroll-button")]
+            ScrollButton,
             #[serde(rename = "scrollbar")]
             Scrollbar,
             #[serde(rename = "scrollbar-thumb")]
@@ -36898,10 +38213,6 @@ pub mod browser_protocol {
             FileSelectorButton,
             #[serde(rename = "details-content")]
             DetailsContent,
-            #[serde(rename = "select-fallback-button")]
-            SelectFallbackButton,
-            #[serde(rename = "select-fallback-button-text")]
-            SelectFallbackButtonText,
             #[serde(rename = "picker")]
             Picker,
         }
@@ -36910,8 +38221,10 @@ pub mod browser_protocol {
                 match self {
                     PseudoType::FirstLine => "first-line",
                     PseudoType::FirstLetter => "first-letter",
+                    PseudoType::Checkmark => "checkmark",
                     PseudoType::Before => "before",
                     PseudoType::After => "after",
+                    PseudoType::PickerIcon => "picker-icon",
                     PseudoType::Marker => "marker",
                     PseudoType::Backdrop => "backdrop",
                     PseudoType::Column => "column",
@@ -36924,8 +38237,7 @@ pub mod browser_protocol {
                     PseudoType::FirstLineInherited => "first-line-inherited",
                     PseudoType::ScrollMarker => "scroll-marker",
                     PseudoType::ScrollMarkerGroup => "scroll-marker-group",
-                    PseudoType::ScrollNextButton => "scroll-next-button",
-                    PseudoType::ScrollPrevButton => "scroll-prev-button",
+                    PseudoType::ScrollButton => "scroll-button",
                     PseudoType::Scrollbar => "scrollbar",
                     PseudoType::ScrollbarThumb => "scrollbar-thumb",
                     PseudoType::ScrollbarButton => "scrollbar-button",
@@ -36942,8 +38254,6 @@ pub mod browser_protocol {
                     PseudoType::Placeholder => "placeholder",
                     PseudoType::FileSelectorButton => "file-selector-button",
                     PseudoType::DetailsContent => "details-content",
-                    PseudoType::SelectFallbackButton => "select-fallback-button",
-                    PseudoType::SelectFallbackButtonText => "select-fallback-button-text",
                     PseudoType::Picker => "picker",
                 }
             }
@@ -36954,8 +38264,10 @@ pub mod browser_protocol {
                 match s {
                     "first-line" | "FirstLine" => Ok(PseudoType::FirstLine),
                     "first-letter" | "FirstLetter" => Ok(PseudoType::FirstLetter),
+                    "checkmark" | "Checkmark" => Ok(PseudoType::Checkmark),
                     "before" | "Before" => Ok(PseudoType::Before),
                     "after" | "After" => Ok(PseudoType::After),
+                    "picker-icon" | "PickerIcon" => Ok(PseudoType::PickerIcon),
                     "marker" | "Marker" => Ok(PseudoType::Marker),
                     "backdrop" | "Backdrop" => Ok(PseudoType::Backdrop),
                     "column" | "Column" => Ok(PseudoType::Column),
@@ -36972,8 +38284,7 @@ pub mod browser_protocol {
                     "scroll-marker-group" | "ScrollMarkerGroup" => {
                         Ok(PseudoType::ScrollMarkerGroup)
                     }
-                    "scroll-next-button" | "ScrollNextButton" => Ok(PseudoType::ScrollNextButton),
-                    "scroll-prev-button" | "ScrollPrevButton" => Ok(PseudoType::ScrollPrevButton),
+                    "scroll-button" | "ScrollButton" => Ok(PseudoType::ScrollButton),
                     "scrollbar" | "Scrollbar" => Ok(PseudoType::Scrollbar),
                     "scrollbar-thumb" | "ScrollbarThumb" => Ok(PseudoType::ScrollbarThumb),
                     "scrollbar-button" | "ScrollbarButton" => Ok(PseudoType::ScrollbarButton),
@@ -37002,12 +38313,6 @@ pub mod browser_protocol {
                         Ok(PseudoType::FileSelectorButton)
                     }
                     "details-content" | "DetailsContent" => Ok(PseudoType::DetailsContent),
-                    "select-fallback-button" | "SelectFallbackButton" => {
-                        Ok(PseudoType::SelectFallbackButton)
-                    }
-                    "select-fallback-button-text" | "SelectFallbackButtonText" => {
-                        Ok(PseudoType::SelectFallbackButtonText)
-                    }
                     "picker" | "Picker" => Ok(PseudoType::Picker),
                     _ => Err(s.to_string()),
                 }
@@ -42189,7 +43494,7 @@ pub mod browser_protocol {
         impl chromiumoxide_types::Command for GetFrameOwnerParams {
             type Response = GetFrameOwnerReturns;
         }
-        #[doc = "Returns the query container of the given node based on container query\nconditions: containerName, physical, and logical axes. If no axes are\nprovided, the style container is returned, which is the direct parent or the\nclosest element with a matching container-name.\n[getContainerForNode](https://chromedevtools.github.io/devtools-protocol/tot/DOM/#method-getContainerForNode)"]
+        #[doc = "Returns the query container of the given node based on container query\nconditions: containerName, physical and logical axes, and whether it queries\nscroll-state. If no axes are provided and queriesScrollState is false, the\nstyle container is returned, which is the direct parent or the closest\nelement with a matching container-name.\n[getContainerForNode](https://chromedevtools.github.io/devtools-protocol/tot/DOM/#method-getContainerForNode)"]
         #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
         pub struct GetContainerForNodeParams {
             #[serde(rename = "nodeId")]
@@ -42207,6 +43512,9 @@ pub mod browser_protocol {
             #[serde(default)]
             #[serde(deserialize_with = "super::super::de::deserialize_from_str_optional")]
             pub logical_axes: Option<LogicalAxes>,
+            #[serde(rename = "queriesScrollState")]
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub queries_scroll_state: Option<bool>,
         }
         impl GetContainerForNodeParams {
             pub fn new(node_id: impl Into<NodeId>) -> Self {
@@ -42215,6 +43523,7 @@ pub mod browser_protocol {
                     container_name: None,
                     physical_axes: None,
                     logical_axes: None,
+                    queries_scroll_state: None,
                 }
             }
         }
@@ -42229,6 +43538,7 @@ pub mod browser_protocol {
             container_name: Option<String>,
             physical_axes: Option<PhysicalAxes>,
             logical_axes: Option<LogicalAxes>,
+            queries_scroll_state: Option<bool>,
         }
         impl GetContainerForNodeParamsBuilder {
             pub fn node_id(mut self, node_id: impl Into<NodeId>) -> Self {
@@ -42247,6 +43557,10 @@ pub mod browser_protocol {
                 self.logical_axes = Some(logical_axes.into());
                 self
             }
+            pub fn queries_scroll_state(mut self, queries_scroll_state: impl Into<bool>) -> Self {
+                self.queries_scroll_state = Some(queries_scroll_state.into());
+                self
+            }
             pub fn build(self) -> Result<GetContainerForNodeParams, String> {
                 Ok(GetContainerForNodeParams {
                     node_id: self.node_id.ok_or_else(|| {
@@ -42255,6 +43569,7 @@ pub mod browser_protocol {
                     container_name: self.container_name,
                     physical_axes: self.physical_axes,
                     logical_axes: self.logical_axes,
+                    queries_scroll_state: self.queries_scroll_state,
                 })
             }
         }
@@ -42274,7 +43589,7 @@ pub mod browser_protocol {
                 Self::IDENTIFIER.into()
             }
         }
-        #[doc = "Returns the query container of the given node based on container query\nconditions: containerName, physical, and logical axes. If no axes are\nprovided, the style container is returned, which is the direct parent or the\nclosest element with a matching container-name.\n[getContainerForNode](https://chromedevtools.github.io/devtools-protocol/tot/DOM/#method-getContainerForNode)"]
+        #[doc = "Returns the query container of the given node based on container query\nconditions: containerName, physical and logical axes, and whether it queries\nscroll-state. If no axes are provided and queriesScrollState is false, the\nstyle container is returned, which is the direct parent or the closest\nelement with a matching container-name.\n[getContainerForNode](https://chromedevtools.github.io/devtools-protocol/tot/DOM/#method-getContainerForNode)"]
         #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
         pub struct GetContainerForNodeReturns {
             #[doc = "The container node for the given node, or null if not found."]
@@ -46489,475 +47804,6 @@ pub mod browser_protocol {
             }
         }
     }
-    pub mod database {
-        use serde::{Deserialize, Serialize};
-        #[doc = "Unique identifier of Database object.\n[DatabaseId](https://chromedevtools.github.io/devtools-protocol/tot/Database/#type-DatabaseId)"]
-        #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, Eq, Hash)]
-        pub struct DatabaseId(String);
-        impl DatabaseId {
-            pub fn new(val: impl Into<String>) -> Self {
-                DatabaseId(val.into())
-            }
-            pub fn inner(&self) -> &String {
-                &self.0
-            }
-        }
-        impl AsRef<str> for DatabaseId {
-            fn as_ref(&self) -> &str {
-                self.0.as_str()
-            }
-        }
-        impl From<DatabaseId> for String {
-            fn from(el: DatabaseId) -> String {
-                el.0
-            }
-        }
-        impl From<String> for DatabaseId {
-            fn from(expr: String) -> Self {
-                DatabaseId(expr)
-            }
-        }
-        impl std::borrow::Borrow<str> for DatabaseId {
-            fn borrow(&self) -> &str {
-                &self.0
-            }
-        }
-        impl DatabaseId {
-            pub const IDENTIFIER: &'static str = "Database.DatabaseId";
-        }
-        #[doc = "Database object.\n[Database](https://chromedevtools.github.io/devtools-protocol/tot/Database/#type-Database)"]
-        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-        pub struct Database {
-            #[doc = "Database ID."]
-            #[serde(rename = "id")]
-            pub id: DatabaseId,
-            #[doc = "Database domain."]
-            #[serde(rename = "domain")]
-            pub domain: String,
-            #[doc = "Database name."]
-            #[serde(rename = "name")]
-            pub name: String,
-            #[doc = "Database version."]
-            #[serde(rename = "version")]
-            pub version: String,
-        }
-        impl Database {
-            pub fn new(
-                id: impl Into<DatabaseId>,
-                domain: impl Into<String>,
-                name: impl Into<String>,
-                version: impl Into<String>,
-            ) -> Self {
-                Self {
-                    id: id.into(),
-                    domain: domain.into(),
-                    name: name.into(),
-                    version: version.into(),
-                }
-            }
-        }
-        impl Database {
-            pub fn builder() -> DatabaseBuilder {
-                DatabaseBuilder::default()
-            }
-        }
-        #[derive(Default, Clone)]
-        pub struct DatabaseBuilder {
-            id: Option<DatabaseId>,
-            domain: Option<String>,
-            name: Option<String>,
-            version: Option<String>,
-        }
-        impl DatabaseBuilder {
-            pub fn id(mut self, id: impl Into<DatabaseId>) -> Self {
-                self.id = Some(id.into());
-                self
-            }
-            pub fn domain(mut self, domain: impl Into<String>) -> Self {
-                self.domain = Some(domain.into());
-                self
-            }
-            pub fn name(mut self, name: impl Into<String>) -> Self {
-                self.name = Some(name.into());
-                self
-            }
-            pub fn version(mut self, version: impl Into<String>) -> Self {
-                self.version = Some(version.into());
-                self
-            }
-            pub fn build(self) -> Result<Database, String> {
-                Ok(Database {
-                    id: self
-                        .id
-                        .ok_or_else(|| format!("Field `{}` is mandatory.", std::stringify!(id)))?,
-                    domain: self.domain.ok_or_else(|| {
-                        format!("Field `{}` is mandatory.", std::stringify!(domain))
-                    })?,
-                    name: self.name.ok_or_else(|| {
-                        format!("Field `{}` is mandatory.", std::stringify!(name))
-                    })?,
-                    version: self.version.ok_or_else(|| {
-                        format!("Field `{}` is mandatory.", std::stringify!(version))
-                    })?,
-                })
-            }
-        }
-        impl Database {
-            pub const IDENTIFIER: &'static str = "Database.Database";
-        }
-        #[doc = "Database error.\n[Error](https://chromedevtools.github.io/devtools-protocol/tot/Database/#type-Error)"]
-        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-        pub struct Error {
-            #[doc = "Error message."]
-            #[serde(rename = "message")]
-            pub message: String,
-            #[doc = "Error code."]
-            #[serde(rename = "code")]
-            pub code: i64,
-        }
-        impl Error {
-            pub fn new(message: impl Into<String>, code: impl Into<i64>) -> Self {
-                Self {
-                    message: message.into(),
-                    code: code.into(),
-                }
-            }
-        }
-        impl Error {
-            pub fn builder() -> ErrorBuilder {
-                ErrorBuilder::default()
-            }
-        }
-        #[derive(Default, Clone)]
-        pub struct ErrorBuilder {
-            message: Option<String>,
-            code: Option<i64>,
-        }
-        impl ErrorBuilder {
-            pub fn message(mut self, message: impl Into<String>) -> Self {
-                self.message = Some(message.into());
-                self
-            }
-            pub fn code(mut self, code: impl Into<i64>) -> Self {
-                self.code = Some(code.into());
-                self
-            }
-            pub fn build(self) -> Result<Error, String> {
-                Ok(Error {
-                    message: self.message.ok_or_else(|| {
-                        format!("Field `{}` is mandatory.", std::stringify!(message))
-                    })?,
-                    code: self.code.ok_or_else(|| {
-                        format!("Field `{}` is mandatory.", std::stringify!(code))
-                    })?,
-                })
-            }
-        }
-        impl Error {
-            pub const IDENTIFIER: &'static str = "Database.Error";
-        }
-        #[doc = "Disables database tracking, prevents database events from being sent to the client.\n[disable](https://chromedevtools.github.io/devtools-protocol/tot/Database/#method-disable)"]
-        #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
-        pub struct DisableParams {}
-        impl DisableParams {
-            pub const IDENTIFIER: &'static str = "Database.disable";
-        }
-        impl chromiumoxide_types::Method for DisableParams {
-            fn identifier(&self) -> chromiumoxide_types::MethodId {
-                Self::IDENTIFIER.into()
-            }
-        }
-        impl chromiumoxide_types::MethodType for DisableParams {
-            fn method_id() -> chromiumoxide_types::MethodId
-            where
-                Self: Sized,
-            {
-                Self::IDENTIFIER.into()
-            }
-        }
-        #[doc = "Disables database tracking, prevents database events from being sent to the client.\n[disable](https://chromedevtools.github.io/devtools-protocol/tot/Database/#method-disable)"]
-        #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
-        pub struct DisableReturns {}
-        impl chromiumoxide_types::Command for DisableParams {
-            type Response = DisableReturns;
-        }
-        #[doc = "Enables database tracking, database events will now be delivered to the client.\n[enable](https://chromedevtools.github.io/devtools-protocol/tot/Database/#method-enable)"]
-        #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
-        pub struct EnableParams {}
-        impl EnableParams {
-            pub const IDENTIFIER: &'static str = "Database.enable";
-        }
-        impl chromiumoxide_types::Method for EnableParams {
-            fn identifier(&self) -> chromiumoxide_types::MethodId {
-                Self::IDENTIFIER.into()
-            }
-        }
-        impl chromiumoxide_types::MethodType for EnableParams {
-            fn method_id() -> chromiumoxide_types::MethodId
-            where
-                Self: Sized,
-            {
-                Self::IDENTIFIER.into()
-            }
-        }
-        #[doc = "Enables database tracking, database events will now be delivered to the client.\n[enable](https://chromedevtools.github.io/devtools-protocol/tot/Database/#method-enable)"]
-        #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
-        pub struct EnableReturns {}
-        impl chromiumoxide_types::Command for EnableParams {
-            type Response = EnableReturns;
-        }
-        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-        pub struct ExecuteSqlParams {
-            #[serde(rename = "databaseId")]
-            pub database_id: DatabaseId,
-            #[serde(rename = "query")]
-            pub query: String,
-        }
-        impl ExecuteSqlParams {
-            pub fn new(database_id: impl Into<DatabaseId>, query: impl Into<String>) -> Self {
-                Self {
-                    database_id: database_id.into(),
-                    query: query.into(),
-                }
-            }
-        }
-        impl ExecuteSqlParams {
-            pub fn builder() -> ExecuteSqlParamsBuilder {
-                ExecuteSqlParamsBuilder::default()
-            }
-        }
-        #[derive(Default, Clone)]
-        pub struct ExecuteSqlParamsBuilder {
-            database_id: Option<DatabaseId>,
-            query: Option<String>,
-        }
-        impl ExecuteSqlParamsBuilder {
-            pub fn database_id(mut self, database_id: impl Into<DatabaseId>) -> Self {
-                self.database_id = Some(database_id.into());
-                self
-            }
-            pub fn query(mut self, query: impl Into<String>) -> Self {
-                self.query = Some(query.into());
-                self
-            }
-            pub fn build(self) -> Result<ExecuteSqlParams, String> {
-                Ok(ExecuteSqlParams {
-                    database_id: self.database_id.ok_or_else(|| {
-                        format!("Field `{}` is mandatory.", std::stringify!(database_id))
-                    })?,
-                    query: self.query.ok_or_else(|| {
-                        format!("Field `{}` is mandatory.", std::stringify!(query))
-                    })?,
-                })
-            }
-        }
-        impl ExecuteSqlParams {
-            pub const IDENTIFIER: &'static str = "Database.executeSQL";
-        }
-        impl chromiumoxide_types::Method for ExecuteSqlParams {
-            fn identifier(&self) -> chromiumoxide_types::MethodId {
-                Self::IDENTIFIER.into()
-            }
-        }
-        impl chromiumoxide_types::MethodType for ExecuteSqlParams {
-            fn method_id() -> chromiumoxide_types::MethodId
-            where
-                Self: Sized,
-            {
-                Self::IDENTIFIER.into()
-            }
-        }
-        #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
-        pub struct ExecuteSqlReturns {
-            #[serde(rename = "columnNames")]
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub column_names: Option<Vec<String>>,
-            #[serde(rename = "values")]
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub values: Option<Vec<serde_json::Value>>,
-            #[serde(rename = "sqlError")]
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub sql_error: Option<Error>,
-        }
-        impl ExecuteSqlReturns {
-            pub fn builder() -> ExecuteSqlReturnsBuilder {
-                ExecuteSqlReturnsBuilder::default()
-            }
-        }
-        #[derive(Default, Clone)]
-        pub struct ExecuteSqlReturnsBuilder {
-            column_names: Option<Vec<String>>,
-            values: Option<Vec<serde_json::Value>>,
-            sql_error: Option<Error>,
-        }
-        impl ExecuteSqlReturnsBuilder {
-            pub fn column_name(mut self, column_name: impl Into<String>) -> Self {
-                let v = self.column_names.get_or_insert(Vec::new());
-                v.push(column_name.into());
-                self
-            }
-            pub fn column_names<I, S>(mut self, column_names: I) -> Self
-            where
-                I: IntoIterator<Item = S>,
-                S: Into<String>,
-            {
-                let v = self.column_names.get_or_insert(Vec::new());
-                for val in column_names {
-                    v.push(val.into());
-                }
-                self
-            }
-            pub fn value(mut self, value: impl Into<serde_json::Value>) -> Self {
-                let v = self.values.get_or_insert(Vec::new());
-                v.push(value.into());
-                self
-            }
-            pub fn values<I, S>(mut self, values: I) -> Self
-            where
-                I: IntoIterator<Item = S>,
-                S: Into<serde_json::Value>,
-            {
-                let v = self.values.get_or_insert(Vec::new());
-                for val in values {
-                    v.push(val.into());
-                }
-                self
-            }
-            pub fn sql_error(mut self, sql_error: impl Into<Error>) -> Self {
-                self.sql_error = Some(sql_error.into());
-                self
-            }
-            pub fn build(self) -> ExecuteSqlReturns {
-                ExecuteSqlReturns {
-                    column_names: self.column_names,
-                    values: self.values,
-                    sql_error: self.sql_error,
-                }
-            }
-        }
-        impl chromiumoxide_types::Command for ExecuteSqlParams {
-            type Response = ExecuteSqlReturns;
-        }
-        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-        pub struct GetDatabaseTableNamesParams {
-            #[serde(rename = "databaseId")]
-            pub database_id: DatabaseId,
-        }
-        impl GetDatabaseTableNamesParams {
-            pub fn new(database_id: impl Into<DatabaseId>) -> Self {
-                Self {
-                    database_id: database_id.into(),
-                }
-            }
-        }
-        impl GetDatabaseTableNamesParams {
-            pub fn builder() -> GetDatabaseTableNamesParamsBuilder {
-                GetDatabaseTableNamesParamsBuilder::default()
-            }
-        }
-        #[derive(Default, Clone)]
-        pub struct GetDatabaseTableNamesParamsBuilder {
-            database_id: Option<DatabaseId>,
-        }
-        impl GetDatabaseTableNamesParamsBuilder {
-            pub fn database_id(mut self, database_id: impl Into<DatabaseId>) -> Self {
-                self.database_id = Some(database_id.into());
-                self
-            }
-            pub fn build(self) -> Result<GetDatabaseTableNamesParams, String> {
-                Ok(GetDatabaseTableNamesParams {
-                    database_id: self.database_id.ok_or_else(|| {
-                        format!("Field `{}` is mandatory.", std::stringify!(database_id))
-                    })?,
-                })
-            }
-        }
-        impl GetDatabaseTableNamesParams {
-            pub const IDENTIFIER: &'static str = "Database.getDatabaseTableNames";
-        }
-        impl chromiumoxide_types::Method for GetDatabaseTableNamesParams {
-            fn identifier(&self) -> chromiumoxide_types::MethodId {
-                Self::IDENTIFIER.into()
-            }
-        }
-        impl chromiumoxide_types::MethodType for GetDatabaseTableNamesParams {
-            fn method_id() -> chromiumoxide_types::MethodId
-            where
-                Self: Sized,
-            {
-                Self::IDENTIFIER.into()
-            }
-        }
-        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-        pub struct GetDatabaseTableNamesReturns {
-            #[serde(rename = "tableNames")]
-            #[serde(skip_serializing_if = "Vec::is_empty")]
-            pub table_names: Vec<String>,
-        }
-        impl GetDatabaseTableNamesReturns {
-            pub fn new(table_names: Vec<String>) -> Self {
-                Self { table_names }
-            }
-        }
-        impl GetDatabaseTableNamesReturns {
-            pub fn builder() -> GetDatabaseTableNamesReturnsBuilder {
-                GetDatabaseTableNamesReturnsBuilder::default()
-            }
-        }
-        #[derive(Default, Clone)]
-        pub struct GetDatabaseTableNamesReturnsBuilder {
-            table_names: Option<Vec<String>>,
-        }
-        impl GetDatabaseTableNamesReturnsBuilder {
-            pub fn table_name(mut self, table_name: impl Into<String>) -> Self {
-                let v = self.table_names.get_or_insert(Vec::new());
-                v.push(table_name.into());
-                self
-            }
-            pub fn table_names<I, S>(mut self, table_names: I) -> Self
-            where
-                I: IntoIterator<Item = S>,
-                S: Into<String>,
-            {
-                let v = self.table_names.get_or_insert(Vec::new());
-                for val in table_names {
-                    v.push(val.into());
-                }
-                self
-            }
-            pub fn build(self) -> Result<GetDatabaseTableNamesReturns, String> {
-                Ok(GetDatabaseTableNamesReturns {
-                    table_names: self.table_names.ok_or_else(|| {
-                        format!("Field `{}` is mandatory.", std::stringify!(table_names))
-                    })?,
-                })
-            }
-        }
-        impl chromiumoxide_types::Command for GetDatabaseTableNamesParams {
-            type Response = GetDatabaseTableNamesReturns;
-        }
-        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-        pub struct EventAddDatabase {
-            #[serde(rename = "database")]
-            pub database: Database,
-        }
-        impl EventAddDatabase {
-            pub const IDENTIFIER: &'static str = "Database.addDatabase";
-        }
-        impl chromiumoxide_types::Method for EventAddDatabase {
-            fn identifier(&self) -> chromiumoxide_types::MethodId {
-                Self::IDENTIFIER.into()
-            }
-        }
-        impl chromiumoxide_types::MethodType for EventAddDatabase {
-            fn method_id() -> chromiumoxide_types::MethodId
-            where
-                Self: Sized,
-            {
-                Self::IDENTIFIER.into()
-            }
-        }
-    }
     pub mod device_orientation {
         use serde::{Deserialize, Serialize};
         #[doc = "Clears the overridden Device Orientation.\n[clearDeviceOrientationOverride](https://chromedevtools.github.io/devtools-protocol/tot/DeviceOrientation/#method-clearDeviceOrientationOverride)"]
@@ -47615,8 +48461,6 @@ pub mod browser_protocol {
             LinearAcceleration,
             #[serde(rename = "magnetometer")]
             Magnetometer,
-            #[serde(rename = "proximity")]
-            Proximity,
             #[serde(rename = "relative-orientation")]
             RelativeOrientation,
         }
@@ -47630,7 +48474,6 @@ pub mod browser_protocol {
                     SensorType::Gyroscope => "gyroscope",
                     SensorType::LinearAcceleration => "linear-acceleration",
                     SensorType::Magnetometer => "magnetometer",
-                    SensorType::Proximity => "proximity",
                     SensorType::RelativeOrientation => "relative-orientation",
                 }
             }
@@ -47650,7 +48493,6 @@ pub mod browser_protocol {
                         Ok(SensorType::LinearAcceleration)
                     }
                     "magnetometer" | "Magnetometer" => Ok(SensorType::Magnetometer),
-                    "proximity" | "Proximity" => Ok(SensorType::Proximity),
                     "relative-orientation" | "RelativeOrientation" => {
                         Ok(SensorType::RelativeOrientation)
                     }
@@ -58189,7 +59031,7 @@ pub mod browser_protocol {
         impl LoaderId {
             pub const IDENTIFIER: &'static str = "Network.LoaderId";
         }
-        #[doc = "Unique request identifier.\n[RequestId](https://chromedevtools.github.io/devtools-protocol/tot/Network/#type-RequestId)"]
+        #[doc = "Unique network request identifier.\nNote that this does not identify individual HTTP requests that are part of\na network request.\n[RequestId](https://chromedevtools.github.io/devtools-protocol/tot/Network/#type-RequestId)"]
         #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, Eq, Hash)]
         pub struct RequestId(String);
         impl RequestId {
@@ -59518,6 +60360,8 @@ pub mod browser_protocol {
             CorpNotSameOriginAfterDefaultedToSameOriginByCoepAndDip,
             #[serde(rename = "corp-not-same-site")]
             CorpNotSameSite,
+            #[serde(rename = "sri-message-signature-mismatch")]
+            SriMessageSignatureMismatch,
         }
         impl AsRef<str> for BlockedReason {
             fn as_ref(&self) -> &str {
@@ -59546,6 +60390,7 @@ pub mod browser_protocol {
                         "corp-not-same-origin-after-defaulted-to-same-origin-by-coep-and-dip"
                     }
                     BlockedReason::CorpNotSameSite => "corp-not-same-site",
+                    BlockedReason::SriMessageSignatureMismatch => "sri-message-signature-mismatch",
                 }
             }
         }
@@ -59586,6 +60431,9 @@ pub mod browser_protocol {
                         Ok(BlockedReason::CorpNotSameOriginAfterDefaultedToSameOriginByCoepAndDip)
                     }
                     "corp-not-same-site" | "CorpNotSameSite" => Ok(BlockedReason::CorpNotSameSite),
+                    "sri-message-signature-mismatch" | "SriMessageSignatureMismatch" => {
+                        Ok(BlockedReason::SriMessageSignatureMismatch)
+                    }
                     _ => Err(s.to_string()),
                 }
             }
@@ -60869,7 +61717,7 @@ pub mod browser_protocol {
             #[serde(rename = "type")]
             #[serde(deserialize_with = "super::super::de::deserialize_from_str")]
             pub r#type: InitiatorType,
-            #[doc = "Initiator JavaScript stack trace, set for Script only."]
+            #[doc = "Initiator JavaScript stack trace, set for Script only.\nRequires the Debugger domain to be enabled."]
             #[serde(rename = "stack")]
             #[serde(skip_serializing_if = "Option::is_none")]
             pub stack: Option<super::super::js_protocol::runtime::StackTrace>,
@@ -61474,6 +62322,12 @@ pub mod browser_protocol {
             #[doc = "The cookie's name/value pair size exceeded the size limit defined in\nRFC6265bis."]
             #[serde(rename = "NameValuePairExceedsMaxSize")]
             NameValuePairExceedsMaxSize,
+            #[doc = "The cookie's source port value does not match the request origin's port."]
+            #[serde(rename = "PortMismatch")]
+            PortMismatch,
+            #[doc = "The cookie's source scheme value does not match the request origin's scheme."]
+            #[serde(rename = "SchemeMismatch")]
+            SchemeMismatch,
         }
         impl AsRef<str> for CookieBlockedReason {
             fn as_ref(&self) -> &str {
@@ -61504,6 +62358,8 @@ pub mod browser_protocol {
                     CookieBlockedReason::NameValuePairExceedsMaxSize => {
                         "NameValuePairExceedsMaxSize"
                     }
+                    CookieBlockedReason::PortMismatch => "PortMismatch",
+                    CookieBlockedReason::SchemeMismatch => "SchemeMismatch",
                 }
             }
         }
@@ -61548,6 +62404,8 @@ pub mod browser_protocol {
                     "NameValuePairExceedsMaxSize" | "namevaluepairexceedsmaxsize" => {
                         Ok(CookieBlockedReason::NameValuePairExceedsMaxSize)
                     }
+                    "PortMismatch" | "portmismatch" => Ok(CookieBlockedReason::PortMismatch),
+                    "SchemeMismatch" | "schememismatch" => Ok(CookieBlockedReason::SchemeMismatch),
                     _ => Err(s.to_string()),
                 }
             }
@@ -61585,6 +62443,9 @@ pub mod browser_protocol {
             #[doc = "The cookie should have been blocked by 3PCD but is exempted by the first-party URL scheme."]
             #[serde(rename = "Scheme")]
             Scheme,
+            #[doc = "The cookie was included due to the 'allow-same-site-none-cookies' value being set in the sandboxing policy."]
+            #[serde(rename = "SameSiteNoneCookiesInSandbox")]
+            SameSiteNoneCookiesInSandbox,
         }
         impl AsRef<str> for CookieExemptionReason {
             fn as_ref(&self) -> &str {
@@ -61601,6 +62462,9 @@ pub mod browser_protocol {
                     CookieExemptionReason::StorageAccess => "StorageAccess",
                     CookieExemptionReason::TopLevelStorageAccess => "TopLevelStorageAccess",
                     CookieExemptionReason::Scheme => "Scheme",
+                    CookieExemptionReason::SameSiteNoneCookiesInSandbox => {
+                        "SameSiteNoneCookiesInSandbox"
+                    }
                 }
             }
         }
@@ -61632,6 +62496,9 @@ pub mod browser_protocol {
                         Ok(CookieExemptionReason::TopLevelStorageAccess)
                     }
                     "Scheme" | "scheme" => Ok(CookieExemptionReason::Scheme),
+                    "SameSiteNoneCookiesInSandbox" | "samesitenonecookiesinsandbox" => {
+                        Ok(CookieExemptionReason::SameSiteNoneCookiesInSandbox)
+                    }
                     _ => Err(s.to_string()),
                 }
             }
@@ -66147,6 +67014,121 @@ pub mod browser_protocol {
         impl chromiumoxide_types::Command for LoadNetworkResourceParams {
             type Response = LoadNetworkResourceReturns;
         }
+        #[doc = "Sets Controls for third-party cookie access\nPage reload is required before the new cookie bahavior will be observed\n[setCookieControls](https://chromedevtools.github.io/devtools-protocol/tot/Network/#method-setCookieControls)"]
+        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+        pub struct SetCookieControlsParams {
+            #[doc = "Whether 3pc restriction is enabled."]
+            #[serde(rename = "enableThirdPartyCookieRestriction")]
+            pub enable_third_party_cookie_restriction: bool,
+            #[doc = "Whether 3pc grace period exception should be enabled; false by default."]
+            #[serde(rename = "disableThirdPartyCookieMetadata")]
+            pub disable_third_party_cookie_metadata: bool,
+            #[doc = "Whether 3pc heuristics exceptions should be enabled; false by default."]
+            #[serde(rename = "disableThirdPartyCookieHeuristics")]
+            pub disable_third_party_cookie_heuristics: bool,
+        }
+        impl SetCookieControlsParams {
+            pub fn new(
+                enable_third_party_cookie_restriction: impl Into<bool>,
+                disable_third_party_cookie_metadata: impl Into<bool>,
+                disable_third_party_cookie_heuristics: impl Into<bool>,
+            ) -> Self {
+                Self {
+                    enable_third_party_cookie_restriction: enable_third_party_cookie_restriction
+                        .into(),
+                    disable_third_party_cookie_metadata: disable_third_party_cookie_metadata.into(),
+                    disable_third_party_cookie_heuristics: disable_third_party_cookie_heuristics
+                        .into(),
+                }
+            }
+        }
+        impl SetCookieControlsParams {
+            pub fn builder() -> SetCookieControlsParamsBuilder {
+                SetCookieControlsParamsBuilder::default()
+            }
+        }
+        #[derive(Default, Clone)]
+        pub struct SetCookieControlsParamsBuilder {
+            enable_third_party_cookie_restriction: Option<bool>,
+            disable_third_party_cookie_metadata: Option<bool>,
+            disable_third_party_cookie_heuristics: Option<bool>,
+        }
+        impl SetCookieControlsParamsBuilder {
+            pub fn enable_third_party_cookie_restriction(
+                mut self,
+                enable_third_party_cookie_restriction: impl Into<bool>,
+            ) -> Self {
+                self.enable_third_party_cookie_restriction =
+                    Some(enable_third_party_cookie_restriction.into());
+                self
+            }
+            pub fn disable_third_party_cookie_metadata(
+                mut self,
+                disable_third_party_cookie_metadata: impl Into<bool>,
+            ) -> Self {
+                self.disable_third_party_cookie_metadata =
+                    Some(disable_third_party_cookie_metadata.into());
+                self
+            }
+            pub fn disable_third_party_cookie_heuristics(
+                mut self,
+                disable_third_party_cookie_heuristics: impl Into<bool>,
+            ) -> Self {
+                self.disable_third_party_cookie_heuristics =
+                    Some(disable_third_party_cookie_heuristics.into());
+                self
+            }
+            pub fn build(self) -> Result<SetCookieControlsParams, String> {
+                Ok(SetCookieControlsParams {
+                    enable_third_party_cookie_restriction: self
+                        .enable_third_party_cookie_restriction
+                        .ok_or_else(|| {
+                            format!(
+                                "Field `{}` is mandatory.",
+                                std::stringify!(enable_third_party_cookie_restriction)
+                            )
+                        })?,
+                    disable_third_party_cookie_metadata: self
+                        .disable_third_party_cookie_metadata
+                        .ok_or_else(|| {
+                        format!(
+                            "Field `{}` is mandatory.",
+                            std::stringify!(disable_third_party_cookie_metadata)
+                        )
+                    })?,
+                    disable_third_party_cookie_heuristics: self
+                        .disable_third_party_cookie_heuristics
+                        .ok_or_else(|| {
+                            format!(
+                                "Field `{}` is mandatory.",
+                                std::stringify!(disable_third_party_cookie_heuristics)
+                            )
+                        })?,
+                })
+            }
+        }
+        impl SetCookieControlsParams {
+            pub const IDENTIFIER: &'static str = "Network.setCookieControls";
+        }
+        impl chromiumoxide_types::Method for SetCookieControlsParams {
+            fn identifier(&self) -> chromiumoxide_types::MethodId {
+                Self::IDENTIFIER.into()
+            }
+        }
+        impl chromiumoxide_types::MethodType for SetCookieControlsParams {
+            fn method_id() -> chromiumoxide_types::MethodId
+            where
+                Self: Sized,
+            {
+                Self::IDENTIFIER.into()
+            }
+        }
+        #[doc = "Sets Controls for third-party cookie access\nPage reload is required before the new cookie bahavior will be observed\n[setCookieControls](https://chromedevtools.github.io/devtools-protocol/tot/Network/#method-setCookieControls)"]
+        #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+        pub struct SetCookieControlsReturns {}
+        impl chromiumoxide_types::Command for SetCookieControlsParams {
+            type Response = SetCookieControlsReturns;
+        }
         #[doc = "Fired when data chunk was received over the network.\n[dataReceived](https://chromedevtools.github.io/devtools-protocol/tot/Network/#event-dataReceived)"]
         #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
         pub struct EventDataReceived {
@@ -66818,7 +67800,7 @@ pub mod browser_protocol {
             #[serde(rename = "blockedCookies")]
             #[serde(skip_serializing_if = "Vec::is_empty")]
             pub blocked_cookies: Vec<BlockedSetCookieWithReason>,
-            #[doc = "Raw response headers as they were received over the wire."]
+            #[doc = "Raw response headers as they were received over the wire.\nDuplicate headers in the response are represented as a single key with their values\nconcatentated using `\\n` as the separator.\nSee also `headersText` that contains verbatim text for HTTP/1.*."]
             #[serde(rename = "headers")]
             pub headers: Headers,
             #[doc = "The IP address space of the resource. The address space can only be determined once the transport\nestablished the connection, so we can't send it in `requestWillBeSentExtraInfo`."]
@@ -66867,7 +67849,7 @@ pub mod browser_protocol {
             #[doc = "Request identifier. Used to match this information to another responseReceived event."]
             #[serde(rename = "requestId")]
             pub request_id: RequestId,
-            #[doc = "Raw response headers as they were received over the wire."]
+            #[doc = "Raw response headers as they were received over the wire.\nDuplicate headers in the response are represented as a single key with their values\nconcatentated using `\\n` as the separator.\nSee also `headersText` that contains verbatim text for HTTP/1.*."]
             #[serde(rename = "headers")]
             pub headers: Headers,
         }
@@ -66939,6 +67921,8 @@ pub mod browser_protocol {
             UnknownError,
             #[serde(rename = "FulfilledLocally")]
             FulfilledLocally,
+            #[serde(rename = "SiteIssuerLimit")]
+            SiteIssuerLimit,
         }
         impl AsRef<str> for TrustTokenOperationDoneStatus {
             fn as_ref(&self) -> &str {
@@ -66955,6 +67939,7 @@ pub mod browser_protocol {
                     TrustTokenOperationDoneStatus::InternalError => "InternalError",
                     TrustTokenOperationDoneStatus::UnknownError => "UnknownError",
                     TrustTokenOperationDoneStatus::FulfilledLocally => "FulfilledLocally",
+                    TrustTokenOperationDoneStatus::SiteIssuerLimit => "SiteIssuerLimit",
                 }
             }
         }
@@ -66993,6 +67978,9 @@ pub mod browser_protocol {
                     }
                     "FulfilledLocally" | "fulfilledlocally" => {
                         Ok(TrustTokenOperationDoneStatus::FulfilledLocally)
+                    }
+                    "SiteIssuerLimit" | "siteissuerlimit" => {
+                        Ok(TrustTokenOperationDoneStatus::SiteIssuerLimit)
                     }
                     _ => Err(s.to_string()),
                 }
@@ -70353,61 +71341,6 @@ pub mod browser_protocol {
         impl chromiumoxide_types::Command for SetShowScrollBottleneckRectsParams {
             type Response = SetShowScrollBottleneckRectsReturns;
         }
-        #[doc = "Request that backend shows an overlay with web vital metrics.\n[setShowWebVitals](https://chromedevtools.github.io/devtools-protocol/tot/Overlay/#method-setShowWebVitals)"]
-        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-        pub struct SetShowWebVitalsParams {
-            #[serde(rename = "show")]
-            pub show: bool,
-        }
-        impl SetShowWebVitalsParams {
-            pub fn new(show: impl Into<bool>) -> Self {
-                Self { show: show.into() }
-            }
-        }
-        impl SetShowWebVitalsParams {
-            pub fn builder() -> SetShowWebVitalsParamsBuilder {
-                SetShowWebVitalsParamsBuilder::default()
-            }
-        }
-        #[derive(Default, Clone)]
-        pub struct SetShowWebVitalsParamsBuilder {
-            show: Option<bool>,
-        }
-        impl SetShowWebVitalsParamsBuilder {
-            pub fn show(mut self, show: impl Into<bool>) -> Self {
-                self.show = Some(show.into());
-                self
-            }
-            pub fn build(self) -> Result<SetShowWebVitalsParams, String> {
-                Ok(SetShowWebVitalsParams {
-                    show: self.show.ok_or_else(|| {
-                        format!("Field `{}` is mandatory.", std::stringify!(show))
-                    })?,
-                })
-            }
-        }
-        impl SetShowWebVitalsParams {
-            pub const IDENTIFIER: &'static str = "Overlay.setShowWebVitals";
-        }
-        impl chromiumoxide_types::Method for SetShowWebVitalsParams {
-            fn identifier(&self) -> chromiumoxide_types::MethodId {
-                Self::IDENTIFIER.into()
-            }
-        }
-        impl chromiumoxide_types::MethodType for SetShowWebVitalsParams {
-            fn method_id() -> chromiumoxide_types::MethodId
-            where
-                Self: Sized,
-            {
-                Self::IDENTIFIER.into()
-            }
-        }
-        #[doc = "Request that backend shows an overlay with web vital metrics.\n[setShowWebVitals](https://chromedevtools.github.io/devtools-protocol/tot/Overlay/#method-setShowWebVitals)"]
-        #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
-        pub struct SetShowWebVitalsReturns {}
-        impl chromiumoxide_types::Command for SetShowWebVitalsParams {
-            type Response = SetShowWebVitalsReturns;
-        }
         #[doc = "Paints viewport size upon main frame resize.\n[setShowViewportSizeOnResize](https://chromedevtools.github.io/devtools-protocol/tot/Overlay/#method-setShowViewportSizeOnResize)"]
         #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
         pub struct SetShowViewportSizeOnResizeParams {
@@ -71133,6 +72066,8 @@ pub mod browser_protocol {
             ChUaArch,
             #[serde(rename = "ch-ua-bitness")]
             ChUaBitness,
+            #[serde(rename = "ch-ua-high-entropy-values")]
+            ChUaHighEntropyValues,
             #[serde(rename = "ch-ua-platform")]
             ChUaPlatform,
             #[serde(rename = "ch-ua-model")]
@@ -71167,10 +72102,14 @@ pub mod browser_protocol {
             CrossOriginIsolated,
             #[serde(rename = "deferred-fetch")]
             DeferredFetch,
+            #[serde(rename = "deferred-fetch-minimal")]
+            DeferredFetchMinimal,
             #[serde(rename = "digital-credentials-get")]
             DigitalCredentialsGet,
             #[serde(rename = "direct-sockets")]
             DirectSockets,
+            #[serde(rename = "direct-sockets-private")]
+            DirectSocketsPrivate,
             #[serde(rename = "display-capture")]
             DisplayCapture,
             #[serde(rename = "document-domain")]
@@ -71181,6 +72120,8 @@ pub mod browser_protocol {
             ExecutionWhileOutOfViewport,
             #[serde(rename = "execution-while-not-rendered")]
             ExecutionWhileNotRendered,
+            #[serde(rename = "fenced-unpartitioned-storage-read")]
+            FencedUnpartitionedStorageRead,
             #[serde(rename = "focus-without-user-activation")]
             FocusWithoutUserActivation,
             #[serde(rename = "fullscreen")]
@@ -71300,6 +72241,7 @@ pub mod browser_protocol {
                     PermissionsPolicyFeature::ChUa => "ch-ua",
                     PermissionsPolicyFeature::ChUaArch => "ch-ua-arch",
                     PermissionsPolicyFeature::ChUaBitness => "ch-ua-bitness",
+                    PermissionsPolicyFeature::ChUaHighEntropyValues => "ch-ua-high-entropy-values",
                     PermissionsPolicyFeature::ChUaPlatform => "ch-ua-platform",
                     PermissionsPolicyFeature::ChUaModel => "ch-ua-model",
                     PermissionsPolicyFeature::ChUaMobile => "ch-ua-mobile",
@@ -71317,8 +72259,10 @@ pub mod browser_protocol {
                     PermissionsPolicyFeature::ControlledFrame => "controlled-frame",
                     PermissionsPolicyFeature::CrossOriginIsolated => "cross-origin-isolated",
                     PermissionsPolicyFeature::DeferredFetch => "deferred-fetch",
+                    PermissionsPolicyFeature::DeferredFetchMinimal => "deferred-fetch-minimal",
                     PermissionsPolicyFeature::DigitalCredentialsGet => "digital-credentials-get",
                     PermissionsPolicyFeature::DirectSockets => "direct-sockets",
+                    PermissionsPolicyFeature::DirectSocketsPrivate => "direct-sockets-private",
                     PermissionsPolicyFeature::DisplayCapture => "display-capture",
                     PermissionsPolicyFeature::DocumentDomain => "document-domain",
                     PermissionsPolicyFeature::EncryptedMedia => "encrypted-media",
@@ -71327,6 +72271,9 @@ pub mod browser_protocol {
                     }
                     PermissionsPolicyFeature::ExecutionWhileNotRendered => {
                         "execution-while-not-rendered"
+                    }
+                    PermissionsPolicyFeature::FencedUnpartitionedStorageRead => {
+                        "fenced-unpartitioned-storage-read"
                     }
                     PermissionsPolicyFeature::FocusWithoutUserActivation => {
                         "focus-without-user-activation"
@@ -71434,6 +72381,9 @@ pub mod browser_protocol {
                     "ch-ua" | "ChUa" => Ok(PermissionsPolicyFeature::ChUa),
                     "ch-ua-arch" | "ChUaArch" => Ok(PermissionsPolicyFeature::ChUaArch),
                     "ch-ua-bitness" | "ChUaBitness" => Ok(PermissionsPolicyFeature::ChUaBitness),
+                    "ch-ua-high-entropy-values" | "ChUaHighEntropyValues" => {
+                        Ok(PermissionsPolicyFeature::ChUaHighEntropyValues)
+                    }
                     "ch-ua-platform" | "ChUaPlatform" => Ok(PermissionsPolicyFeature::ChUaPlatform),
                     "ch-ua-model" | "ChUaModel" => Ok(PermissionsPolicyFeature::ChUaModel),
                     "ch-ua-mobile" | "ChUaMobile" => Ok(PermissionsPolicyFeature::ChUaMobile),
@@ -71475,11 +72425,17 @@ pub mod browser_protocol {
                     "deferred-fetch" | "DeferredFetch" => {
                         Ok(PermissionsPolicyFeature::DeferredFetch)
                     }
+                    "deferred-fetch-minimal" | "DeferredFetchMinimal" => {
+                        Ok(PermissionsPolicyFeature::DeferredFetchMinimal)
+                    }
                     "digital-credentials-get" | "DigitalCredentialsGet" => {
                         Ok(PermissionsPolicyFeature::DigitalCredentialsGet)
                     }
                     "direct-sockets" | "DirectSockets" => {
                         Ok(PermissionsPolicyFeature::DirectSockets)
+                    }
+                    "direct-sockets-private" | "DirectSocketsPrivate" => {
+                        Ok(PermissionsPolicyFeature::DirectSocketsPrivate)
                     }
                     "display-capture" | "DisplayCapture" => {
                         Ok(PermissionsPolicyFeature::DisplayCapture)
@@ -71495,6 +72451,9 @@ pub mod browser_protocol {
                     }
                     "execution-while-not-rendered" | "ExecutionWhileNotRendered" => {
                         Ok(PermissionsPolicyFeature::ExecutionWhileNotRendered)
+                    }
+                    "fenced-unpartitioned-storage-read" | "FencedUnpartitionedStorageRead" => {
+                        Ok(PermissionsPolicyFeature::FencedUnpartitionedStorageRead)
                     }
                     "focus-without-user-activation" | "FocusWithoutUserActivation" => {
                         Ok(PermissionsPolicyFeature::FocusWithoutUserActivation)
@@ -75158,16 +76117,18 @@ pub mod browser_protocol {
             EmbedderExtensionSentMessageToCachedFrame,
             #[serde(rename = "RequestedByWebViewClient")]
             RequestedByWebViewClient,
+            #[serde(rename = "PostMessageByWebViewClient")]
+            PostMessageByWebViewClient,
         }
         impl AsRef<str> for BackForwardCacheNotRestoredReason {
             fn as_ref(&self) -> &str {
-                match self { BackForwardCacheNotRestoredReason :: NotPrimaryMainFrame => "NotPrimaryMainFrame" , BackForwardCacheNotRestoredReason :: BackForwardCacheDisabled => "BackForwardCacheDisabled" , BackForwardCacheNotRestoredReason :: RelatedActiveContentsExist => "RelatedActiveContentsExist" , BackForwardCacheNotRestoredReason :: HttpStatusNotOk => "HTTPStatusNotOK" , BackForwardCacheNotRestoredReason :: SchemeNotHttpOrHttps => "SchemeNotHTTPOrHTTPS" , BackForwardCacheNotRestoredReason :: Loading => "Loading" , BackForwardCacheNotRestoredReason :: WasGrantedMediaAccess => "WasGrantedMediaAccess" , BackForwardCacheNotRestoredReason :: DisableForRenderFrameHostCalled => "DisableForRenderFrameHostCalled" , BackForwardCacheNotRestoredReason :: DomainNotAllowed => "DomainNotAllowed" , BackForwardCacheNotRestoredReason :: HttpMethodNotGet => "HTTPMethodNotGET" , BackForwardCacheNotRestoredReason :: SubframeIsNavigating => "SubframeIsNavigating" , BackForwardCacheNotRestoredReason :: Timeout => "Timeout" , BackForwardCacheNotRestoredReason :: CacheLimit => "CacheLimit" , BackForwardCacheNotRestoredReason :: JavaScriptExecution => "JavaScriptExecution" , BackForwardCacheNotRestoredReason :: RendererProcessKilled => "RendererProcessKilled" , BackForwardCacheNotRestoredReason :: RendererProcessCrashed => "RendererProcessCrashed" , BackForwardCacheNotRestoredReason :: SchedulerTrackedFeatureUsed => "SchedulerTrackedFeatureUsed" , BackForwardCacheNotRestoredReason :: ConflictingBrowsingInstance => "ConflictingBrowsingInstance" , BackForwardCacheNotRestoredReason :: CacheFlushed => "CacheFlushed" , BackForwardCacheNotRestoredReason :: ServiceWorkerVersionActivation => "ServiceWorkerVersionActivation" , BackForwardCacheNotRestoredReason :: SessionRestored => "SessionRestored" , BackForwardCacheNotRestoredReason :: ServiceWorkerPostMessage => "ServiceWorkerPostMessage" , BackForwardCacheNotRestoredReason :: EnteredBackForwardCacheBeforeServiceWorkerHostAdded => "EnteredBackForwardCacheBeforeServiceWorkerHostAdded" , BackForwardCacheNotRestoredReason :: RenderFrameHostReusedSameSite => "RenderFrameHostReused_SameSite" , BackForwardCacheNotRestoredReason :: RenderFrameHostReusedCrossSite => "RenderFrameHostReused_CrossSite" , BackForwardCacheNotRestoredReason :: ServiceWorkerClaim => "ServiceWorkerClaim" , BackForwardCacheNotRestoredReason :: IgnoreEventAndEvict => "IgnoreEventAndEvict" , BackForwardCacheNotRestoredReason :: HaveInnerContents => "HaveInnerContents" , BackForwardCacheNotRestoredReason :: TimeoutPuttingInCache => "TimeoutPuttingInCache" , BackForwardCacheNotRestoredReason :: BackForwardCacheDisabledByLowMemory => "BackForwardCacheDisabledByLowMemory" , BackForwardCacheNotRestoredReason :: BackForwardCacheDisabledByCommandLine => "BackForwardCacheDisabledByCommandLine" , BackForwardCacheNotRestoredReason :: NetworkRequestDatapipeDrainedAsBytesConsumer => "NetworkRequestDatapipeDrainedAsBytesConsumer" , BackForwardCacheNotRestoredReason :: NetworkRequestRedirected => "NetworkRequestRedirected" , BackForwardCacheNotRestoredReason :: NetworkRequestTimeout => "NetworkRequestTimeout" , BackForwardCacheNotRestoredReason :: NetworkExceedsBufferLimit => "NetworkExceedsBufferLimit" , BackForwardCacheNotRestoredReason :: NavigationCancelledWhileRestoring => "NavigationCancelledWhileRestoring" , BackForwardCacheNotRestoredReason :: NotMostRecentNavigationEntry => "NotMostRecentNavigationEntry" , BackForwardCacheNotRestoredReason :: BackForwardCacheDisabledForPrerender => "BackForwardCacheDisabledForPrerender" , BackForwardCacheNotRestoredReason :: UserAgentOverrideDiffers => "UserAgentOverrideDiffers" , BackForwardCacheNotRestoredReason :: ForegroundCacheLimit => "ForegroundCacheLimit" , BackForwardCacheNotRestoredReason :: BrowsingInstanceNotSwapped => "BrowsingInstanceNotSwapped" , BackForwardCacheNotRestoredReason :: BackForwardCacheDisabledForDelegate => "BackForwardCacheDisabledForDelegate" , BackForwardCacheNotRestoredReason :: UnloadHandlerExistsInMainFrame => "UnloadHandlerExistsInMainFrame" , BackForwardCacheNotRestoredReason :: UnloadHandlerExistsInSubFrame => "UnloadHandlerExistsInSubFrame" , BackForwardCacheNotRestoredReason :: ServiceWorkerUnregistration => "ServiceWorkerUnregistration" , BackForwardCacheNotRestoredReason :: CacheControlNoStore => "CacheControlNoStore" , BackForwardCacheNotRestoredReason :: CacheControlNoStoreCookieModified => "CacheControlNoStoreCookieModified" , BackForwardCacheNotRestoredReason :: CacheControlNoStoreHttpOnlyCookieModified => "CacheControlNoStoreHTTPOnlyCookieModified" , BackForwardCacheNotRestoredReason :: NoResponseHead => "NoResponseHead" , BackForwardCacheNotRestoredReason :: Unknown => "Unknown" , BackForwardCacheNotRestoredReason :: ActivationNavigationsDisallowedForBug1234857 => "ActivationNavigationsDisallowedForBug1234857" , BackForwardCacheNotRestoredReason :: ErrorDocument => "ErrorDocument" , BackForwardCacheNotRestoredReason :: FencedFramesEmbedder => "FencedFramesEmbedder" , BackForwardCacheNotRestoredReason :: CookieDisabled => "CookieDisabled" , BackForwardCacheNotRestoredReason :: HttpAuthRequired => "HTTPAuthRequired" , BackForwardCacheNotRestoredReason :: CookieFlushed => "CookieFlushed" , BackForwardCacheNotRestoredReason :: BroadcastChannelOnMessage => "BroadcastChannelOnMessage" , BackForwardCacheNotRestoredReason :: WebViewSettingsChanged => "WebViewSettingsChanged" , BackForwardCacheNotRestoredReason :: WebViewJavaScriptObjectChanged => "WebViewJavaScriptObjectChanged" , BackForwardCacheNotRestoredReason :: WebViewMessageListenerInjected => "WebViewMessageListenerInjected" , BackForwardCacheNotRestoredReason :: WebViewSafeBrowsingAllowlistChanged => "WebViewSafeBrowsingAllowlistChanged" , BackForwardCacheNotRestoredReason :: WebViewDocumentStartJavascriptChanged => "WebViewDocumentStartJavascriptChanged" , BackForwardCacheNotRestoredReason :: WebSocket => "WebSocket" , BackForwardCacheNotRestoredReason :: WebTransport => "WebTransport" , BackForwardCacheNotRestoredReason :: WebRtc => "WebRTC" , BackForwardCacheNotRestoredReason :: MainResourceHasCacheControlNoStore => "MainResourceHasCacheControlNoStore" , BackForwardCacheNotRestoredReason :: MainResourceHasCacheControlNoCache => "MainResourceHasCacheControlNoCache" , BackForwardCacheNotRestoredReason :: SubresourceHasCacheControlNoStore => "SubresourceHasCacheControlNoStore" , BackForwardCacheNotRestoredReason :: SubresourceHasCacheControlNoCache => "SubresourceHasCacheControlNoCache" , BackForwardCacheNotRestoredReason :: ContainsPlugins => "ContainsPlugins" , BackForwardCacheNotRestoredReason :: DocumentLoaded => "DocumentLoaded" , BackForwardCacheNotRestoredReason :: OutstandingNetworkRequestOthers => "OutstandingNetworkRequestOthers" , BackForwardCacheNotRestoredReason :: RequestedMidiPermission => "RequestedMIDIPermission" , BackForwardCacheNotRestoredReason :: RequestedAudioCapturePermission => "RequestedAudioCapturePermission" , BackForwardCacheNotRestoredReason :: RequestedVideoCapturePermission => "RequestedVideoCapturePermission" , BackForwardCacheNotRestoredReason :: RequestedBackForwardCacheBlockedSensors => "RequestedBackForwardCacheBlockedSensors" , BackForwardCacheNotRestoredReason :: RequestedBackgroundWorkPermission => "RequestedBackgroundWorkPermission" , BackForwardCacheNotRestoredReason :: BroadcastChannel => "BroadcastChannel" , BackForwardCacheNotRestoredReason :: WebXr => "WebXR" , BackForwardCacheNotRestoredReason :: SharedWorker => "SharedWorker" , BackForwardCacheNotRestoredReason :: WebLocks => "WebLocks" , BackForwardCacheNotRestoredReason :: WebHid => "WebHID" , BackForwardCacheNotRestoredReason :: WebShare => "WebShare" , BackForwardCacheNotRestoredReason :: RequestedStorageAccessGrant => "RequestedStorageAccessGrant" , BackForwardCacheNotRestoredReason :: WebNfc => "WebNfc" , BackForwardCacheNotRestoredReason :: OutstandingNetworkRequestFetch => "OutstandingNetworkRequestFetch" , BackForwardCacheNotRestoredReason :: OutstandingNetworkRequestXhr => "OutstandingNetworkRequestXHR" , BackForwardCacheNotRestoredReason :: AppBanner => "AppBanner" , BackForwardCacheNotRestoredReason :: Printing => "Printing" , BackForwardCacheNotRestoredReason :: WebDatabase => "WebDatabase" , BackForwardCacheNotRestoredReason :: PictureInPicture => "PictureInPicture" , BackForwardCacheNotRestoredReason :: SpeechRecognizer => "SpeechRecognizer" , BackForwardCacheNotRestoredReason :: IdleManager => "IdleManager" , BackForwardCacheNotRestoredReason :: PaymentManager => "PaymentManager" , BackForwardCacheNotRestoredReason :: SpeechSynthesis => "SpeechSynthesis" , BackForwardCacheNotRestoredReason :: KeyboardLock => "KeyboardLock" , BackForwardCacheNotRestoredReason :: WebOtpService => "WebOTPService" , BackForwardCacheNotRestoredReason :: OutstandingNetworkRequestDirectSocket => "OutstandingNetworkRequestDirectSocket" , BackForwardCacheNotRestoredReason :: InjectedJavascript => "InjectedJavascript" , BackForwardCacheNotRestoredReason :: InjectedStyleSheet => "InjectedStyleSheet" , BackForwardCacheNotRestoredReason :: KeepaliveRequest => "KeepaliveRequest" , BackForwardCacheNotRestoredReason :: IndexedDbEvent => "IndexedDBEvent" , BackForwardCacheNotRestoredReason :: Dummy => "Dummy" , BackForwardCacheNotRestoredReason :: JsNetworkRequestReceivedCacheControlNoStoreResource => "JsNetworkRequestReceivedCacheControlNoStoreResource" , BackForwardCacheNotRestoredReason :: WebRtcSticky => "WebRTCSticky" , BackForwardCacheNotRestoredReason :: WebTransportSticky => "WebTransportSticky" , BackForwardCacheNotRestoredReason :: WebSocketSticky => "WebSocketSticky" , BackForwardCacheNotRestoredReason :: SmartCard => "SmartCard" , BackForwardCacheNotRestoredReason :: LiveMediaStreamTrack => "LiveMediaStreamTrack" , BackForwardCacheNotRestoredReason :: UnloadHandler => "UnloadHandler" , BackForwardCacheNotRestoredReason :: ParserAborted => "ParserAborted" , BackForwardCacheNotRestoredReason :: ContentSecurityHandler => "ContentSecurityHandler" , BackForwardCacheNotRestoredReason :: ContentWebAuthenticationApi => "ContentWebAuthenticationAPI" , BackForwardCacheNotRestoredReason :: ContentFileChooser => "ContentFileChooser" , BackForwardCacheNotRestoredReason :: ContentSerial => "ContentSerial" , BackForwardCacheNotRestoredReason :: ContentFileSystemAccess => "ContentFileSystemAccess" , BackForwardCacheNotRestoredReason :: ContentMediaDevicesDispatcherHost => "ContentMediaDevicesDispatcherHost" , BackForwardCacheNotRestoredReason :: ContentWebBluetooth => "ContentWebBluetooth" , BackForwardCacheNotRestoredReason :: ContentWebUsb => "ContentWebUSB" , BackForwardCacheNotRestoredReason :: ContentMediaSessionService => "ContentMediaSessionService" , BackForwardCacheNotRestoredReason :: ContentScreenReader => "ContentScreenReader" , BackForwardCacheNotRestoredReason :: ContentDiscarded => "ContentDiscarded" , BackForwardCacheNotRestoredReason :: EmbedderPopupBlockerTabHelper => "EmbedderPopupBlockerTabHelper" , BackForwardCacheNotRestoredReason :: EmbedderSafeBrowsingTriggeredPopupBlocker => "EmbedderSafeBrowsingTriggeredPopupBlocker" , BackForwardCacheNotRestoredReason :: EmbedderSafeBrowsingThreatDetails => "EmbedderSafeBrowsingThreatDetails" , BackForwardCacheNotRestoredReason :: EmbedderAppBannerManager => "EmbedderAppBannerManager" , BackForwardCacheNotRestoredReason :: EmbedderDomDistillerViewerSource => "EmbedderDomDistillerViewerSource" , BackForwardCacheNotRestoredReason :: EmbedderDomDistillerSelfDeletingRequestDelegate => "EmbedderDomDistillerSelfDeletingRequestDelegate" , BackForwardCacheNotRestoredReason :: EmbedderOomInterventionTabHelper => "EmbedderOomInterventionTabHelper" , BackForwardCacheNotRestoredReason :: EmbedderOfflinePage => "EmbedderOfflinePage" , BackForwardCacheNotRestoredReason :: EmbedderChromePasswordManagerClientBindCredentialManager => "EmbedderChromePasswordManagerClientBindCredentialManager" , BackForwardCacheNotRestoredReason :: EmbedderPermissionRequestManager => "EmbedderPermissionRequestManager" , BackForwardCacheNotRestoredReason :: EmbedderModalDialog => "EmbedderModalDialog" , BackForwardCacheNotRestoredReason :: EmbedderExtensions => "EmbedderExtensions" , BackForwardCacheNotRestoredReason :: EmbedderExtensionMessaging => "EmbedderExtensionMessaging" , BackForwardCacheNotRestoredReason :: EmbedderExtensionMessagingForOpenPort => "EmbedderExtensionMessagingForOpenPort" , BackForwardCacheNotRestoredReason :: EmbedderExtensionSentMessageToCachedFrame => "EmbedderExtensionSentMessageToCachedFrame" , BackForwardCacheNotRestoredReason :: RequestedByWebViewClient => "RequestedByWebViewClient" }
+                match self { BackForwardCacheNotRestoredReason :: NotPrimaryMainFrame => "NotPrimaryMainFrame" , BackForwardCacheNotRestoredReason :: BackForwardCacheDisabled => "BackForwardCacheDisabled" , BackForwardCacheNotRestoredReason :: RelatedActiveContentsExist => "RelatedActiveContentsExist" , BackForwardCacheNotRestoredReason :: HttpStatusNotOk => "HTTPStatusNotOK" , BackForwardCacheNotRestoredReason :: SchemeNotHttpOrHttps => "SchemeNotHTTPOrHTTPS" , BackForwardCacheNotRestoredReason :: Loading => "Loading" , BackForwardCacheNotRestoredReason :: WasGrantedMediaAccess => "WasGrantedMediaAccess" , BackForwardCacheNotRestoredReason :: DisableForRenderFrameHostCalled => "DisableForRenderFrameHostCalled" , BackForwardCacheNotRestoredReason :: DomainNotAllowed => "DomainNotAllowed" , BackForwardCacheNotRestoredReason :: HttpMethodNotGet => "HTTPMethodNotGET" , BackForwardCacheNotRestoredReason :: SubframeIsNavigating => "SubframeIsNavigating" , BackForwardCacheNotRestoredReason :: Timeout => "Timeout" , BackForwardCacheNotRestoredReason :: CacheLimit => "CacheLimit" , BackForwardCacheNotRestoredReason :: JavaScriptExecution => "JavaScriptExecution" , BackForwardCacheNotRestoredReason :: RendererProcessKilled => "RendererProcessKilled" , BackForwardCacheNotRestoredReason :: RendererProcessCrashed => "RendererProcessCrashed" , BackForwardCacheNotRestoredReason :: SchedulerTrackedFeatureUsed => "SchedulerTrackedFeatureUsed" , BackForwardCacheNotRestoredReason :: ConflictingBrowsingInstance => "ConflictingBrowsingInstance" , BackForwardCacheNotRestoredReason :: CacheFlushed => "CacheFlushed" , BackForwardCacheNotRestoredReason :: ServiceWorkerVersionActivation => "ServiceWorkerVersionActivation" , BackForwardCacheNotRestoredReason :: SessionRestored => "SessionRestored" , BackForwardCacheNotRestoredReason :: ServiceWorkerPostMessage => "ServiceWorkerPostMessage" , BackForwardCacheNotRestoredReason :: EnteredBackForwardCacheBeforeServiceWorkerHostAdded => "EnteredBackForwardCacheBeforeServiceWorkerHostAdded" , BackForwardCacheNotRestoredReason :: RenderFrameHostReusedSameSite => "RenderFrameHostReused_SameSite" , BackForwardCacheNotRestoredReason :: RenderFrameHostReusedCrossSite => "RenderFrameHostReused_CrossSite" , BackForwardCacheNotRestoredReason :: ServiceWorkerClaim => "ServiceWorkerClaim" , BackForwardCacheNotRestoredReason :: IgnoreEventAndEvict => "IgnoreEventAndEvict" , BackForwardCacheNotRestoredReason :: HaveInnerContents => "HaveInnerContents" , BackForwardCacheNotRestoredReason :: TimeoutPuttingInCache => "TimeoutPuttingInCache" , BackForwardCacheNotRestoredReason :: BackForwardCacheDisabledByLowMemory => "BackForwardCacheDisabledByLowMemory" , BackForwardCacheNotRestoredReason :: BackForwardCacheDisabledByCommandLine => "BackForwardCacheDisabledByCommandLine" , BackForwardCacheNotRestoredReason :: NetworkRequestDatapipeDrainedAsBytesConsumer => "NetworkRequestDatapipeDrainedAsBytesConsumer" , BackForwardCacheNotRestoredReason :: NetworkRequestRedirected => "NetworkRequestRedirected" , BackForwardCacheNotRestoredReason :: NetworkRequestTimeout => "NetworkRequestTimeout" , BackForwardCacheNotRestoredReason :: NetworkExceedsBufferLimit => "NetworkExceedsBufferLimit" , BackForwardCacheNotRestoredReason :: NavigationCancelledWhileRestoring => "NavigationCancelledWhileRestoring" , BackForwardCacheNotRestoredReason :: NotMostRecentNavigationEntry => "NotMostRecentNavigationEntry" , BackForwardCacheNotRestoredReason :: BackForwardCacheDisabledForPrerender => "BackForwardCacheDisabledForPrerender" , BackForwardCacheNotRestoredReason :: UserAgentOverrideDiffers => "UserAgentOverrideDiffers" , BackForwardCacheNotRestoredReason :: ForegroundCacheLimit => "ForegroundCacheLimit" , BackForwardCacheNotRestoredReason :: BrowsingInstanceNotSwapped => "BrowsingInstanceNotSwapped" , BackForwardCacheNotRestoredReason :: BackForwardCacheDisabledForDelegate => "BackForwardCacheDisabledForDelegate" , BackForwardCacheNotRestoredReason :: UnloadHandlerExistsInMainFrame => "UnloadHandlerExistsInMainFrame" , BackForwardCacheNotRestoredReason :: UnloadHandlerExistsInSubFrame => "UnloadHandlerExistsInSubFrame" , BackForwardCacheNotRestoredReason :: ServiceWorkerUnregistration => "ServiceWorkerUnregistration" , BackForwardCacheNotRestoredReason :: CacheControlNoStore => "CacheControlNoStore" , BackForwardCacheNotRestoredReason :: CacheControlNoStoreCookieModified => "CacheControlNoStoreCookieModified" , BackForwardCacheNotRestoredReason :: CacheControlNoStoreHttpOnlyCookieModified => "CacheControlNoStoreHTTPOnlyCookieModified" , BackForwardCacheNotRestoredReason :: NoResponseHead => "NoResponseHead" , BackForwardCacheNotRestoredReason :: Unknown => "Unknown" , BackForwardCacheNotRestoredReason :: ActivationNavigationsDisallowedForBug1234857 => "ActivationNavigationsDisallowedForBug1234857" , BackForwardCacheNotRestoredReason :: ErrorDocument => "ErrorDocument" , BackForwardCacheNotRestoredReason :: FencedFramesEmbedder => "FencedFramesEmbedder" , BackForwardCacheNotRestoredReason :: CookieDisabled => "CookieDisabled" , BackForwardCacheNotRestoredReason :: HttpAuthRequired => "HTTPAuthRequired" , BackForwardCacheNotRestoredReason :: CookieFlushed => "CookieFlushed" , BackForwardCacheNotRestoredReason :: BroadcastChannelOnMessage => "BroadcastChannelOnMessage" , BackForwardCacheNotRestoredReason :: WebViewSettingsChanged => "WebViewSettingsChanged" , BackForwardCacheNotRestoredReason :: WebViewJavaScriptObjectChanged => "WebViewJavaScriptObjectChanged" , BackForwardCacheNotRestoredReason :: WebViewMessageListenerInjected => "WebViewMessageListenerInjected" , BackForwardCacheNotRestoredReason :: WebViewSafeBrowsingAllowlistChanged => "WebViewSafeBrowsingAllowlistChanged" , BackForwardCacheNotRestoredReason :: WebViewDocumentStartJavascriptChanged => "WebViewDocumentStartJavascriptChanged" , BackForwardCacheNotRestoredReason :: WebSocket => "WebSocket" , BackForwardCacheNotRestoredReason :: WebTransport => "WebTransport" , BackForwardCacheNotRestoredReason :: WebRtc => "WebRTC" , BackForwardCacheNotRestoredReason :: MainResourceHasCacheControlNoStore => "MainResourceHasCacheControlNoStore" , BackForwardCacheNotRestoredReason :: MainResourceHasCacheControlNoCache => "MainResourceHasCacheControlNoCache" , BackForwardCacheNotRestoredReason :: SubresourceHasCacheControlNoStore => "SubresourceHasCacheControlNoStore" , BackForwardCacheNotRestoredReason :: SubresourceHasCacheControlNoCache => "SubresourceHasCacheControlNoCache" , BackForwardCacheNotRestoredReason :: ContainsPlugins => "ContainsPlugins" , BackForwardCacheNotRestoredReason :: DocumentLoaded => "DocumentLoaded" , BackForwardCacheNotRestoredReason :: OutstandingNetworkRequestOthers => "OutstandingNetworkRequestOthers" , BackForwardCacheNotRestoredReason :: RequestedMidiPermission => "RequestedMIDIPermission" , BackForwardCacheNotRestoredReason :: RequestedAudioCapturePermission => "RequestedAudioCapturePermission" , BackForwardCacheNotRestoredReason :: RequestedVideoCapturePermission => "RequestedVideoCapturePermission" , BackForwardCacheNotRestoredReason :: RequestedBackForwardCacheBlockedSensors => "RequestedBackForwardCacheBlockedSensors" , BackForwardCacheNotRestoredReason :: RequestedBackgroundWorkPermission => "RequestedBackgroundWorkPermission" , BackForwardCacheNotRestoredReason :: BroadcastChannel => "BroadcastChannel" , BackForwardCacheNotRestoredReason :: WebXr => "WebXR" , BackForwardCacheNotRestoredReason :: SharedWorker => "SharedWorker" , BackForwardCacheNotRestoredReason :: WebLocks => "WebLocks" , BackForwardCacheNotRestoredReason :: WebHid => "WebHID" , BackForwardCacheNotRestoredReason :: WebShare => "WebShare" , BackForwardCacheNotRestoredReason :: RequestedStorageAccessGrant => "RequestedStorageAccessGrant" , BackForwardCacheNotRestoredReason :: WebNfc => "WebNfc" , BackForwardCacheNotRestoredReason :: OutstandingNetworkRequestFetch => "OutstandingNetworkRequestFetch" , BackForwardCacheNotRestoredReason :: OutstandingNetworkRequestXhr => "OutstandingNetworkRequestXHR" , BackForwardCacheNotRestoredReason :: AppBanner => "AppBanner" , BackForwardCacheNotRestoredReason :: Printing => "Printing" , BackForwardCacheNotRestoredReason :: WebDatabase => "WebDatabase" , BackForwardCacheNotRestoredReason :: PictureInPicture => "PictureInPicture" , BackForwardCacheNotRestoredReason :: SpeechRecognizer => "SpeechRecognizer" , BackForwardCacheNotRestoredReason :: IdleManager => "IdleManager" , BackForwardCacheNotRestoredReason :: PaymentManager => "PaymentManager" , BackForwardCacheNotRestoredReason :: SpeechSynthesis => "SpeechSynthesis" , BackForwardCacheNotRestoredReason :: KeyboardLock => "KeyboardLock" , BackForwardCacheNotRestoredReason :: WebOtpService => "WebOTPService" , BackForwardCacheNotRestoredReason :: OutstandingNetworkRequestDirectSocket => "OutstandingNetworkRequestDirectSocket" , BackForwardCacheNotRestoredReason :: InjectedJavascript => "InjectedJavascript" , BackForwardCacheNotRestoredReason :: InjectedStyleSheet => "InjectedStyleSheet" , BackForwardCacheNotRestoredReason :: KeepaliveRequest => "KeepaliveRequest" , BackForwardCacheNotRestoredReason :: IndexedDbEvent => "IndexedDBEvent" , BackForwardCacheNotRestoredReason :: Dummy => "Dummy" , BackForwardCacheNotRestoredReason :: JsNetworkRequestReceivedCacheControlNoStoreResource => "JsNetworkRequestReceivedCacheControlNoStoreResource" , BackForwardCacheNotRestoredReason :: WebRtcSticky => "WebRTCSticky" , BackForwardCacheNotRestoredReason :: WebTransportSticky => "WebTransportSticky" , BackForwardCacheNotRestoredReason :: WebSocketSticky => "WebSocketSticky" , BackForwardCacheNotRestoredReason :: SmartCard => "SmartCard" , BackForwardCacheNotRestoredReason :: LiveMediaStreamTrack => "LiveMediaStreamTrack" , BackForwardCacheNotRestoredReason :: UnloadHandler => "UnloadHandler" , BackForwardCacheNotRestoredReason :: ParserAborted => "ParserAborted" , BackForwardCacheNotRestoredReason :: ContentSecurityHandler => "ContentSecurityHandler" , BackForwardCacheNotRestoredReason :: ContentWebAuthenticationApi => "ContentWebAuthenticationAPI" , BackForwardCacheNotRestoredReason :: ContentFileChooser => "ContentFileChooser" , BackForwardCacheNotRestoredReason :: ContentSerial => "ContentSerial" , BackForwardCacheNotRestoredReason :: ContentFileSystemAccess => "ContentFileSystemAccess" , BackForwardCacheNotRestoredReason :: ContentMediaDevicesDispatcherHost => "ContentMediaDevicesDispatcherHost" , BackForwardCacheNotRestoredReason :: ContentWebBluetooth => "ContentWebBluetooth" , BackForwardCacheNotRestoredReason :: ContentWebUsb => "ContentWebUSB" , BackForwardCacheNotRestoredReason :: ContentMediaSessionService => "ContentMediaSessionService" , BackForwardCacheNotRestoredReason :: ContentScreenReader => "ContentScreenReader" , BackForwardCacheNotRestoredReason :: ContentDiscarded => "ContentDiscarded" , BackForwardCacheNotRestoredReason :: EmbedderPopupBlockerTabHelper => "EmbedderPopupBlockerTabHelper" , BackForwardCacheNotRestoredReason :: EmbedderSafeBrowsingTriggeredPopupBlocker => "EmbedderSafeBrowsingTriggeredPopupBlocker" , BackForwardCacheNotRestoredReason :: EmbedderSafeBrowsingThreatDetails => "EmbedderSafeBrowsingThreatDetails" , BackForwardCacheNotRestoredReason :: EmbedderAppBannerManager => "EmbedderAppBannerManager" , BackForwardCacheNotRestoredReason :: EmbedderDomDistillerViewerSource => "EmbedderDomDistillerViewerSource" , BackForwardCacheNotRestoredReason :: EmbedderDomDistillerSelfDeletingRequestDelegate => "EmbedderDomDistillerSelfDeletingRequestDelegate" , BackForwardCacheNotRestoredReason :: EmbedderOomInterventionTabHelper => "EmbedderOomInterventionTabHelper" , BackForwardCacheNotRestoredReason :: EmbedderOfflinePage => "EmbedderOfflinePage" , BackForwardCacheNotRestoredReason :: EmbedderChromePasswordManagerClientBindCredentialManager => "EmbedderChromePasswordManagerClientBindCredentialManager" , BackForwardCacheNotRestoredReason :: EmbedderPermissionRequestManager => "EmbedderPermissionRequestManager" , BackForwardCacheNotRestoredReason :: EmbedderModalDialog => "EmbedderModalDialog" , BackForwardCacheNotRestoredReason :: EmbedderExtensions => "EmbedderExtensions" , BackForwardCacheNotRestoredReason :: EmbedderExtensionMessaging => "EmbedderExtensionMessaging" , BackForwardCacheNotRestoredReason :: EmbedderExtensionMessagingForOpenPort => "EmbedderExtensionMessagingForOpenPort" , BackForwardCacheNotRestoredReason :: EmbedderExtensionSentMessageToCachedFrame => "EmbedderExtensionSentMessageToCachedFrame" , BackForwardCacheNotRestoredReason :: RequestedByWebViewClient => "RequestedByWebViewClient" , BackForwardCacheNotRestoredReason :: PostMessageByWebViewClient => "PostMessageByWebViewClient" }
             }
         }
         impl ::std::str::FromStr for BackForwardCacheNotRestoredReason {
             type Err = String;
             fn from_str(s: &str) -> Result<Self, Self::Err> {
-                match s { "NotPrimaryMainFrame" | "notprimarymainframe" => Ok (BackForwardCacheNotRestoredReason :: NotPrimaryMainFrame) , "BackForwardCacheDisabled" | "backforwardcachedisabled" => Ok (BackForwardCacheNotRestoredReason :: BackForwardCacheDisabled) , "RelatedActiveContentsExist" | "relatedactivecontentsexist" => Ok (BackForwardCacheNotRestoredReason :: RelatedActiveContentsExist) , "HTTPStatusNotOK" | "HttpStatusNotOk" | "httpstatusnotok" => Ok (BackForwardCacheNotRestoredReason :: HttpStatusNotOk) , "SchemeNotHTTPOrHTTPS" | "SchemeNotHttpOrHttps" | "schemenothttporhttps" => Ok (BackForwardCacheNotRestoredReason :: SchemeNotHttpOrHttps) , "Loading" | "loading" => Ok (BackForwardCacheNotRestoredReason :: Loading) , "WasGrantedMediaAccess" | "wasgrantedmediaaccess" => Ok (BackForwardCacheNotRestoredReason :: WasGrantedMediaAccess) , "DisableForRenderFrameHostCalled" | "disableforrenderframehostcalled" => Ok (BackForwardCacheNotRestoredReason :: DisableForRenderFrameHostCalled) , "DomainNotAllowed" | "domainnotallowed" => Ok (BackForwardCacheNotRestoredReason :: DomainNotAllowed) , "HTTPMethodNotGET" | "HttpMethodNotGet" | "httpmethodnotget" => Ok (BackForwardCacheNotRestoredReason :: HttpMethodNotGet) , "SubframeIsNavigating" | "subframeisnavigating" => Ok (BackForwardCacheNotRestoredReason :: SubframeIsNavigating) , "Timeout" | "timeout" => Ok (BackForwardCacheNotRestoredReason :: Timeout) , "CacheLimit" | "cachelimit" => Ok (BackForwardCacheNotRestoredReason :: CacheLimit) , "JavaScriptExecution" | "javascriptexecution" => Ok (BackForwardCacheNotRestoredReason :: JavaScriptExecution) , "RendererProcessKilled" | "rendererprocesskilled" => Ok (BackForwardCacheNotRestoredReason :: RendererProcessKilled) , "RendererProcessCrashed" | "rendererprocesscrashed" => Ok (BackForwardCacheNotRestoredReason :: RendererProcessCrashed) , "SchedulerTrackedFeatureUsed" | "schedulertrackedfeatureused" => Ok (BackForwardCacheNotRestoredReason :: SchedulerTrackedFeatureUsed) , "ConflictingBrowsingInstance" | "conflictingbrowsinginstance" => Ok (BackForwardCacheNotRestoredReason :: ConflictingBrowsingInstance) , "CacheFlushed" | "cacheflushed" => Ok (BackForwardCacheNotRestoredReason :: CacheFlushed) , "ServiceWorkerVersionActivation" | "serviceworkerversionactivation" => Ok (BackForwardCacheNotRestoredReason :: ServiceWorkerVersionActivation) , "SessionRestored" | "sessionrestored" => Ok (BackForwardCacheNotRestoredReason :: SessionRestored) , "ServiceWorkerPostMessage" | "serviceworkerpostmessage" => Ok (BackForwardCacheNotRestoredReason :: ServiceWorkerPostMessage) , "EnteredBackForwardCacheBeforeServiceWorkerHostAdded" | "enteredbackforwardcachebeforeserviceworkerhostadded" => Ok (BackForwardCacheNotRestoredReason :: EnteredBackForwardCacheBeforeServiceWorkerHostAdded) , "RenderFrameHostReused_SameSite" | "RenderFrameHostReusedSameSite" | "renderframehostreused_samesite" => Ok (BackForwardCacheNotRestoredReason :: RenderFrameHostReusedSameSite) , "RenderFrameHostReused_CrossSite" | "RenderFrameHostReusedCrossSite" | "renderframehostreused_crosssite" => Ok (BackForwardCacheNotRestoredReason :: RenderFrameHostReusedCrossSite) , "ServiceWorkerClaim" | "serviceworkerclaim" => Ok (BackForwardCacheNotRestoredReason :: ServiceWorkerClaim) , "IgnoreEventAndEvict" | "ignoreeventandevict" => Ok (BackForwardCacheNotRestoredReason :: IgnoreEventAndEvict) , "HaveInnerContents" | "haveinnercontents" => Ok (BackForwardCacheNotRestoredReason :: HaveInnerContents) , "TimeoutPuttingInCache" | "timeoutputtingincache" => Ok (BackForwardCacheNotRestoredReason :: TimeoutPuttingInCache) , "BackForwardCacheDisabledByLowMemory" | "backforwardcachedisabledbylowmemory" => Ok (BackForwardCacheNotRestoredReason :: BackForwardCacheDisabledByLowMemory) , "BackForwardCacheDisabledByCommandLine" | "backforwardcachedisabledbycommandline" => Ok (BackForwardCacheNotRestoredReason :: BackForwardCacheDisabledByCommandLine) , "NetworkRequestDatapipeDrainedAsBytesConsumer" | "networkrequestdatapipedrainedasbytesconsumer" => Ok (BackForwardCacheNotRestoredReason :: NetworkRequestDatapipeDrainedAsBytesConsumer) , "NetworkRequestRedirected" | "networkrequestredirected" => Ok (BackForwardCacheNotRestoredReason :: NetworkRequestRedirected) , "NetworkRequestTimeout" | "networkrequesttimeout" => Ok (BackForwardCacheNotRestoredReason :: NetworkRequestTimeout) , "NetworkExceedsBufferLimit" | "networkexceedsbufferlimit" => Ok (BackForwardCacheNotRestoredReason :: NetworkExceedsBufferLimit) , "NavigationCancelledWhileRestoring" | "navigationcancelledwhilerestoring" => Ok (BackForwardCacheNotRestoredReason :: NavigationCancelledWhileRestoring) , "NotMostRecentNavigationEntry" | "notmostrecentnavigationentry" => Ok (BackForwardCacheNotRestoredReason :: NotMostRecentNavigationEntry) , "BackForwardCacheDisabledForPrerender" | "backforwardcachedisabledforprerender" => Ok (BackForwardCacheNotRestoredReason :: BackForwardCacheDisabledForPrerender) , "UserAgentOverrideDiffers" | "useragentoverridediffers" => Ok (BackForwardCacheNotRestoredReason :: UserAgentOverrideDiffers) , "ForegroundCacheLimit" | "foregroundcachelimit" => Ok (BackForwardCacheNotRestoredReason :: ForegroundCacheLimit) , "BrowsingInstanceNotSwapped" | "browsinginstancenotswapped" => Ok (BackForwardCacheNotRestoredReason :: BrowsingInstanceNotSwapped) , "BackForwardCacheDisabledForDelegate" | "backforwardcachedisabledfordelegate" => Ok (BackForwardCacheNotRestoredReason :: BackForwardCacheDisabledForDelegate) , "UnloadHandlerExistsInMainFrame" | "unloadhandlerexistsinmainframe" => Ok (BackForwardCacheNotRestoredReason :: UnloadHandlerExistsInMainFrame) , "UnloadHandlerExistsInSubFrame" | "unloadhandlerexistsinsubframe" => Ok (BackForwardCacheNotRestoredReason :: UnloadHandlerExistsInSubFrame) , "ServiceWorkerUnregistration" | "serviceworkerunregistration" => Ok (BackForwardCacheNotRestoredReason :: ServiceWorkerUnregistration) , "CacheControlNoStore" | "cachecontrolnostore" => Ok (BackForwardCacheNotRestoredReason :: CacheControlNoStore) , "CacheControlNoStoreCookieModified" | "cachecontrolnostorecookiemodified" => Ok (BackForwardCacheNotRestoredReason :: CacheControlNoStoreCookieModified) , "CacheControlNoStoreHTTPOnlyCookieModified" | "CacheControlNoStoreHttpOnlyCookieModified" | "cachecontrolnostorehttponlycookiemodified" => Ok (BackForwardCacheNotRestoredReason :: CacheControlNoStoreHttpOnlyCookieModified) , "NoResponseHead" | "noresponsehead" => Ok (BackForwardCacheNotRestoredReason :: NoResponseHead) , "Unknown" | "unknown" => Ok (BackForwardCacheNotRestoredReason :: Unknown) , "ActivationNavigationsDisallowedForBug1234857" | "activationnavigationsdisallowedforbug1234857" => Ok (BackForwardCacheNotRestoredReason :: ActivationNavigationsDisallowedForBug1234857) , "ErrorDocument" | "errordocument" => Ok (BackForwardCacheNotRestoredReason :: ErrorDocument) , "FencedFramesEmbedder" | "fencedframesembedder" => Ok (BackForwardCacheNotRestoredReason :: FencedFramesEmbedder) , "CookieDisabled" | "cookiedisabled" => Ok (BackForwardCacheNotRestoredReason :: CookieDisabled) , "HTTPAuthRequired" | "HttpAuthRequired" | "httpauthrequired" => Ok (BackForwardCacheNotRestoredReason :: HttpAuthRequired) , "CookieFlushed" | "cookieflushed" => Ok (BackForwardCacheNotRestoredReason :: CookieFlushed) , "BroadcastChannelOnMessage" | "broadcastchannelonmessage" => Ok (BackForwardCacheNotRestoredReason :: BroadcastChannelOnMessage) , "WebViewSettingsChanged" | "webviewsettingschanged" => Ok (BackForwardCacheNotRestoredReason :: WebViewSettingsChanged) , "WebViewJavaScriptObjectChanged" | "webviewjavascriptobjectchanged" => Ok (BackForwardCacheNotRestoredReason :: WebViewJavaScriptObjectChanged) , "WebViewMessageListenerInjected" | "webviewmessagelistenerinjected" => Ok (BackForwardCacheNotRestoredReason :: WebViewMessageListenerInjected) , "WebViewSafeBrowsingAllowlistChanged" | "webviewsafebrowsingallowlistchanged" => Ok (BackForwardCacheNotRestoredReason :: WebViewSafeBrowsingAllowlistChanged) , "WebViewDocumentStartJavascriptChanged" | "webviewdocumentstartjavascriptchanged" => Ok (BackForwardCacheNotRestoredReason :: WebViewDocumentStartJavascriptChanged) , "WebSocket" | "websocket" => Ok (BackForwardCacheNotRestoredReason :: WebSocket) , "WebTransport" | "webtransport" => Ok (BackForwardCacheNotRestoredReason :: WebTransport) , "WebRTC" | "WebRtc" | "webrtc" => Ok (BackForwardCacheNotRestoredReason :: WebRtc) , "MainResourceHasCacheControlNoStore" | "mainresourcehascachecontrolnostore" => Ok (BackForwardCacheNotRestoredReason :: MainResourceHasCacheControlNoStore) , "MainResourceHasCacheControlNoCache" | "mainresourcehascachecontrolnocache" => Ok (BackForwardCacheNotRestoredReason :: MainResourceHasCacheControlNoCache) , "SubresourceHasCacheControlNoStore" | "subresourcehascachecontrolnostore" => Ok (BackForwardCacheNotRestoredReason :: SubresourceHasCacheControlNoStore) , "SubresourceHasCacheControlNoCache" | "subresourcehascachecontrolnocache" => Ok (BackForwardCacheNotRestoredReason :: SubresourceHasCacheControlNoCache) , "ContainsPlugins" | "containsplugins" => Ok (BackForwardCacheNotRestoredReason :: ContainsPlugins) , "DocumentLoaded" | "documentloaded" => Ok (BackForwardCacheNotRestoredReason :: DocumentLoaded) , "OutstandingNetworkRequestOthers" | "outstandingnetworkrequestothers" => Ok (BackForwardCacheNotRestoredReason :: OutstandingNetworkRequestOthers) , "RequestedMIDIPermission" | "RequestedMidiPermission" | "requestedmidipermission" => Ok (BackForwardCacheNotRestoredReason :: RequestedMidiPermission) , "RequestedAudioCapturePermission" | "requestedaudiocapturepermission" => Ok (BackForwardCacheNotRestoredReason :: RequestedAudioCapturePermission) , "RequestedVideoCapturePermission" | "requestedvideocapturepermission" => Ok (BackForwardCacheNotRestoredReason :: RequestedVideoCapturePermission) , "RequestedBackForwardCacheBlockedSensors" | "requestedbackforwardcacheblockedsensors" => Ok (BackForwardCacheNotRestoredReason :: RequestedBackForwardCacheBlockedSensors) , "RequestedBackgroundWorkPermission" | "requestedbackgroundworkpermission" => Ok (BackForwardCacheNotRestoredReason :: RequestedBackgroundWorkPermission) , "BroadcastChannel" | "broadcastchannel" => Ok (BackForwardCacheNotRestoredReason :: BroadcastChannel) , "WebXR" | "WebXr" | "webxr" => Ok (BackForwardCacheNotRestoredReason :: WebXr) , "SharedWorker" | "sharedworker" => Ok (BackForwardCacheNotRestoredReason :: SharedWorker) , "WebLocks" | "weblocks" => Ok (BackForwardCacheNotRestoredReason :: WebLocks) , "WebHID" | "WebHid" | "webhid" => Ok (BackForwardCacheNotRestoredReason :: WebHid) , "WebShare" | "webshare" => Ok (BackForwardCacheNotRestoredReason :: WebShare) , "RequestedStorageAccessGrant" | "requestedstorageaccessgrant" => Ok (BackForwardCacheNotRestoredReason :: RequestedStorageAccessGrant) , "WebNfc" | "webnfc" => Ok (BackForwardCacheNotRestoredReason :: WebNfc) , "OutstandingNetworkRequestFetch" | "outstandingnetworkrequestfetch" => Ok (BackForwardCacheNotRestoredReason :: OutstandingNetworkRequestFetch) , "OutstandingNetworkRequestXHR" | "OutstandingNetworkRequestXhr" | "outstandingnetworkrequestxhr" => Ok (BackForwardCacheNotRestoredReason :: OutstandingNetworkRequestXhr) , "AppBanner" | "appbanner" => Ok (BackForwardCacheNotRestoredReason :: AppBanner) , "Printing" | "printing" => Ok (BackForwardCacheNotRestoredReason :: Printing) , "WebDatabase" | "webdatabase" => Ok (BackForwardCacheNotRestoredReason :: WebDatabase) , "PictureInPicture" | "pictureinpicture" => Ok (BackForwardCacheNotRestoredReason :: PictureInPicture) , "SpeechRecognizer" | "speechrecognizer" => Ok (BackForwardCacheNotRestoredReason :: SpeechRecognizer) , "IdleManager" | "idlemanager" => Ok (BackForwardCacheNotRestoredReason :: IdleManager) , "PaymentManager" | "paymentmanager" => Ok (BackForwardCacheNotRestoredReason :: PaymentManager) , "SpeechSynthesis" | "speechsynthesis" => Ok (BackForwardCacheNotRestoredReason :: SpeechSynthesis) , "KeyboardLock" | "keyboardlock" => Ok (BackForwardCacheNotRestoredReason :: KeyboardLock) , "WebOTPService" | "WebOtpService" | "webotpservice" => Ok (BackForwardCacheNotRestoredReason :: WebOtpService) , "OutstandingNetworkRequestDirectSocket" | "outstandingnetworkrequestdirectsocket" => Ok (BackForwardCacheNotRestoredReason :: OutstandingNetworkRequestDirectSocket) , "InjectedJavascript" | "injectedjavascript" => Ok (BackForwardCacheNotRestoredReason :: InjectedJavascript) , "InjectedStyleSheet" | "injectedstylesheet" => Ok (BackForwardCacheNotRestoredReason :: InjectedStyleSheet) , "KeepaliveRequest" | "keepaliverequest" => Ok (BackForwardCacheNotRestoredReason :: KeepaliveRequest) , "IndexedDBEvent" | "IndexedDbEvent" | "indexeddbevent" => Ok (BackForwardCacheNotRestoredReason :: IndexedDbEvent) , "Dummy" | "dummy" => Ok (BackForwardCacheNotRestoredReason :: Dummy) , "JsNetworkRequestReceivedCacheControlNoStoreResource" | "jsnetworkrequestreceivedcachecontrolnostoreresource" => Ok (BackForwardCacheNotRestoredReason :: JsNetworkRequestReceivedCacheControlNoStoreResource) , "WebRTCSticky" | "WebRtcSticky" | "webrtcsticky" => Ok (BackForwardCacheNotRestoredReason :: WebRtcSticky) , "WebTransportSticky" | "webtransportsticky" => Ok (BackForwardCacheNotRestoredReason :: WebTransportSticky) , "WebSocketSticky" | "websocketsticky" => Ok (BackForwardCacheNotRestoredReason :: WebSocketSticky) , "SmartCard" | "smartcard" => Ok (BackForwardCacheNotRestoredReason :: SmartCard) , "LiveMediaStreamTrack" | "livemediastreamtrack" => Ok (BackForwardCacheNotRestoredReason :: LiveMediaStreamTrack) , "UnloadHandler" | "unloadhandler" => Ok (BackForwardCacheNotRestoredReason :: UnloadHandler) , "ParserAborted" | "parseraborted" => Ok (BackForwardCacheNotRestoredReason :: ParserAborted) , "ContentSecurityHandler" | "contentsecurityhandler" => Ok (BackForwardCacheNotRestoredReason :: ContentSecurityHandler) , "ContentWebAuthenticationAPI" | "ContentWebAuthenticationApi" | "contentwebauthenticationapi" => Ok (BackForwardCacheNotRestoredReason :: ContentWebAuthenticationApi) , "ContentFileChooser" | "contentfilechooser" => Ok (BackForwardCacheNotRestoredReason :: ContentFileChooser) , "ContentSerial" | "contentserial" => Ok (BackForwardCacheNotRestoredReason :: ContentSerial) , "ContentFileSystemAccess" | "contentfilesystemaccess" => Ok (BackForwardCacheNotRestoredReason :: ContentFileSystemAccess) , "ContentMediaDevicesDispatcherHost" | "contentmediadevicesdispatcherhost" => Ok (BackForwardCacheNotRestoredReason :: ContentMediaDevicesDispatcherHost) , "ContentWebBluetooth" | "contentwebbluetooth" => Ok (BackForwardCacheNotRestoredReason :: ContentWebBluetooth) , "ContentWebUSB" | "ContentWebUsb" | "contentwebusb" => Ok (BackForwardCacheNotRestoredReason :: ContentWebUsb) , "ContentMediaSessionService" | "contentmediasessionservice" => Ok (BackForwardCacheNotRestoredReason :: ContentMediaSessionService) , "ContentScreenReader" | "contentscreenreader" => Ok (BackForwardCacheNotRestoredReason :: ContentScreenReader) , "ContentDiscarded" | "contentdiscarded" => Ok (BackForwardCacheNotRestoredReason :: ContentDiscarded) , "EmbedderPopupBlockerTabHelper" | "embedderpopupblockertabhelper" => Ok (BackForwardCacheNotRestoredReason :: EmbedderPopupBlockerTabHelper) , "EmbedderSafeBrowsingTriggeredPopupBlocker" | "embeddersafebrowsingtriggeredpopupblocker" => Ok (BackForwardCacheNotRestoredReason :: EmbedderSafeBrowsingTriggeredPopupBlocker) , "EmbedderSafeBrowsingThreatDetails" | "embeddersafebrowsingthreatdetails" => Ok (BackForwardCacheNotRestoredReason :: EmbedderSafeBrowsingThreatDetails) , "EmbedderAppBannerManager" | "embedderappbannermanager" => Ok (BackForwardCacheNotRestoredReason :: EmbedderAppBannerManager) , "EmbedderDomDistillerViewerSource" | "embedderdomdistillerviewersource" => Ok (BackForwardCacheNotRestoredReason :: EmbedderDomDistillerViewerSource) , "EmbedderDomDistillerSelfDeletingRequestDelegate" | "embedderdomdistillerselfdeletingrequestdelegate" => Ok (BackForwardCacheNotRestoredReason :: EmbedderDomDistillerSelfDeletingRequestDelegate) , "EmbedderOomInterventionTabHelper" | "embedderoominterventiontabhelper" => Ok (BackForwardCacheNotRestoredReason :: EmbedderOomInterventionTabHelper) , "EmbedderOfflinePage" | "embedderofflinepage" => Ok (BackForwardCacheNotRestoredReason :: EmbedderOfflinePage) , "EmbedderChromePasswordManagerClientBindCredentialManager" | "embedderchromepasswordmanagerclientbindcredentialmanager" => Ok (BackForwardCacheNotRestoredReason :: EmbedderChromePasswordManagerClientBindCredentialManager) , "EmbedderPermissionRequestManager" | "embedderpermissionrequestmanager" => Ok (BackForwardCacheNotRestoredReason :: EmbedderPermissionRequestManager) , "EmbedderModalDialog" | "embeddermodaldialog" => Ok (BackForwardCacheNotRestoredReason :: EmbedderModalDialog) , "EmbedderExtensions" | "embedderextensions" => Ok (BackForwardCacheNotRestoredReason :: EmbedderExtensions) , "EmbedderExtensionMessaging" | "embedderextensionmessaging" => Ok (BackForwardCacheNotRestoredReason :: EmbedderExtensionMessaging) , "EmbedderExtensionMessagingForOpenPort" | "embedderextensionmessagingforopenport" => Ok (BackForwardCacheNotRestoredReason :: EmbedderExtensionMessagingForOpenPort) , "EmbedderExtensionSentMessageToCachedFrame" | "embedderextensionsentmessagetocachedframe" => Ok (BackForwardCacheNotRestoredReason :: EmbedderExtensionSentMessageToCachedFrame) , "RequestedByWebViewClient" | "requestedbywebviewclient" => Ok (BackForwardCacheNotRestoredReason :: RequestedByWebViewClient) , _ => Err (s . to_string ()) }
+                match s { "NotPrimaryMainFrame" | "notprimarymainframe" => Ok (BackForwardCacheNotRestoredReason :: NotPrimaryMainFrame) , "BackForwardCacheDisabled" | "backforwardcachedisabled" => Ok (BackForwardCacheNotRestoredReason :: BackForwardCacheDisabled) , "RelatedActiveContentsExist" | "relatedactivecontentsexist" => Ok (BackForwardCacheNotRestoredReason :: RelatedActiveContentsExist) , "HTTPStatusNotOK" | "HttpStatusNotOk" | "httpstatusnotok" => Ok (BackForwardCacheNotRestoredReason :: HttpStatusNotOk) , "SchemeNotHTTPOrHTTPS" | "SchemeNotHttpOrHttps" | "schemenothttporhttps" => Ok (BackForwardCacheNotRestoredReason :: SchemeNotHttpOrHttps) , "Loading" | "loading" => Ok (BackForwardCacheNotRestoredReason :: Loading) , "WasGrantedMediaAccess" | "wasgrantedmediaaccess" => Ok (BackForwardCacheNotRestoredReason :: WasGrantedMediaAccess) , "DisableForRenderFrameHostCalled" | "disableforrenderframehostcalled" => Ok (BackForwardCacheNotRestoredReason :: DisableForRenderFrameHostCalled) , "DomainNotAllowed" | "domainnotallowed" => Ok (BackForwardCacheNotRestoredReason :: DomainNotAllowed) , "HTTPMethodNotGET" | "HttpMethodNotGet" | "httpmethodnotget" => Ok (BackForwardCacheNotRestoredReason :: HttpMethodNotGet) , "SubframeIsNavigating" | "subframeisnavigating" => Ok (BackForwardCacheNotRestoredReason :: SubframeIsNavigating) , "Timeout" | "timeout" => Ok (BackForwardCacheNotRestoredReason :: Timeout) , "CacheLimit" | "cachelimit" => Ok (BackForwardCacheNotRestoredReason :: CacheLimit) , "JavaScriptExecution" | "javascriptexecution" => Ok (BackForwardCacheNotRestoredReason :: JavaScriptExecution) , "RendererProcessKilled" | "rendererprocesskilled" => Ok (BackForwardCacheNotRestoredReason :: RendererProcessKilled) , "RendererProcessCrashed" | "rendererprocesscrashed" => Ok (BackForwardCacheNotRestoredReason :: RendererProcessCrashed) , "SchedulerTrackedFeatureUsed" | "schedulertrackedfeatureused" => Ok (BackForwardCacheNotRestoredReason :: SchedulerTrackedFeatureUsed) , "ConflictingBrowsingInstance" | "conflictingbrowsinginstance" => Ok (BackForwardCacheNotRestoredReason :: ConflictingBrowsingInstance) , "CacheFlushed" | "cacheflushed" => Ok (BackForwardCacheNotRestoredReason :: CacheFlushed) , "ServiceWorkerVersionActivation" | "serviceworkerversionactivation" => Ok (BackForwardCacheNotRestoredReason :: ServiceWorkerVersionActivation) , "SessionRestored" | "sessionrestored" => Ok (BackForwardCacheNotRestoredReason :: SessionRestored) , "ServiceWorkerPostMessage" | "serviceworkerpostmessage" => Ok (BackForwardCacheNotRestoredReason :: ServiceWorkerPostMessage) , "EnteredBackForwardCacheBeforeServiceWorkerHostAdded" | "enteredbackforwardcachebeforeserviceworkerhostadded" => Ok (BackForwardCacheNotRestoredReason :: EnteredBackForwardCacheBeforeServiceWorkerHostAdded) , "RenderFrameHostReused_SameSite" | "RenderFrameHostReusedSameSite" | "renderframehostreused_samesite" => Ok (BackForwardCacheNotRestoredReason :: RenderFrameHostReusedSameSite) , "RenderFrameHostReused_CrossSite" | "RenderFrameHostReusedCrossSite" | "renderframehostreused_crosssite" => Ok (BackForwardCacheNotRestoredReason :: RenderFrameHostReusedCrossSite) , "ServiceWorkerClaim" | "serviceworkerclaim" => Ok (BackForwardCacheNotRestoredReason :: ServiceWorkerClaim) , "IgnoreEventAndEvict" | "ignoreeventandevict" => Ok (BackForwardCacheNotRestoredReason :: IgnoreEventAndEvict) , "HaveInnerContents" | "haveinnercontents" => Ok (BackForwardCacheNotRestoredReason :: HaveInnerContents) , "TimeoutPuttingInCache" | "timeoutputtingincache" => Ok (BackForwardCacheNotRestoredReason :: TimeoutPuttingInCache) , "BackForwardCacheDisabledByLowMemory" | "backforwardcachedisabledbylowmemory" => Ok (BackForwardCacheNotRestoredReason :: BackForwardCacheDisabledByLowMemory) , "BackForwardCacheDisabledByCommandLine" | "backforwardcachedisabledbycommandline" => Ok (BackForwardCacheNotRestoredReason :: BackForwardCacheDisabledByCommandLine) , "NetworkRequestDatapipeDrainedAsBytesConsumer" | "networkrequestdatapipedrainedasbytesconsumer" => Ok (BackForwardCacheNotRestoredReason :: NetworkRequestDatapipeDrainedAsBytesConsumer) , "NetworkRequestRedirected" | "networkrequestredirected" => Ok (BackForwardCacheNotRestoredReason :: NetworkRequestRedirected) , "NetworkRequestTimeout" | "networkrequesttimeout" => Ok (BackForwardCacheNotRestoredReason :: NetworkRequestTimeout) , "NetworkExceedsBufferLimit" | "networkexceedsbufferlimit" => Ok (BackForwardCacheNotRestoredReason :: NetworkExceedsBufferLimit) , "NavigationCancelledWhileRestoring" | "navigationcancelledwhilerestoring" => Ok (BackForwardCacheNotRestoredReason :: NavigationCancelledWhileRestoring) , "NotMostRecentNavigationEntry" | "notmostrecentnavigationentry" => Ok (BackForwardCacheNotRestoredReason :: NotMostRecentNavigationEntry) , "BackForwardCacheDisabledForPrerender" | "backforwardcachedisabledforprerender" => Ok (BackForwardCacheNotRestoredReason :: BackForwardCacheDisabledForPrerender) , "UserAgentOverrideDiffers" | "useragentoverridediffers" => Ok (BackForwardCacheNotRestoredReason :: UserAgentOverrideDiffers) , "ForegroundCacheLimit" | "foregroundcachelimit" => Ok (BackForwardCacheNotRestoredReason :: ForegroundCacheLimit) , "BrowsingInstanceNotSwapped" | "browsinginstancenotswapped" => Ok (BackForwardCacheNotRestoredReason :: BrowsingInstanceNotSwapped) , "BackForwardCacheDisabledForDelegate" | "backforwardcachedisabledfordelegate" => Ok (BackForwardCacheNotRestoredReason :: BackForwardCacheDisabledForDelegate) , "UnloadHandlerExistsInMainFrame" | "unloadhandlerexistsinmainframe" => Ok (BackForwardCacheNotRestoredReason :: UnloadHandlerExistsInMainFrame) , "UnloadHandlerExistsInSubFrame" | "unloadhandlerexistsinsubframe" => Ok (BackForwardCacheNotRestoredReason :: UnloadHandlerExistsInSubFrame) , "ServiceWorkerUnregistration" | "serviceworkerunregistration" => Ok (BackForwardCacheNotRestoredReason :: ServiceWorkerUnregistration) , "CacheControlNoStore" | "cachecontrolnostore" => Ok (BackForwardCacheNotRestoredReason :: CacheControlNoStore) , "CacheControlNoStoreCookieModified" | "cachecontrolnostorecookiemodified" => Ok (BackForwardCacheNotRestoredReason :: CacheControlNoStoreCookieModified) , "CacheControlNoStoreHTTPOnlyCookieModified" | "CacheControlNoStoreHttpOnlyCookieModified" | "cachecontrolnostorehttponlycookiemodified" => Ok (BackForwardCacheNotRestoredReason :: CacheControlNoStoreHttpOnlyCookieModified) , "NoResponseHead" | "noresponsehead" => Ok (BackForwardCacheNotRestoredReason :: NoResponseHead) , "Unknown" | "unknown" => Ok (BackForwardCacheNotRestoredReason :: Unknown) , "ActivationNavigationsDisallowedForBug1234857" | "activationnavigationsdisallowedforbug1234857" => Ok (BackForwardCacheNotRestoredReason :: ActivationNavigationsDisallowedForBug1234857) , "ErrorDocument" | "errordocument" => Ok (BackForwardCacheNotRestoredReason :: ErrorDocument) , "FencedFramesEmbedder" | "fencedframesembedder" => Ok (BackForwardCacheNotRestoredReason :: FencedFramesEmbedder) , "CookieDisabled" | "cookiedisabled" => Ok (BackForwardCacheNotRestoredReason :: CookieDisabled) , "HTTPAuthRequired" | "HttpAuthRequired" | "httpauthrequired" => Ok (BackForwardCacheNotRestoredReason :: HttpAuthRequired) , "CookieFlushed" | "cookieflushed" => Ok (BackForwardCacheNotRestoredReason :: CookieFlushed) , "BroadcastChannelOnMessage" | "broadcastchannelonmessage" => Ok (BackForwardCacheNotRestoredReason :: BroadcastChannelOnMessage) , "WebViewSettingsChanged" | "webviewsettingschanged" => Ok (BackForwardCacheNotRestoredReason :: WebViewSettingsChanged) , "WebViewJavaScriptObjectChanged" | "webviewjavascriptobjectchanged" => Ok (BackForwardCacheNotRestoredReason :: WebViewJavaScriptObjectChanged) , "WebViewMessageListenerInjected" | "webviewmessagelistenerinjected" => Ok (BackForwardCacheNotRestoredReason :: WebViewMessageListenerInjected) , "WebViewSafeBrowsingAllowlistChanged" | "webviewsafebrowsingallowlistchanged" => Ok (BackForwardCacheNotRestoredReason :: WebViewSafeBrowsingAllowlistChanged) , "WebViewDocumentStartJavascriptChanged" | "webviewdocumentstartjavascriptchanged" => Ok (BackForwardCacheNotRestoredReason :: WebViewDocumentStartJavascriptChanged) , "WebSocket" | "websocket" => Ok (BackForwardCacheNotRestoredReason :: WebSocket) , "WebTransport" | "webtransport" => Ok (BackForwardCacheNotRestoredReason :: WebTransport) , "WebRTC" | "WebRtc" | "webrtc" => Ok (BackForwardCacheNotRestoredReason :: WebRtc) , "MainResourceHasCacheControlNoStore" | "mainresourcehascachecontrolnostore" => Ok (BackForwardCacheNotRestoredReason :: MainResourceHasCacheControlNoStore) , "MainResourceHasCacheControlNoCache" | "mainresourcehascachecontrolnocache" => Ok (BackForwardCacheNotRestoredReason :: MainResourceHasCacheControlNoCache) , "SubresourceHasCacheControlNoStore" | "subresourcehascachecontrolnostore" => Ok (BackForwardCacheNotRestoredReason :: SubresourceHasCacheControlNoStore) , "SubresourceHasCacheControlNoCache" | "subresourcehascachecontrolnocache" => Ok (BackForwardCacheNotRestoredReason :: SubresourceHasCacheControlNoCache) , "ContainsPlugins" | "containsplugins" => Ok (BackForwardCacheNotRestoredReason :: ContainsPlugins) , "DocumentLoaded" | "documentloaded" => Ok (BackForwardCacheNotRestoredReason :: DocumentLoaded) , "OutstandingNetworkRequestOthers" | "outstandingnetworkrequestothers" => Ok (BackForwardCacheNotRestoredReason :: OutstandingNetworkRequestOthers) , "RequestedMIDIPermission" | "RequestedMidiPermission" | "requestedmidipermission" => Ok (BackForwardCacheNotRestoredReason :: RequestedMidiPermission) , "RequestedAudioCapturePermission" | "requestedaudiocapturepermission" => Ok (BackForwardCacheNotRestoredReason :: RequestedAudioCapturePermission) , "RequestedVideoCapturePermission" | "requestedvideocapturepermission" => Ok (BackForwardCacheNotRestoredReason :: RequestedVideoCapturePermission) , "RequestedBackForwardCacheBlockedSensors" | "requestedbackforwardcacheblockedsensors" => Ok (BackForwardCacheNotRestoredReason :: RequestedBackForwardCacheBlockedSensors) , "RequestedBackgroundWorkPermission" | "requestedbackgroundworkpermission" => Ok (BackForwardCacheNotRestoredReason :: RequestedBackgroundWorkPermission) , "BroadcastChannel" | "broadcastchannel" => Ok (BackForwardCacheNotRestoredReason :: BroadcastChannel) , "WebXR" | "WebXr" | "webxr" => Ok (BackForwardCacheNotRestoredReason :: WebXr) , "SharedWorker" | "sharedworker" => Ok (BackForwardCacheNotRestoredReason :: SharedWorker) , "WebLocks" | "weblocks" => Ok (BackForwardCacheNotRestoredReason :: WebLocks) , "WebHID" | "WebHid" | "webhid" => Ok (BackForwardCacheNotRestoredReason :: WebHid) , "WebShare" | "webshare" => Ok (BackForwardCacheNotRestoredReason :: WebShare) , "RequestedStorageAccessGrant" | "requestedstorageaccessgrant" => Ok (BackForwardCacheNotRestoredReason :: RequestedStorageAccessGrant) , "WebNfc" | "webnfc" => Ok (BackForwardCacheNotRestoredReason :: WebNfc) , "OutstandingNetworkRequestFetch" | "outstandingnetworkrequestfetch" => Ok (BackForwardCacheNotRestoredReason :: OutstandingNetworkRequestFetch) , "OutstandingNetworkRequestXHR" | "OutstandingNetworkRequestXhr" | "outstandingnetworkrequestxhr" => Ok (BackForwardCacheNotRestoredReason :: OutstandingNetworkRequestXhr) , "AppBanner" | "appbanner" => Ok (BackForwardCacheNotRestoredReason :: AppBanner) , "Printing" | "printing" => Ok (BackForwardCacheNotRestoredReason :: Printing) , "WebDatabase" | "webdatabase" => Ok (BackForwardCacheNotRestoredReason :: WebDatabase) , "PictureInPicture" | "pictureinpicture" => Ok (BackForwardCacheNotRestoredReason :: PictureInPicture) , "SpeechRecognizer" | "speechrecognizer" => Ok (BackForwardCacheNotRestoredReason :: SpeechRecognizer) , "IdleManager" | "idlemanager" => Ok (BackForwardCacheNotRestoredReason :: IdleManager) , "PaymentManager" | "paymentmanager" => Ok (BackForwardCacheNotRestoredReason :: PaymentManager) , "SpeechSynthesis" | "speechsynthesis" => Ok (BackForwardCacheNotRestoredReason :: SpeechSynthesis) , "KeyboardLock" | "keyboardlock" => Ok (BackForwardCacheNotRestoredReason :: KeyboardLock) , "WebOTPService" | "WebOtpService" | "webotpservice" => Ok (BackForwardCacheNotRestoredReason :: WebOtpService) , "OutstandingNetworkRequestDirectSocket" | "outstandingnetworkrequestdirectsocket" => Ok (BackForwardCacheNotRestoredReason :: OutstandingNetworkRequestDirectSocket) , "InjectedJavascript" | "injectedjavascript" => Ok (BackForwardCacheNotRestoredReason :: InjectedJavascript) , "InjectedStyleSheet" | "injectedstylesheet" => Ok (BackForwardCacheNotRestoredReason :: InjectedStyleSheet) , "KeepaliveRequest" | "keepaliverequest" => Ok (BackForwardCacheNotRestoredReason :: KeepaliveRequest) , "IndexedDBEvent" | "IndexedDbEvent" | "indexeddbevent" => Ok (BackForwardCacheNotRestoredReason :: IndexedDbEvent) , "Dummy" | "dummy" => Ok (BackForwardCacheNotRestoredReason :: Dummy) , "JsNetworkRequestReceivedCacheControlNoStoreResource" | "jsnetworkrequestreceivedcachecontrolnostoreresource" => Ok (BackForwardCacheNotRestoredReason :: JsNetworkRequestReceivedCacheControlNoStoreResource) , "WebRTCSticky" | "WebRtcSticky" | "webrtcsticky" => Ok (BackForwardCacheNotRestoredReason :: WebRtcSticky) , "WebTransportSticky" | "webtransportsticky" => Ok (BackForwardCacheNotRestoredReason :: WebTransportSticky) , "WebSocketSticky" | "websocketsticky" => Ok (BackForwardCacheNotRestoredReason :: WebSocketSticky) , "SmartCard" | "smartcard" => Ok (BackForwardCacheNotRestoredReason :: SmartCard) , "LiveMediaStreamTrack" | "livemediastreamtrack" => Ok (BackForwardCacheNotRestoredReason :: LiveMediaStreamTrack) , "UnloadHandler" | "unloadhandler" => Ok (BackForwardCacheNotRestoredReason :: UnloadHandler) , "ParserAborted" | "parseraborted" => Ok (BackForwardCacheNotRestoredReason :: ParserAborted) , "ContentSecurityHandler" | "contentsecurityhandler" => Ok (BackForwardCacheNotRestoredReason :: ContentSecurityHandler) , "ContentWebAuthenticationAPI" | "ContentWebAuthenticationApi" | "contentwebauthenticationapi" => Ok (BackForwardCacheNotRestoredReason :: ContentWebAuthenticationApi) , "ContentFileChooser" | "contentfilechooser" => Ok (BackForwardCacheNotRestoredReason :: ContentFileChooser) , "ContentSerial" | "contentserial" => Ok (BackForwardCacheNotRestoredReason :: ContentSerial) , "ContentFileSystemAccess" | "contentfilesystemaccess" => Ok (BackForwardCacheNotRestoredReason :: ContentFileSystemAccess) , "ContentMediaDevicesDispatcherHost" | "contentmediadevicesdispatcherhost" => Ok (BackForwardCacheNotRestoredReason :: ContentMediaDevicesDispatcherHost) , "ContentWebBluetooth" | "contentwebbluetooth" => Ok (BackForwardCacheNotRestoredReason :: ContentWebBluetooth) , "ContentWebUSB" | "ContentWebUsb" | "contentwebusb" => Ok (BackForwardCacheNotRestoredReason :: ContentWebUsb) , "ContentMediaSessionService" | "contentmediasessionservice" => Ok (BackForwardCacheNotRestoredReason :: ContentMediaSessionService) , "ContentScreenReader" | "contentscreenreader" => Ok (BackForwardCacheNotRestoredReason :: ContentScreenReader) , "ContentDiscarded" | "contentdiscarded" => Ok (BackForwardCacheNotRestoredReason :: ContentDiscarded) , "EmbedderPopupBlockerTabHelper" | "embedderpopupblockertabhelper" => Ok (BackForwardCacheNotRestoredReason :: EmbedderPopupBlockerTabHelper) , "EmbedderSafeBrowsingTriggeredPopupBlocker" | "embeddersafebrowsingtriggeredpopupblocker" => Ok (BackForwardCacheNotRestoredReason :: EmbedderSafeBrowsingTriggeredPopupBlocker) , "EmbedderSafeBrowsingThreatDetails" | "embeddersafebrowsingthreatdetails" => Ok (BackForwardCacheNotRestoredReason :: EmbedderSafeBrowsingThreatDetails) , "EmbedderAppBannerManager" | "embedderappbannermanager" => Ok (BackForwardCacheNotRestoredReason :: EmbedderAppBannerManager) , "EmbedderDomDistillerViewerSource" | "embedderdomdistillerviewersource" => Ok (BackForwardCacheNotRestoredReason :: EmbedderDomDistillerViewerSource) , "EmbedderDomDistillerSelfDeletingRequestDelegate" | "embedderdomdistillerselfdeletingrequestdelegate" => Ok (BackForwardCacheNotRestoredReason :: EmbedderDomDistillerSelfDeletingRequestDelegate) , "EmbedderOomInterventionTabHelper" | "embedderoominterventiontabhelper" => Ok (BackForwardCacheNotRestoredReason :: EmbedderOomInterventionTabHelper) , "EmbedderOfflinePage" | "embedderofflinepage" => Ok (BackForwardCacheNotRestoredReason :: EmbedderOfflinePage) , "EmbedderChromePasswordManagerClientBindCredentialManager" | "embedderchromepasswordmanagerclientbindcredentialmanager" => Ok (BackForwardCacheNotRestoredReason :: EmbedderChromePasswordManagerClientBindCredentialManager) , "EmbedderPermissionRequestManager" | "embedderpermissionrequestmanager" => Ok (BackForwardCacheNotRestoredReason :: EmbedderPermissionRequestManager) , "EmbedderModalDialog" | "embeddermodaldialog" => Ok (BackForwardCacheNotRestoredReason :: EmbedderModalDialog) , "EmbedderExtensions" | "embedderextensions" => Ok (BackForwardCacheNotRestoredReason :: EmbedderExtensions) , "EmbedderExtensionMessaging" | "embedderextensionmessaging" => Ok (BackForwardCacheNotRestoredReason :: EmbedderExtensionMessaging) , "EmbedderExtensionMessagingForOpenPort" | "embedderextensionmessagingforopenport" => Ok (BackForwardCacheNotRestoredReason :: EmbedderExtensionMessagingForOpenPort) , "EmbedderExtensionSentMessageToCachedFrame" | "embedderextensionsentmessagetocachedframe" => Ok (BackForwardCacheNotRestoredReason :: EmbedderExtensionSentMessageToCachedFrame) , "RequestedByWebViewClient" | "requestedbywebviewclient" => Ok (BackForwardCacheNotRestoredReason :: RequestedByWebViewClient) , "PostMessageByWebViewClient" | "postmessagebywebviewclient" => Ok (BackForwardCacheNotRestoredReason :: PostMessageByWebViewClient) , _ => Err (s . to_string ()) }
             }
         }
         #[doc = "Types of not restored reasons for back-forward cache."]
@@ -79418,6 +80379,107 @@ pub mod browser_protocol {
                 Self::IDENTIFIER.into()
             }
         }
+        #[doc = "Fired when a navigation starts. This event is fired for both\nrenderer-initiated and browser-initiated navigations. For renderer-initiated\nnavigations, the event is fired after `frameRequestedNavigation`.\nNavigation may still be cancelled after the event is issued. Multiple events\ncan be fired for a single navigation, for example, when a same-document\nnavigation becomes a cross-document navigation (such as in the case of a\nframeset).\n[frameStartedNavigating](https://chromedevtools.github.io/devtools-protocol/tot/Page/#event-frameStartedNavigating)"]
+        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+        pub struct EventFrameStartedNavigating {
+            #[doc = "ID of the frame that is being navigated."]
+            #[serde(rename = "frameId")]
+            pub frame_id: FrameId,
+            #[doc = "The URL the navigation started with. The final URL can be different."]
+            #[serde(rename = "url")]
+            pub url: String,
+            #[doc = "Loader identifier. Even though it is present in case of same-document\nnavigation, the previously committed loaderId would not change unless\nthe navigation changes from a same-document to a cross-document\nnavigation."]
+            #[serde(rename = "loaderId")]
+            pub loader_id: super::network::LoaderId,
+            #[serde(rename = "navigationType")]
+            #[serde(deserialize_with = "super::super::de::deserialize_from_str")]
+            pub navigation_type: FrameStartedNavigatingNavigationType,
+        }
+        #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+        pub enum FrameStartedNavigatingNavigationType {
+            #[serde(rename = "reload")]
+            Reload,
+            #[serde(rename = "reloadBypassingCache")]
+            ReloadBypassingCache,
+            #[serde(rename = "restore")]
+            Restore,
+            #[serde(rename = "restoreWithPost")]
+            RestoreWithPost,
+            #[serde(rename = "historySameDocument")]
+            HistorySameDocument,
+            #[serde(rename = "historyDifferentDocument")]
+            HistoryDifferentDocument,
+            #[serde(rename = "sameDocument")]
+            SameDocument,
+            #[serde(rename = "differentDocument")]
+            DifferentDocument,
+        }
+        impl AsRef<str> for FrameStartedNavigatingNavigationType {
+            fn as_ref(&self) -> &str {
+                match self {
+                    FrameStartedNavigatingNavigationType::Reload => "reload",
+                    FrameStartedNavigatingNavigationType::ReloadBypassingCache => {
+                        "reloadBypassingCache"
+                    }
+                    FrameStartedNavigatingNavigationType::Restore => "restore",
+                    FrameStartedNavigatingNavigationType::RestoreWithPost => "restoreWithPost",
+                    FrameStartedNavigatingNavigationType::HistorySameDocument => {
+                        "historySameDocument"
+                    }
+                    FrameStartedNavigatingNavigationType::HistoryDifferentDocument => {
+                        "historyDifferentDocument"
+                    }
+                    FrameStartedNavigatingNavigationType::SameDocument => "sameDocument",
+                    FrameStartedNavigatingNavigationType::DifferentDocument => "differentDocument",
+                }
+            }
+        }
+        impl ::std::str::FromStr for FrameStartedNavigatingNavigationType {
+            type Err = String;
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
+                match s {
+                    "reload" | "Reload" => Ok(FrameStartedNavigatingNavigationType::Reload),
+                    "reloadBypassingCache" | "ReloadBypassingCache" | "reloadbypassingcache" => {
+                        Ok(FrameStartedNavigatingNavigationType::ReloadBypassingCache)
+                    }
+                    "restore" | "Restore" => Ok(FrameStartedNavigatingNavigationType::Restore),
+                    "restoreWithPost" | "RestoreWithPost" | "restorewithpost" => {
+                        Ok(FrameStartedNavigatingNavigationType::RestoreWithPost)
+                    }
+                    "historySameDocument" | "HistorySameDocument" | "historysamedocument" => {
+                        Ok(FrameStartedNavigatingNavigationType::HistorySameDocument)
+                    }
+                    "historyDifferentDocument"
+                    | "HistoryDifferentDocument"
+                    | "historydifferentdocument" => {
+                        Ok(FrameStartedNavigatingNavigationType::HistoryDifferentDocument)
+                    }
+                    "sameDocument" | "SameDocument" | "samedocument" => {
+                        Ok(FrameStartedNavigatingNavigationType::SameDocument)
+                    }
+                    "differentDocument" | "DifferentDocument" | "differentdocument" => {
+                        Ok(FrameStartedNavigatingNavigationType::DifferentDocument)
+                    }
+                    _ => Err(s.to_string()),
+                }
+            }
+        }
+        impl EventFrameStartedNavigating {
+            pub const IDENTIFIER: &'static str = "Page.frameStartedNavigating";
+        }
+        impl chromiumoxide_types::Method for EventFrameStartedNavigating {
+            fn identifier(&self) -> chromiumoxide_types::MethodId {
+                Self::IDENTIFIER.into()
+            }
+        }
+        impl chromiumoxide_types::MethodType for EventFrameStartedNavigating {
+            fn method_id() -> chromiumoxide_types::MethodId
+            where
+                Self: Sized,
+            {
+                Self::IDENTIFIER.into()
+            }
+        }
         #[doc = "Fired when a renderer-initiated navigation is requested.\nNavigation may still be cancelled after the event is issued.\n[frameRequestedNavigation](https://chromedevtools.github.io/devtools-protocol/tot/Page/#event-frameRequestedNavigation)"]
         #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
         pub struct EventFrameRequestedNavigation {
@@ -79599,7 +80661,7 @@ pub mod browser_protocol {
                 Self::IDENTIFIER.into()
             }
         }
-        #[doc = "Fired for top level page lifecycle events such as navigation, load, paint, etc.\n[lifecycleEvent](https://chromedevtools.github.io/devtools-protocol/tot/Page/#event-lifecycleEvent)"]
+        #[doc = "Fired for lifecycle events (navigation, load, paint, etc) in the current\ntarget (including local frames).\n[lifecycleEvent](https://chromedevtools.github.io/devtools-protocol/tot/Page/#event-lifecycleEvent)"]
         #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
         pub struct EventLifecycleEvent {
             #[doc = "Id of the frame."]
@@ -82651,8 +83713,6 @@ pub mod browser_protocol {
         #[doc = "Enum of possible storage types."]
         #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
         pub enum StorageType {
-            #[serde(rename = "appcache")]
-            Appcache,
             #[serde(rename = "cookies")]
             Cookies,
             #[serde(rename = "file_systems")]
@@ -82683,7 +83743,6 @@ pub mod browser_protocol {
         impl AsRef<str> for StorageType {
             fn as_ref(&self) -> &str {
                 match self {
-                    StorageType::Appcache => "appcache",
                     StorageType::Cookies => "cookies",
                     StorageType::FileSystems => "file_systems",
                     StorageType::Indexeddb => "indexeddb",
@@ -82704,7 +83763,6 @@ pub mod browser_protocol {
             type Err = String;
             fn from_str(s: &str) -> Result<Self, Self::Err> {
                 match s {
-                    "appcache" | "Appcache" => Ok(StorageType::Appcache),
                     "cookies" | "Cookies" => Ok(StorageType::Cookies),
                     "file_systems" | "FileSystems" => Ok(StorageType::FileSystems),
                     "indexeddb" | "Indexeddb" => Ok(StorageType::Indexeddb),
@@ -84492,6 +85550,8 @@ pub mod browser_protocol {
             #[serde(rename = "scopesData")]
             #[serde(skip_serializing_if = "Option::is_none")]
             pub scopes_data: Option<AttributionScopesData>,
+            #[serde(rename = "maxEventLevelReports")]
+            pub max_event_level_reports: i64,
         }
         impl AttributionReportingSourceRegistration {
             pub fn builder() -> AttributionReportingSourceRegistrationBuilder {
@@ -84518,6 +85578,7 @@ pub mod browser_protocol {
             aggregatable_debug_reporting_config:
                 Option<AttributionReportingAggregatableDebugReportingConfig>,
             scopes_data: Option<AttributionScopesData>,
+            max_event_level_reports: Option<i64>,
         }
         impl AttributionReportingSourceRegistrationBuilder {
             pub fn time(mut self, time: impl Into<super::network::TimeSinceEpoch>) -> Self {
@@ -84660,6 +85721,13 @@ pub mod browser_protocol {
                 self.scopes_data = Some(scopes_data.into());
                 self
             }
+            pub fn max_event_level_reports(
+                mut self,
+                max_event_level_reports: impl Into<i64>,
+            ) -> Self {
+                self.max_event_level_reports = Some(max_event_level_reports.into());
+                self
+            }
             pub fn build(self) -> Result<AttributionReportingSourceRegistration, String> {
                 Ok(AttributionReportingSourceRegistration {
                     time: self.time.ok_or_else(|| {
@@ -84736,6 +85804,12 @@ pub mod browser_protocol {
                         )
                     })?,
                     scopes_data: self.scopes_data,
+                    max_event_level_reports: self.max_event_level_reports.ok_or_else(|| {
+                        format!(
+                            "Field `{}` is mandatory.",
+                            std::stringify!(max_event_level_reports)
+                        )
+                    })?,
                 })
             }
         }
@@ -85607,6 +86681,8 @@ pub mod browser_protocol {
             NoHistograms,
             #[serde(rename = "insufficientBudget")]
             InsufficientBudget,
+            #[serde(rename = "insufficientNamedBudget")]
+            InsufficientNamedBudget,
             #[serde(rename = "noMatchingSourceFilterData")]
             NoMatchingSourceFilterData,
             #[serde(rename = "notRegistered")]
@@ -85640,6 +86716,9 @@ pub mod browser_protocol {
                     AttributionReportingAggregatableResult::NoHistograms => "noHistograms",
                     AttributionReportingAggregatableResult::InsufficientBudget => {
                         "insufficientBudget"
+                    }
+                    AttributionReportingAggregatableResult::InsufficientNamedBudget => {
+                        "insufficientNamedBudget"
                     }
                     AttributionReportingAggregatableResult::NoMatchingSourceFilterData => {
                         "noMatchingSourceFilterData"
@@ -85685,6 +86764,11 @@ pub mod browser_protocol {
                     }
                     "insufficientBudget" | "InsufficientBudget" | "insufficientbudget" => {
                         Ok(AttributionReportingAggregatableResult::InsufficientBudget)
+                    }
+                    "insufficientNamedBudget"
+                    | "InsufficientNamedBudget"
+                    | "insufficientnamedbudget" => {
+                        Ok(AttributionReportingAggregatableResult::InsufficientNamedBudget)
                     }
                     "noMatchingSourceFilterData"
                     | "NoMatchingSourceFilterData"
@@ -88370,6 +89454,139 @@ pub mod browser_protocol {
         impl chromiumoxide_types::Command for GetRelatedWebsiteSetsParams {
             type Response = GetRelatedWebsiteSetsReturns;
         }
+        #[doc = "Returns the list of URLs from a page and its embedded resources that match\nexisting grace period URL pattern rules.\nhttps://developers.google.com/privacy-sandbox/cookies/temporary-exceptions/grace-period\n[getAffectedUrlsForThirdPartyCookieMetadata](https://chromedevtools.github.io/devtools-protocol/tot/Storage/#method-getAffectedUrlsForThirdPartyCookieMetadata)"]
+        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+        pub struct GetAffectedUrlsForThirdPartyCookieMetadataParams {
+            #[doc = "The URL of the page currently being visited."]
+            #[serde(rename = "firstPartyUrl")]
+            pub first_party_url: String,
+            #[doc = "The list of embedded resource URLs from the page."]
+            #[serde(rename = "thirdPartyUrls")]
+            #[serde(skip_serializing_if = "Vec::is_empty")]
+            pub third_party_urls: Vec<String>,
+        }
+        impl GetAffectedUrlsForThirdPartyCookieMetadataParams {
+            pub fn new(first_party_url: impl Into<String>, third_party_urls: Vec<String>) -> Self {
+                Self {
+                    first_party_url: first_party_url.into(),
+                    third_party_urls,
+                }
+            }
+        }
+        impl GetAffectedUrlsForThirdPartyCookieMetadataParams {
+            pub fn builder() -> GetAffectedUrlsForThirdPartyCookieMetadataParamsBuilder {
+                GetAffectedUrlsForThirdPartyCookieMetadataParamsBuilder::default()
+            }
+        }
+        #[derive(Default, Clone)]
+        pub struct GetAffectedUrlsForThirdPartyCookieMetadataParamsBuilder {
+            first_party_url: Option<String>,
+            third_party_urls: Option<Vec<String>>,
+        }
+        impl GetAffectedUrlsForThirdPartyCookieMetadataParamsBuilder {
+            pub fn first_party_url(mut self, first_party_url: impl Into<String>) -> Self {
+                self.first_party_url = Some(first_party_url.into());
+                self
+            }
+            pub fn third_party_url(mut self, third_party_url: impl Into<String>) -> Self {
+                let v = self.third_party_urls.get_or_insert(Vec::new());
+                v.push(third_party_url.into());
+                self
+            }
+            pub fn third_party_urls<I, S>(mut self, third_party_urls: I) -> Self
+            where
+                I: IntoIterator<Item = S>,
+                S: Into<String>,
+            {
+                let v = self.third_party_urls.get_or_insert(Vec::new());
+                for val in third_party_urls {
+                    v.push(val.into());
+                }
+                self
+            }
+            pub fn build(self) -> Result<GetAffectedUrlsForThirdPartyCookieMetadataParams, String> {
+                Ok(GetAffectedUrlsForThirdPartyCookieMetadataParams {
+                    first_party_url: self.first_party_url.ok_or_else(|| {
+                        format!("Field `{}` is mandatory.", std::stringify!(first_party_url))
+                    })?,
+                    third_party_urls: self.third_party_urls.ok_or_else(|| {
+                        format!(
+                            "Field `{}` is mandatory.",
+                            std::stringify!(third_party_urls)
+                        )
+                    })?,
+                })
+            }
+        }
+        impl GetAffectedUrlsForThirdPartyCookieMetadataParams {
+            pub const IDENTIFIER: &'static str =
+                "Storage.getAffectedUrlsForThirdPartyCookieMetadata";
+        }
+        impl chromiumoxide_types::Method for GetAffectedUrlsForThirdPartyCookieMetadataParams {
+            fn identifier(&self) -> chromiumoxide_types::MethodId {
+                Self::IDENTIFIER.into()
+            }
+        }
+        impl chromiumoxide_types::MethodType for GetAffectedUrlsForThirdPartyCookieMetadataParams {
+            fn method_id() -> chromiumoxide_types::MethodId
+            where
+                Self: Sized,
+            {
+                Self::IDENTIFIER.into()
+            }
+        }
+        #[doc = "Returns the list of URLs from a page and its embedded resources that match\nexisting grace period URL pattern rules.\nhttps://developers.google.com/privacy-sandbox/cookies/temporary-exceptions/grace-period\n[getAffectedUrlsForThirdPartyCookieMetadata](https://chromedevtools.github.io/devtools-protocol/tot/Storage/#method-getAffectedUrlsForThirdPartyCookieMetadata)"]
+        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+        pub struct GetAffectedUrlsForThirdPartyCookieMetadataReturns {
+            #[doc = "Array of matching URLs. If there is a primary pattern match for the first-\nparty URL, only the first-party URL is returned in the array."]
+            #[serde(rename = "matchedUrls")]
+            #[serde(skip_serializing_if = "Vec::is_empty")]
+            pub matched_urls: Vec<String>,
+        }
+        impl GetAffectedUrlsForThirdPartyCookieMetadataReturns {
+            pub fn new(matched_urls: Vec<String>) -> Self {
+                Self { matched_urls }
+            }
+        }
+        impl GetAffectedUrlsForThirdPartyCookieMetadataReturns {
+            pub fn builder() -> GetAffectedUrlsForThirdPartyCookieMetadataReturnsBuilder {
+                GetAffectedUrlsForThirdPartyCookieMetadataReturnsBuilder::default()
+            }
+        }
+        #[derive(Default, Clone)]
+        pub struct GetAffectedUrlsForThirdPartyCookieMetadataReturnsBuilder {
+            matched_urls: Option<Vec<String>>,
+        }
+        impl GetAffectedUrlsForThirdPartyCookieMetadataReturnsBuilder {
+            pub fn matched_url(mut self, matched_url: impl Into<String>) -> Self {
+                let v = self.matched_urls.get_or_insert(Vec::new());
+                v.push(matched_url.into());
+                self
+            }
+            pub fn matched_urls<I, S>(mut self, matched_urls: I) -> Self
+            where
+                I: IntoIterator<Item = S>,
+                S: Into<String>,
+            {
+                let v = self.matched_urls.get_or_insert(Vec::new());
+                for val in matched_urls {
+                    v.push(val.into());
+                }
+                self
+            }
+            pub fn build(
+                self,
+            ) -> Result<GetAffectedUrlsForThirdPartyCookieMetadataReturns, String> {
+                Ok(GetAffectedUrlsForThirdPartyCookieMetadataReturns {
+                    matched_urls: self.matched_urls.ok_or_else(|| {
+                        format!("Field `{}` is mandatory.", std::stringify!(matched_urls))
+                    })?,
+                })
+            }
+        }
+        impl chromiumoxide_types::Command for GetAffectedUrlsForThirdPartyCookieMetadataParams {
+            type Response = GetAffectedUrlsForThirdPartyCookieMetadataReturns;
+        }
         #[doc = "A cache's contents have been modified.\n[cacheStorageContentUpdated](https://chromedevtools.github.io/devtools-protocol/tot/Storage/#event-cacheStorageContentUpdated)"]
         #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
         pub struct EventCacheStorageContentUpdated {
@@ -90017,6 +91234,40 @@ pub mod browser_protocol {
         impl RemoteLocation {
             pub const IDENTIFIER: &'static str = "Target.RemoteLocation";
         }
+        #[doc = "The state of the target window."]
+        #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+        pub enum WindowState {
+            #[serde(rename = "normal")]
+            Normal,
+            #[serde(rename = "minimized")]
+            Minimized,
+            #[serde(rename = "maximized")]
+            Maximized,
+            #[serde(rename = "fullscreen")]
+            Fullscreen,
+        }
+        impl AsRef<str> for WindowState {
+            fn as_ref(&self) -> &str {
+                match self {
+                    WindowState::Normal => "normal",
+                    WindowState::Minimized => "minimized",
+                    WindowState::Maximized => "maximized",
+                    WindowState::Fullscreen => "fullscreen",
+                }
+            }
+        }
+        impl ::std::str::FromStr for WindowState {
+            type Err = String;
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
+                match s {
+                    "normal" | "Normal" => Ok(WindowState::Normal),
+                    "minimized" | "Minimized" => Ok(WindowState::Minimized),
+                    "maximized" | "Maximized" => Ok(WindowState::Maximized),
+                    "fullscreen" | "Fullscreen" => Ok(WindowState::Fullscreen),
+                    _ => Err(s.to_string()),
+                }
+            }
+        }
         #[doc = "Activates (focuses) the target.\n[activateTarget](https://chromedevtools.github.io/devtools-protocol/tot/Target/#method-activateTarget)"]
         #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
         pub struct ActivateTargetParams {
@@ -90583,27 +91834,41 @@ pub mod browser_protocol {
             #[doc = "The initial URL the page will be navigated to. An empty string indicates about:blank."]
             #[serde(rename = "url")]
             pub url: String,
-            #[doc = "Frame width in DIP (headless chrome only)."]
+            #[doc = "Frame left origin in DIP (requires newWindow to be true or headless shell)."]
+            #[serde(rename = "left")]
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub left: Option<i64>,
+            #[doc = "Frame top origin in DIP (requires newWindow to be true or headless shell)."]
+            #[serde(rename = "top")]
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub top: Option<i64>,
+            #[doc = "Frame width in DIP (requires newWindow to be true or headless shell)."]
             #[serde(rename = "width")]
             #[serde(skip_serializing_if = "Option::is_none")]
             pub width: Option<i64>,
-            #[doc = "Frame height in DIP (headless chrome only)."]
+            #[doc = "Frame height in DIP (requires newWindow to be true or headless shell)."]
             #[serde(rename = "height")]
             #[serde(skip_serializing_if = "Option::is_none")]
             pub height: Option<i64>,
+            #[doc = "Frame window state (requires newWindow to be true or headless shell).\nDefault is normal."]
+            #[serde(rename = "windowState")]
+            #[serde(skip_serializing_if = "Option::is_none")]
+            #[serde(default)]
+            #[serde(deserialize_with = "super::super::de::deserialize_from_str_optional")]
+            pub window_state: Option<WindowState>,
             #[doc = "The browser context to create the page in."]
             #[serde(rename = "browserContextId")]
             #[serde(skip_serializing_if = "Option::is_none")]
             pub browser_context_id: Option<super::browser::BrowserContextId>,
-            #[doc = "Whether BeginFrames for this target will be controlled via DevTools (headless chrome only,\nnot supported on MacOS yet, false by default)."]
+            #[doc = "Whether BeginFrames for this target will be controlled via DevTools (headless shell only,\nnot supported on MacOS yet, false by default)."]
             #[serde(rename = "enableBeginFrameControl")]
             #[serde(skip_serializing_if = "Option::is_none")]
             pub enable_begin_frame_control: Option<bool>,
-            #[doc = "Whether to create a new Window or Tab (chrome-only, false by default)."]
+            #[doc = "Whether to create a new Window or Tab (false by default, not supported by headless shell)."]
             #[serde(rename = "newWindow")]
             #[serde(skip_serializing_if = "Option::is_none")]
             pub new_window: Option<bool>,
-            #[doc = "Whether to create the target in background or foreground (chrome-only,\nfalse by default)."]
+            #[doc = "Whether to create the target in background or foreground (false by default, not supported\nby headless shell)."]
             #[serde(rename = "background")]
             #[serde(skip_serializing_if = "Option::is_none")]
             pub background: Option<bool>,
@@ -90616,8 +91881,11 @@ pub mod browser_protocol {
             pub fn new(url: impl Into<String>) -> Self {
                 Self {
                     url: url.into(),
+                    left: None,
+                    top: None,
                     width: None,
                     height: None,
+                    window_state: None,
                     browser_context_id: None,
                     enable_begin_frame_control: None,
                     new_window: None,
@@ -90639,8 +91907,11 @@ pub mod browser_protocol {
         #[derive(Default, Clone)]
         pub struct CreateTargetParamsBuilder {
             url: Option<String>,
+            left: Option<i64>,
+            top: Option<i64>,
             width: Option<i64>,
             height: Option<i64>,
+            window_state: Option<WindowState>,
             browser_context_id: Option<super::browser::BrowserContextId>,
             enable_begin_frame_control: Option<bool>,
             new_window: Option<bool>,
@@ -90652,12 +91923,24 @@ pub mod browser_protocol {
                 self.url = Some(url.into());
                 self
             }
+            pub fn left(mut self, left: impl Into<i64>) -> Self {
+                self.left = Some(left.into());
+                self
+            }
+            pub fn top(mut self, top: impl Into<i64>) -> Self {
+                self.top = Some(top.into());
+                self
+            }
             pub fn width(mut self, width: impl Into<i64>) -> Self {
                 self.width = Some(width.into());
                 self
             }
             pub fn height(mut self, height: impl Into<i64>) -> Self {
                 self.height = Some(height.into());
+                self
+            }
+            pub fn window_state(mut self, window_state: impl Into<WindowState>) -> Self {
+                self.window_state = Some(window_state.into());
                 self
             }
             pub fn browser_context_id(
@@ -90691,8 +91974,11 @@ pub mod browser_protocol {
                     url: self
                         .url
                         .ok_or_else(|| format!("Field `{}` is mandatory.", std::stringify!(url)))?,
+                    left: self.left,
+                    top: self.top,
                     width: self.width,
                     height: self.height,
+                    window_state: self.window_state,
                     browser_context_id: self.browser_context_id,
                     enable_begin_frame_control: self.enable_begin_frame_control,
                     new_window: self.new_window,
@@ -92531,7 +93817,7 @@ pub mod browser_protocol {
     #[doc = "A domain for letting clients substitute browser's network layer with client code."]
     pub mod fetch {
         use serde::{Deserialize, Serialize};
-        #[doc = "Unique request identifier.\n[RequestId](https://chromedevtools.github.io/devtools-protocol/tot/Fetch/#type-RequestId)"]
+        #[doc = "Unique request identifier.\nNote that this does not identify individual HTTP requests that are part of\na network request.\n[RequestId](https://chromedevtools.github.io/devtools-protocol/tot/Fetch/#type-RequestId)"]
         #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, Eq, Hash)]
         pub struct RequestId(String);
         impl RequestId {
@@ -93881,6 +95167,8 @@ pub mod browser_protocol {
             Running,
             #[serde(rename = "closed")]
             Closed,
+            #[serde(rename = "interrupted")]
+            Interrupted,
         }
         impl AsRef<str> for ContextState {
             fn as_ref(&self) -> &str {
@@ -93888,6 +95176,7 @@ pub mod browser_protocol {
                     ContextState::Suspended => "suspended",
                     ContextState::Running => "running",
                     ContextState::Closed => "closed",
+                    ContextState::Interrupted => "interrupted",
                 }
             }
         }
@@ -93898,6 +95187,7 @@ pub mod browser_protocol {
                     "suspended" | "Suspended" => Ok(ContextState::Suspended),
                     "running" | "Running" => Ok(ContextState::Running),
                     "closed" | "Closed" => Ok(ContextState::Closed),
+                    "interrupted" | "Interrupted" => Ok(ContextState::Interrupted),
                     _ => Err(s.to_string()),
                 }
             }
@@ -95324,6 +96614,14 @@ pub mod browser_protocol {
             #[serde(rename = "backupState")]
             #[serde(skip_serializing_if = "Option::is_none")]
             pub backup_state: Option<bool>,
+            #[doc = "The credential's user.name property. Equivalent to empty if not set.\nhttps://w3c.github.io/webauthn/#dom-publickeycredentialentity-name"]
+            #[serde(rename = "userName")]
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub user_name: Option<String>,
+            #[doc = "The credential's user.displayName property. Equivalent to empty if\nnot set.\nhttps://w3c.github.io/webauthn/#dom-publickeycredentialuserentity-displayname"]
+            #[serde(rename = "userDisplayName")]
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub user_display_name: Option<String>,
         }
         impl Credential {
             pub fn new(
@@ -95342,6 +96640,8 @@ pub mod browser_protocol {
                     large_blob: None,
                     backup_eligibility: None,
                     backup_state: None,
+                    user_name: None,
+                    user_display_name: None,
                 }
             }
         }
@@ -95361,6 +96661,8 @@ pub mod browser_protocol {
             large_blob: Option<chromiumoxide_types::Binary>,
             backup_eligibility: Option<bool>,
             backup_state: Option<bool>,
+            user_name: Option<String>,
+            user_display_name: Option<String>,
         }
         impl CredentialBuilder {
             pub fn credential_id(
@@ -95414,6 +96716,14 @@ pub mod browser_protocol {
                 self.backup_state = Some(backup_state.into());
                 self
             }
+            pub fn user_name(mut self, user_name: impl Into<String>) -> Self {
+                self.user_name = Some(user_name.into());
+                self
+            }
+            pub fn user_display_name(mut self, user_display_name: impl Into<String>) -> Self {
+                self.user_display_name = Some(user_display_name.into());
+                self
+            }
             pub fn build(self) -> Result<Credential, String> {
                 Ok(Credential {
                     credential_id: self.credential_id.ok_or_else(|| {
@@ -95436,6 +96746,8 @@ pub mod browser_protocol {
                     large_blob: self.large_blob,
                     backup_eligibility: self.backup_eligibility,
                     backup_state: self.backup_state,
+                    user_name: self.user_name,
+                    user_display_name: self.user_display_name,
                 })
             }
         }
@@ -96483,6 +97795,54 @@ pub mod browser_protocol {
             }
         }
         impl chromiumoxide_types::MethodType for EventCredentialAdded {
+            fn method_id() -> chromiumoxide_types::MethodId
+            where
+                Self: Sized,
+            {
+                Self::IDENTIFIER.into()
+            }
+        }
+        #[doc = "Triggered when a credential is deleted, e.g. through\nPublicKeyCredential.signalUnknownCredential().\n[credentialDeleted](https://chromedevtools.github.io/devtools-protocol/tot/WebAuthn/#event-credentialDeleted)"]
+        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+        pub struct EventCredentialDeleted {
+            #[serde(rename = "authenticatorId")]
+            pub authenticator_id: AuthenticatorId,
+            #[serde(rename = "credentialId")]
+            pub credential_id: chromiumoxide_types::Binary,
+        }
+        impl EventCredentialDeleted {
+            pub const IDENTIFIER: &'static str = "WebAuthn.credentialDeleted";
+        }
+        impl chromiumoxide_types::Method for EventCredentialDeleted {
+            fn identifier(&self) -> chromiumoxide_types::MethodId {
+                Self::IDENTIFIER.into()
+            }
+        }
+        impl chromiumoxide_types::MethodType for EventCredentialDeleted {
+            fn method_id() -> chromiumoxide_types::MethodId
+            where
+                Self: Sized,
+            {
+                Self::IDENTIFIER.into()
+            }
+        }
+        #[doc = "Triggered when a credential is updated, e.g. through\nPublicKeyCredential.signalCurrentUserDetails().\n[credentialUpdated](https://chromedevtools.github.io/devtools-protocol/tot/WebAuthn/#event-credentialUpdated)"]
+        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+        pub struct EventCredentialUpdated {
+            #[serde(rename = "authenticatorId")]
+            pub authenticator_id: AuthenticatorId,
+            #[serde(rename = "credential")]
+            pub credential: Credential,
+        }
+        impl EventCredentialUpdated {
+            pub const IDENTIFIER: &'static str = "WebAuthn.credentialUpdated";
+        }
+        impl chromiumoxide_types::Method for EventCredentialUpdated {
+            fn identifier(&self) -> chromiumoxide_types::MethodId {
+                Self::IDENTIFIER.into()
+            }
+        }
+        impl chromiumoxide_types::MethodType for EventCredentialUpdated {
             fn method_id() -> chromiumoxide_types::MethodId
             where
                 Self: Sized,
@@ -97788,6 +99148,40 @@ pub mod browser_protocol {
         impl PreloadingAttemptSource {
             pub const IDENTIFIER: &'static str = "Preload.PreloadingAttemptSource";
         }
+        #[doc = "Chrome manages different types of preloads together using a\nconcept of preloading pipeline. For example, if a site uses a\nSpeculationRules for prerender, Chrome first starts a prefetch and\nthen upgrades it to prerender.\n\nCDP events for them are emitted separately but they share\n`PreloadPipelineId`.\n[PreloadPipelineId](https://chromedevtools.github.io/devtools-protocol/tot/Preload/#type-PreloadPipelineId)"]
+        #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, Eq, Hash)]
+        pub struct PreloadPipelineId(String);
+        impl PreloadPipelineId {
+            pub fn new(val: impl Into<String>) -> Self {
+                PreloadPipelineId(val.into())
+            }
+            pub fn inner(&self) -> &String {
+                &self.0
+            }
+        }
+        impl AsRef<str> for PreloadPipelineId {
+            fn as_ref(&self) -> &str {
+                self.0.as_str()
+            }
+        }
+        impl From<PreloadPipelineId> for String {
+            fn from(el: PreloadPipelineId) -> String {
+                el.0
+            }
+        }
+        impl From<String> for PreloadPipelineId {
+            fn from(expr: String) -> Self {
+                PreloadPipelineId(expr)
+            }
+        }
+        impl std::borrow::Borrow<str> for PreloadPipelineId {
+            fn borrow(&self) -> &str {
+                &self.0
+            }
+        }
+        impl PreloadPipelineId {
+            pub const IDENTIFIER: &'static str = "Preload.PreloadPipelineId";
+        }
         #[doc = "List of FinalStatus reasons for Prerender2."]
         #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
         pub enum PrerenderFinalStatus {
@@ -97933,16 +99327,20 @@ pub mod browser_protocol {
             SlowNetwork,
             #[serde(rename = "OtherPrerenderedPageActivated")]
             OtherPrerenderedPageActivated,
+            #[serde(rename = "V8OptimizerDisabled")]
+            V8OptimizerDisabled,
+            #[serde(rename = "PrerenderFailedDuringPrefetch")]
+            PrerenderFailedDuringPrefetch,
         }
         impl AsRef<str> for PrerenderFinalStatus {
             fn as_ref(&self) -> &str {
-                match self { PrerenderFinalStatus :: Activated => "Activated" , PrerenderFinalStatus :: Destroyed => "Destroyed" , PrerenderFinalStatus :: LowEndDevice => "LowEndDevice" , PrerenderFinalStatus :: InvalidSchemeRedirect => "InvalidSchemeRedirect" , PrerenderFinalStatus :: InvalidSchemeNavigation => "InvalidSchemeNavigation" , PrerenderFinalStatus :: NavigationRequestBlockedByCsp => "NavigationRequestBlockedByCsp" , PrerenderFinalStatus :: MainFrameNavigation => "MainFrameNavigation" , PrerenderFinalStatus :: MojoBinderPolicy => "MojoBinderPolicy" , PrerenderFinalStatus :: RendererProcessCrashed => "RendererProcessCrashed" , PrerenderFinalStatus :: RendererProcessKilled => "RendererProcessKilled" , PrerenderFinalStatus :: Download => "Download" , PrerenderFinalStatus :: TriggerDestroyed => "TriggerDestroyed" , PrerenderFinalStatus :: NavigationNotCommitted => "NavigationNotCommitted" , PrerenderFinalStatus :: NavigationBadHttpStatus => "NavigationBadHttpStatus" , PrerenderFinalStatus :: ClientCertRequested => "ClientCertRequested" , PrerenderFinalStatus :: NavigationRequestNetworkError => "NavigationRequestNetworkError" , PrerenderFinalStatus :: CancelAllHostsForTesting => "CancelAllHostsForTesting" , PrerenderFinalStatus :: DidFailLoad => "DidFailLoad" , PrerenderFinalStatus :: Stop => "Stop" , PrerenderFinalStatus :: SslCertificateError => "SslCertificateError" , PrerenderFinalStatus :: LoginAuthRequested => "LoginAuthRequested" , PrerenderFinalStatus :: UaChangeRequiresReload => "UaChangeRequiresReload" , PrerenderFinalStatus :: BlockedByClient => "BlockedByClient" , PrerenderFinalStatus :: AudioOutputDeviceRequested => "AudioOutputDeviceRequested" , PrerenderFinalStatus :: MixedContent => "MixedContent" , PrerenderFinalStatus :: TriggerBackgrounded => "TriggerBackgrounded" , PrerenderFinalStatus :: MemoryLimitExceeded => "MemoryLimitExceeded" , PrerenderFinalStatus :: DataSaverEnabled => "DataSaverEnabled" , PrerenderFinalStatus :: TriggerUrlHasEffectiveUrl => "TriggerUrlHasEffectiveUrl" , PrerenderFinalStatus :: ActivatedBeforeStarted => "ActivatedBeforeStarted" , PrerenderFinalStatus :: InactivePageRestriction => "InactivePageRestriction" , PrerenderFinalStatus :: StartFailed => "StartFailed" , PrerenderFinalStatus :: TimeoutBackgrounded => "TimeoutBackgrounded" , PrerenderFinalStatus :: CrossSiteRedirectInInitialNavigation => "CrossSiteRedirectInInitialNavigation" , PrerenderFinalStatus :: CrossSiteNavigationInInitialNavigation => "CrossSiteNavigationInInitialNavigation" , PrerenderFinalStatus :: SameSiteCrossOriginRedirectNotOptInInInitialNavigation => "SameSiteCrossOriginRedirectNotOptInInInitialNavigation" , PrerenderFinalStatus :: SameSiteCrossOriginNavigationNotOptInInInitialNavigation => "SameSiteCrossOriginNavigationNotOptInInInitialNavigation" , PrerenderFinalStatus :: ActivationNavigationParameterMismatch => "ActivationNavigationParameterMismatch" , PrerenderFinalStatus :: ActivatedInBackground => "ActivatedInBackground" , PrerenderFinalStatus :: EmbedderHostDisallowed => "EmbedderHostDisallowed" , PrerenderFinalStatus :: ActivationNavigationDestroyedBeforeSuccess => "ActivationNavigationDestroyedBeforeSuccess" , PrerenderFinalStatus :: TabClosedByUserGesture => "TabClosedByUserGesture" , PrerenderFinalStatus :: TabClosedWithoutUserGesture => "TabClosedWithoutUserGesture" , PrerenderFinalStatus :: PrimaryMainFrameRendererProcessCrashed => "PrimaryMainFrameRendererProcessCrashed" , PrerenderFinalStatus :: PrimaryMainFrameRendererProcessKilled => "PrimaryMainFrameRendererProcessKilled" , PrerenderFinalStatus :: ActivationFramePolicyNotCompatible => "ActivationFramePolicyNotCompatible" , PrerenderFinalStatus :: PreloadingDisabled => "PreloadingDisabled" , PrerenderFinalStatus :: BatterySaverEnabled => "BatterySaverEnabled" , PrerenderFinalStatus :: ActivatedDuringMainFrameNavigation => "ActivatedDuringMainFrameNavigation" , PrerenderFinalStatus :: PreloadingUnsupportedByWebContents => "PreloadingUnsupportedByWebContents" , PrerenderFinalStatus :: CrossSiteRedirectInMainFrameNavigation => "CrossSiteRedirectInMainFrameNavigation" , PrerenderFinalStatus :: CrossSiteNavigationInMainFrameNavigation => "CrossSiteNavigationInMainFrameNavigation" , PrerenderFinalStatus :: SameSiteCrossOriginRedirectNotOptInInMainFrameNavigation => "SameSiteCrossOriginRedirectNotOptInInMainFrameNavigation" , PrerenderFinalStatus :: SameSiteCrossOriginNavigationNotOptInInMainFrameNavigation => "SameSiteCrossOriginNavigationNotOptInInMainFrameNavigation" , PrerenderFinalStatus :: MemoryPressureOnTrigger => "MemoryPressureOnTrigger" , PrerenderFinalStatus :: MemoryPressureAfterTriggered => "MemoryPressureAfterTriggered" , PrerenderFinalStatus :: PrerenderingDisabledByDevTools => "PrerenderingDisabledByDevTools" , PrerenderFinalStatus :: SpeculationRuleRemoved => "SpeculationRuleRemoved" , PrerenderFinalStatus :: ActivatedWithAuxiliaryBrowsingContexts => "ActivatedWithAuxiliaryBrowsingContexts" , PrerenderFinalStatus :: MaxNumOfRunningEagerPrerendersExceeded => "MaxNumOfRunningEagerPrerendersExceeded" , PrerenderFinalStatus :: MaxNumOfRunningNonEagerPrerendersExceeded => "MaxNumOfRunningNonEagerPrerendersExceeded" , PrerenderFinalStatus :: MaxNumOfRunningEmbedderPrerendersExceeded => "MaxNumOfRunningEmbedderPrerendersExceeded" , PrerenderFinalStatus :: PrerenderingUrlHasEffectiveUrl => "PrerenderingUrlHasEffectiveUrl" , PrerenderFinalStatus :: RedirectedPrerenderingUrlHasEffectiveUrl => "RedirectedPrerenderingUrlHasEffectiveUrl" , PrerenderFinalStatus :: ActivationUrlHasEffectiveUrl => "ActivationUrlHasEffectiveUrl" , PrerenderFinalStatus :: JavaScriptInterfaceAdded => "JavaScriptInterfaceAdded" , PrerenderFinalStatus :: JavaScriptInterfaceRemoved => "JavaScriptInterfaceRemoved" , PrerenderFinalStatus :: AllPrerenderingCanceled => "AllPrerenderingCanceled" , PrerenderFinalStatus :: WindowClosed => "WindowClosed" , PrerenderFinalStatus :: SlowNetwork => "SlowNetwork" , PrerenderFinalStatus :: OtherPrerenderedPageActivated => "OtherPrerenderedPageActivated" }
+                match self { PrerenderFinalStatus :: Activated => "Activated" , PrerenderFinalStatus :: Destroyed => "Destroyed" , PrerenderFinalStatus :: LowEndDevice => "LowEndDevice" , PrerenderFinalStatus :: InvalidSchemeRedirect => "InvalidSchemeRedirect" , PrerenderFinalStatus :: InvalidSchemeNavigation => "InvalidSchemeNavigation" , PrerenderFinalStatus :: NavigationRequestBlockedByCsp => "NavigationRequestBlockedByCsp" , PrerenderFinalStatus :: MainFrameNavigation => "MainFrameNavigation" , PrerenderFinalStatus :: MojoBinderPolicy => "MojoBinderPolicy" , PrerenderFinalStatus :: RendererProcessCrashed => "RendererProcessCrashed" , PrerenderFinalStatus :: RendererProcessKilled => "RendererProcessKilled" , PrerenderFinalStatus :: Download => "Download" , PrerenderFinalStatus :: TriggerDestroyed => "TriggerDestroyed" , PrerenderFinalStatus :: NavigationNotCommitted => "NavigationNotCommitted" , PrerenderFinalStatus :: NavigationBadHttpStatus => "NavigationBadHttpStatus" , PrerenderFinalStatus :: ClientCertRequested => "ClientCertRequested" , PrerenderFinalStatus :: NavigationRequestNetworkError => "NavigationRequestNetworkError" , PrerenderFinalStatus :: CancelAllHostsForTesting => "CancelAllHostsForTesting" , PrerenderFinalStatus :: DidFailLoad => "DidFailLoad" , PrerenderFinalStatus :: Stop => "Stop" , PrerenderFinalStatus :: SslCertificateError => "SslCertificateError" , PrerenderFinalStatus :: LoginAuthRequested => "LoginAuthRequested" , PrerenderFinalStatus :: UaChangeRequiresReload => "UaChangeRequiresReload" , PrerenderFinalStatus :: BlockedByClient => "BlockedByClient" , PrerenderFinalStatus :: AudioOutputDeviceRequested => "AudioOutputDeviceRequested" , PrerenderFinalStatus :: MixedContent => "MixedContent" , PrerenderFinalStatus :: TriggerBackgrounded => "TriggerBackgrounded" , PrerenderFinalStatus :: MemoryLimitExceeded => "MemoryLimitExceeded" , PrerenderFinalStatus :: DataSaverEnabled => "DataSaverEnabled" , PrerenderFinalStatus :: TriggerUrlHasEffectiveUrl => "TriggerUrlHasEffectiveUrl" , PrerenderFinalStatus :: ActivatedBeforeStarted => "ActivatedBeforeStarted" , PrerenderFinalStatus :: InactivePageRestriction => "InactivePageRestriction" , PrerenderFinalStatus :: StartFailed => "StartFailed" , PrerenderFinalStatus :: TimeoutBackgrounded => "TimeoutBackgrounded" , PrerenderFinalStatus :: CrossSiteRedirectInInitialNavigation => "CrossSiteRedirectInInitialNavigation" , PrerenderFinalStatus :: CrossSiteNavigationInInitialNavigation => "CrossSiteNavigationInInitialNavigation" , PrerenderFinalStatus :: SameSiteCrossOriginRedirectNotOptInInInitialNavigation => "SameSiteCrossOriginRedirectNotOptInInInitialNavigation" , PrerenderFinalStatus :: SameSiteCrossOriginNavigationNotOptInInInitialNavigation => "SameSiteCrossOriginNavigationNotOptInInInitialNavigation" , PrerenderFinalStatus :: ActivationNavigationParameterMismatch => "ActivationNavigationParameterMismatch" , PrerenderFinalStatus :: ActivatedInBackground => "ActivatedInBackground" , PrerenderFinalStatus :: EmbedderHostDisallowed => "EmbedderHostDisallowed" , PrerenderFinalStatus :: ActivationNavigationDestroyedBeforeSuccess => "ActivationNavigationDestroyedBeforeSuccess" , PrerenderFinalStatus :: TabClosedByUserGesture => "TabClosedByUserGesture" , PrerenderFinalStatus :: TabClosedWithoutUserGesture => "TabClosedWithoutUserGesture" , PrerenderFinalStatus :: PrimaryMainFrameRendererProcessCrashed => "PrimaryMainFrameRendererProcessCrashed" , PrerenderFinalStatus :: PrimaryMainFrameRendererProcessKilled => "PrimaryMainFrameRendererProcessKilled" , PrerenderFinalStatus :: ActivationFramePolicyNotCompatible => "ActivationFramePolicyNotCompatible" , PrerenderFinalStatus :: PreloadingDisabled => "PreloadingDisabled" , PrerenderFinalStatus :: BatterySaverEnabled => "BatterySaverEnabled" , PrerenderFinalStatus :: ActivatedDuringMainFrameNavigation => "ActivatedDuringMainFrameNavigation" , PrerenderFinalStatus :: PreloadingUnsupportedByWebContents => "PreloadingUnsupportedByWebContents" , PrerenderFinalStatus :: CrossSiteRedirectInMainFrameNavigation => "CrossSiteRedirectInMainFrameNavigation" , PrerenderFinalStatus :: CrossSiteNavigationInMainFrameNavigation => "CrossSiteNavigationInMainFrameNavigation" , PrerenderFinalStatus :: SameSiteCrossOriginRedirectNotOptInInMainFrameNavigation => "SameSiteCrossOriginRedirectNotOptInInMainFrameNavigation" , PrerenderFinalStatus :: SameSiteCrossOriginNavigationNotOptInInMainFrameNavigation => "SameSiteCrossOriginNavigationNotOptInInMainFrameNavigation" , PrerenderFinalStatus :: MemoryPressureOnTrigger => "MemoryPressureOnTrigger" , PrerenderFinalStatus :: MemoryPressureAfterTriggered => "MemoryPressureAfterTriggered" , PrerenderFinalStatus :: PrerenderingDisabledByDevTools => "PrerenderingDisabledByDevTools" , PrerenderFinalStatus :: SpeculationRuleRemoved => "SpeculationRuleRemoved" , PrerenderFinalStatus :: ActivatedWithAuxiliaryBrowsingContexts => "ActivatedWithAuxiliaryBrowsingContexts" , PrerenderFinalStatus :: MaxNumOfRunningEagerPrerendersExceeded => "MaxNumOfRunningEagerPrerendersExceeded" , PrerenderFinalStatus :: MaxNumOfRunningNonEagerPrerendersExceeded => "MaxNumOfRunningNonEagerPrerendersExceeded" , PrerenderFinalStatus :: MaxNumOfRunningEmbedderPrerendersExceeded => "MaxNumOfRunningEmbedderPrerendersExceeded" , PrerenderFinalStatus :: PrerenderingUrlHasEffectiveUrl => "PrerenderingUrlHasEffectiveUrl" , PrerenderFinalStatus :: RedirectedPrerenderingUrlHasEffectiveUrl => "RedirectedPrerenderingUrlHasEffectiveUrl" , PrerenderFinalStatus :: ActivationUrlHasEffectiveUrl => "ActivationUrlHasEffectiveUrl" , PrerenderFinalStatus :: JavaScriptInterfaceAdded => "JavaScriptInterfaceAdded" , PrerenderFinalStatus :: JavaScriptInterfaceRemoved => "JavaScriptInterfaceRemoved" , PrerenderFinalStatus :: AllPrerenderingCanceled => "AllPrerenderingCanceled" , PrerenderFinalStatus :: WindowClosed => "WindowClosed" , PrerenderFinalStatus :: SlowNetwork => "SlowNetwork" , PrerenderFinalStatus :: OtherPrerenderedPageActivated => "OtherPrerenderedPageActivated" , PrerenderFinalStatus :: V8OptimizerDisabled => "V8OptimizerDisabled" , PrerenderFinalStatus :: PrerenderFailedDuringPrefetch => "PrerenderFailedDuringPrefetch" }
             }
         }
         impl ::std::str::FromStr for PrerenderFinalStatus {
             type Err = String;
             fn from_str(s: &str) -> Result<Self, Self::Err> {
-                match s { "Activated" | "activated" => Ok (PrerenderFinalStatus :: Activated) , "Destroyed" | "destroyed" => Ok (PrerenderFinalStatus :: Destroyed) , "LowEndDevice" | "lowenddevice" => Ok (PrerenderFinalStatus :: LowEndDevice) , "InvalidSchemeRedirect" | "invalidschemeredirect" => Ok (PrerenderFinalStatus :: InvalidSchemeRedirect) , "InvalidSchemeNavigation" | "invalidschemenavigation" => Ok (PrerenderFinalStatus :: InvalidSchemeNavigation) , "NavigationRequestBlockedByCsp" | "navigationrequestblockedbycsp" => Ok (PrerenderFinalStatus :: NavigationRequestBlockedByCsp) , "MainFrameNavigation" | "mainframenavigation" => Ok (PrerenderFinalStatus :: MainFrameNavigation) , "MojoBinderPolicy" | "mojobinderpolicy" => Ok (PrerenderFinalStatus :: MojoBinderPolicy) , "RendererProcessCrashed" | "rendererprocesscrashed" => Ok (PrerenderFinalStatus :: RendererProcessCrashed) , "RendererProcessKilled" | "rendererprocesskilled" => Ok (PrerenderFinalStatus :: RendererProcessKilled) , "Download" | "download" => Ok (PrerenderFinalStatus :: Download) , "TriggerDestroyed" | "triggerdestroyed" => Ok (PrerenderFinalStatus :: TriggerDestroyed) , "NavigationNotCommitted" | "navigationnotcommitted" => Ok (PrerenderFinalStatus :: NavigationNotCommitted) , "NavigationBadHttpStatus" | "navigationbadhttpstatus" => Ok (PrerenderFinalStatus :: NavigationBadHttpStatus) , "ClientCertRequested" | "clientcertrequested" => Ok (PrerenderFinalStatus :: ClientCertRequested) , "NavigationRequestNetworkError" | "navigationrequestnetworkerror" => Ok (PrerenderFinalStatus :: NavigationRequestNetworkError) , "CancelAllHostsForTesting" | "cancelallhostsfortesting" => Ok (PrerenderFinalStatus :: CancelAllHostsForTesting) , "DidFailLoad" | "didfailload" => Ok (PrerenderFinalStatus :: DidFailLoad) , "Stop" | "stop" => Ok (PrerenderFinalStatus :: Stop) , "SslCertificateError" | "sslcertificateerror" => Ok (PrerenderFinalStatus :: SslCertificateError) , "LoginAuthRequested" | "loginauthrequested" => Ok (PrerenderFinalStatus :: LoginAuthRequested) , "UaChangeRequiresReload" | "uachangerequiresreload" => Ok (PrerenderFinalStatus :: UaChangeRequiresReload) , "BlockedByClient" | "blockedbyclient" => Ok (PrerenderFinalStatus :: BlockedByClient) , "AudioOutputDeviceRequested" | "audiooutputdevicerequested" => Ok (PrerenderFinalStatus :: AudioOutputDeviceRequested) , "MixedContent" | "mixedcontent" => Ok (PrerenderFinalStatus :: MixedContent) , "TriggerBackgrounded" | "triggerbackgrounded" => Ok (PrerenderFinalStatus :: TriggerBackgrounded) , "MemoryLimitExceeded" | "memorylimitexceeded" => Ok (PrerenderFinalStatus :: MemoryLimitExceeded) , "DataSaverEnabled" | "datasaverenabled" => Ok (PrerenderFinalStatus :: DataSaverEnabled) , "TriggerUrlHasEffectiveUrl" | "triggerurlhaseffectiveurl" => Ok (PrerenderFinalStatus :: TriggerUrlHasEffectiveUrl) , "ActivatedBeforeStarted" | "activatedbeforestarted" => Ok (PrerenderFinalStatus :: ActivatedBeforeStarted) , "InactivePageRestriction" | "inactivepagerestriction" => Ok (PrerenderFinalStatus :: InactivePageRestriction) , "StartFailed" | "startfailed" => Ok (PrerenderFinalStatus :: StartFailed) , "TimeoutBackgrounded" | "timeoutbackgrounded" => Ok (PrerenderFinalStatus :: TimeoutBackgrounded) , "CrossSiteRedirectInInitialNavigation" | "crosssiteredirectininitialnavigation" => Ok (PrerenderFinalStatus :: CrossSiteRedirectInInitialNavigation) , "CrossSiteNavigationInInitialNavigation" | "crosssitenavigationininitialnavigation" => Ok (PrerenderFinalStatus :: CrossSiteNavigationInInitialNavigation) , "SameSiteCrossOriginRedirectNotOptInInInitialNavigation" | "samesitecrossoriginredirectnotoptinininitialnavigation" => Ok (PrerenderFinalStatus :: SameSiteCrossOriginRedirectNotOptInInInitialNavigation) , "SameSiteCrossOriginNavigationNotOptInInInitialNavigation" | "samesitecrossoriginnavigationnotoptinininitialnavigation" => Ok (PrerenderFinalStatus :: SameSiteCrossOriginNavigationNotOptInInInitialNavigation) , "ActivationNavigationParameterMismatch" | "activationnavigationparametermismatch" => Ok (PrerenderFinalStatus :: ActivationNavigationParameterMismatch) , "ActivatedInBackground" | "activatedinbackground" => Ok (PrerenderFinalStatus :: ActivatedInBackground) , "EmbedderHostDisallowed" | "embedderhostdisallowed" => Ok (PrerenderFinalStatus :: EmbedderHostDisallowed) , "ActivationNavigationDestroyedBeforeSuccess" | "activationnavigationdestroyedbeforesuccess" => Ok (PrerenderFinalStatus :: ActivationNavigationDestroyedBeforeSuccess) , "TabClosedByUserGesture" | "tabclosedbyusergesture" => Ok (PrerenderFinalStatus :: TabClosedByUserGesture) , "TabClosedWithoutUserGesture" | "tabclosedwithoutusergesture" => Ok (PrerenderFinalStatus :: TabClosedWithoutUserGesture) , "PrimaryMainFrameRendererProcessCrashed" | "primarymainframerendererprocesscrashed" => Ok (PrerenderFinalStatus :: PrimaryMainFrameRendererProcessCrashed) , "PrimaryMainFrameRendererProcessKilled" | "primarymainframerendererprocesskilled" => Ok (PrerenderFinalStatus :: PrimaryMainFrameRendererProcessKilled) , "ActivationFramePolicyNotCompatible" | "activationframepolicynotcompatible" => Ok (PrerenderFinalStatus :: ActivationFramePolicyNotCompatible) , "PreloadingDisabled" | "preloadingdisabled" => Ok (PrerenderFinalStatus :: PreloadingDisabled) , "BatterySaverEnabled" | "batterysaverenabled" => Ok (PrerenderFinalStatus :: BatterySaverEnabled) , "ActivatedDuringMainFrameNavigation" | "activatedduringmainframenavigation" => Ok (PrerenderFinalStatus :: ActivatedDuringMainFrameNavigation) , "PreloadingUnsupportedByWebContents" | "preloadingunsupportedbywebcontents" => Ok (PrerenderFinalStatus :: PreloadingUnsupportedByWebContents) , "CrossSiteRedirectInMainFrameNavigation" | "crosssiteredirectinmainframenavigation" => Ok (PrerenderFinalStatus :: CrossSiteRedirectInMainFrameNavigation) , "CrossSiteNavigationInMainFrameNavigation" | "crosssitenavigationinmainframenavigation" => Ok (PrerenderFinalStatus :: CrossSiteNavigationInMainFrameNavigation) , "SameSiteCrossOriginRedirectNotOptInInMainFrameNavigation" | "samesitecrossoriginredirectnotoptininmainframenavigation" => Ok (PrerenderFinalStatus :: SameSiteCrossOriginRedirectNotOptInInMainFrameNavigation) , "SameSiteCrossOriginNavigationNotOptInInMainFrameNavigation" | "samesitecrossoriginnavigationnotoptininmainframenavigation" => Ok (PrerenderFinalStatus :: SameSiteCrossOriginNavigationNotOptInInMainFrameNavigation) , "MemoryPressureOnTrigger" | "memorypressureontrigger" => Ok (PrerenderFinalStatus :: MemoryPressureOnTrigger) , "MemoryPressureAfterTriggered" | "memorypressureaftertriggered" => Ok (PrerenderFinalStatus :: MemoryPressureAfterTriggered) , "PrerenderingDisabledByDevTools" | "prerenderingdisabledbydevtools" => Ok (PrerenderFinalStatus :: PrerenderingDisabledByDevTools) , "SpeculationRuleRemoved" | "speculationruleremoved" => Ok (PrerenderFinalStatus :: SpeculationRuleRemoved) , "ActivatedWithAuxiliaryBrowsingContexts" | "activatedwithauxiliarybrowsingcontexts" => Ok (PrerenderFinalStatus :: ActivatedWithAuxiliaryBrowsingContexts) , "MaxNumOfRunningEagerPrerendersExceeded" | "maxnumofrunningeagerprerendersexceeded" => Ok (PrerenderFinalStatus :: MaxNumOfRunningEagerPrerendersExceeded) , "MaxNumOfRunningNonEagerPrerendersExceeded" | "maxnumofrunningnoneagerprerendersexceeded" => Ok (PrerenderFinalStatus :: MaxNumOfRunningNonEagerPrerendersExceeded) , "MaxNumOfRunningEmbedderPrerendersExceeded" | "maxnumofrunningembedderprerendersexceeded" => Ok (PrerenderFinalStatus :: MaxNumOfRunningEmbedderPrerendersExceeded) , "PrerenderingUrlHasEffectiveUrl" | "prerenderingurlhaseffectiveurl" => Ok (PrerenderFinalStatus :: PrerenderingUrlHasEffectiveUrl) , "RedirectedPrerenderingUrlHasEffectiveUrl" | "redirectedprerenderingurlhaseffectiveurl" => Ok (PrerenderFinalStatus :: RedirectedPrerenderingUrlHasEffectiveUrl) , "ActivationUrlHasEffectiveUrl" | "activationurlhaseffectiveurl" => Ok (PrerenderFinalStatus :: ActivationUrlHasEffectiveUrl) , "JavaScriptInterfaceAdded" | "javascriptinterfaceadded" => Ok (PrerenderFinalStatus :: JavaScriptInterfaceAdded) , "JavaScriptInterfaceRemoved" | "javascriptinterfaceremoved" => Ok (PrerenderFinalStatus :: JavaScriptInterfaceRemoved) , "AllPrerenderingCanceled" | "allprerenderingcanceled" => Ok (PrerenderFinalStatus :: AllPrerenderingCanceled) , "WindowClosed" | "windowclosed" => Ok (PrerenderFinalStatus :: WindowClosed) , "SlowNetwork" | "slownetwork" => Ok (PrerenderFinalStatus :: SlowNetwork) , "OtherPrerenderedPageActivated" | "otherprerenderedpageactivated" => Ok (PrerenderFinalStatus :: OtherPrerenderedPageActivated) , _ => Err (s . to_string ()) }
+                match s { "Activated" | "activated" => Ok (PrerenderFinalStatus :: Activated) , "Destroyed" | "destroyed" => Ok (PrerenderFinalStatus :: Destroyed) , "LowEndDevice" | "lowenddevice" => Ok (PrerenderFinalStatus :: LowEndDevice) , "InvalidSchemeRedirect" | "invalidschemeredirect" => Ok (PrerenderFinalStatus :: InvalidSchemeRedirect) , "InvalidSchemeNavigation" | "invalidschemenavigation" => Ok (PrerenderFinalStatus :: InvalidSchemeNavigation) , "NavigationRequestBlockedByCsp" | "navigationrequestblockedbycsp" => Ok (PrerenderFinalStatus :: NavigationRequestBlockedByCsp) , "MainFrameNavigation" | "mainframenavigation" => Ok (PrerenderFinalStatus :: MainFrameNavigation) , "MojoBinderPolicy" | "mojobinderpolicy" => Ok (PrerenderFinalStatus :: MojoBinderPolicy) , "RendererProcessCrashed" | "rendererprocesscrashed" => Ok (PrerenderFinalStatus :: RendererProcessCrashed) , "RendererProcessKilled" | "rendererprocesskilled" => Ok (PrerenderFinalStatus :: RendererProcessKilled) , "Download" | "download" => Ok (PrerenderFinalStatus :: Download) , "TriggerDestroyed" | "triggerdestroyed" => Ok (PrerenderFinalStatus :: TriggerDestroyed) , "NavigationNotCommitted" | "navigationnotcommitted" => Ok (PrerenderFinalStatus :: NavigationNotCommitted) , "NavigationBadHttpStatus" | "navigationbadhttpstatus" => Ok (PrerenderFinalStatus :: NavigationBadHttpStatus) , "ClientCertRequested" | "clientcertrequested" => Ok (PrerenderFinalStatus :: ClientCertRequested) , "NavigationRequestNetworkError" | "navigationrequestnetworkerror" => Ok (PrerenderFinalStatus :: NavigationRequestNetworkError) , "CancelAllHostsForTesting" | "cancelallhostsfortesting" => Ok (PrerenderFinalStatus :: CancelAllHostsForTesting) , "DidFailLoad" | "didfailload" => Ok (PrerenderFinalStatus :: DidFailLoad) , "Stop" | "stop" => Ok (PrerenderFinalStatus :: Stop) , "SslCertificateError" | "sslcertificateerror" => Ok (PrerenderFinalStatus :: SslCertificateError) , "LoginAuthRequested" | "loginauthrequested" => Ok (PrerenderFinalStatus :: LoginAuthRequested) , "UaChangeRequiresReload" | "uachangerequiresreload" => Ok (PrerenderFinalStatus :: UaChangeRequiresReload) , "BlockedByClient" | "blockedbyclient" => Ok (PrerenderFinalStatus :: BlockedByClient) , "AudioOutputDeviceRequested" | "audiooutputdevicerequested" => Ok (PrerenderFinalStatus :: AudioOutputDeviceRequested) , "MixedContent" | "mixedcontent" => Ok (PrerenderFinalStatus :: MixedContent) , "TriggerBackgrounded" | "triggerbackgrounded" => Ok (PrerenderFinalStatus :: TriggerBackgrounded) , "MemoryLimitExceeded" | "memorylimitexceeded" => Ok (PrerenderFinalStatus :: MemoryLimitExceeded) , "DataSaverEnabled" | "datasaverenabled" => Ok (PrerenderFinalStatus :: DataSaverEnabled) , "TriggerUrlHasEffectiveUrl" | "triggerurlhaseffectiveurl" => Ok (PrerenderFinalStatus :: TriggerUrlHasEffectiveUrl) , "ActivatedBeforeStarted" | "activatedbeforestarted" => Ok (PrerenderFinalStatus :: ActivatedBeforeStarted) , "InactivePageRestriction" | "inactivepagerestriction" => Ok (PrerenderFinalStatus :: InactivePageRestriction) , "StartFailed" | "startfailed" => Ok (PrerenderFinalStatus :: StartFailed) , "TimeoutBackgrounded" | "timeoutbackgrounded" => Ok (PrerenderFinalStatus :: TimeoutBackgrounded) , "CrossSiteRedirectInInitialNavigation" | "crosssiteredirectininitialnavigation" => Ok (PrerenderFinalStatus :: CrossSiteRedirectInInitialNavigation) , "CrossSiteNavigationInInitialNavigation" | "crosssitenavigationininitialnavigation" => Ok (PrerenderFinalStatus :: CrossSiteNavigationInInitialNavigation) , "SameSiteCrossOriginRedirectNotOptInInInitialNavigation" | "samesitecrossoriginredirectnotoptinininitialnavigation" => Ok (PrerenderFinalStatus :: SameSiteCrossOriginRedirectNotOptInInInitialNavigation) , "SameSiteCrossOriginNavigationNotOptInInInitialNavigation" | "samesitecrossoriginnavigationnotoptinininitialnavigation" => Ok (PrerenderFinalStatus :: SameSiteCrossOriginNavigationNotOptInInInitialNavigation) , "ActivationNavigationParameterMismatch" | "activationnavigationparametermismatch" => Ok (PrerenderFinalStatus :: ActivationNavigationParameterMismatch) , "ActivatedInBackground" | "activatedinbackground" => Ok (PrerenderFinalStatus :: ActivatedInBackground) , "EmbedderHostDisallowed" | "embedderhostdisallowed" => Ok (PrerenderFinalStatus :: EmbedderHostDisallowed) , "ActivationNavigationDestroyedBeforeSuccess" | "activationnavigationdestroyedbeforesuccess" => Ok (PrerenderFinalStatus :: ActivationNavigationDestroyedBeforeSuccess) , "TabClosedByUserGesture" | "tabclosedbyusergesture" => Ok (PrerenderFinalStatus :: TabClosedByUserGesture) , "TabClosedWithoutUserGesture" | "tabclosedwithoutusergesture" => Ok (PrerenderFinalStatus :: TabClosedWithoutUserGesture) , "PrimaryMainFrameRendererProcessCrashed" | "primarymainframerendererprocesscrashed" => Ok (PrerenderFinalStatus :: PrimaryMainFrameRendererProcessCrashed) , "PrimaryMainFrameRendererProcessKilled" | "primarymainframerendererprocesskilled" => Ok (PrerenderFinalStatus :: PrimaryMainFrameRendererProcessKilled) , "ActivationFramePolicyNotCompatible" | "activationframepolicynotcompatible" => Ok (PrerenderFinalStatus :: ActivationFramePolicyNotCompatible) , "PreloadingDisabled" | "preloadingdisabled" => Ok (PrerenderFinalStatus :: PreloadingDisabled) , "BatterySaverEnabled" | "batterysaverenabled" => Ok (PrerenderFinalStatus :: BatterySaverEnabled) , "ActivatedDuringMainFrameNavigation" | "activatedduringmainframenavigation" => Ok (PrerenderFinalStatus :: ActivatedDuringMainFrameNavigation) , "PreloadingUnsupportedByWebContents" | "preloadingunsupportedbywebcontents" => Ok (PrerenderFinalStatus :: PreloadingUnsupportedByWebContents) , "CrossSiteRedirectInMainFrameNavigation" | "crosssiteredirectinmainframenavigation" => Ok (PrerenderFinalStatus :: CrossSiteRedirectInMainFrameNavigation) , "CrossSiteNavigationInMainFrameNavigation" | "crosssitenavigationinmainframenavigation" => Ok (PrerenderFinalStatus :: CrossSiteNavigationInMainFrameNavigation) , "SameSiteCrossOriginRedirectNotOptInInMainFrameNavigation" | "samesitecrossoriginredirectnotoptininmainframenavigation" => Ok (PrerenderFinalStatus :: SameSiteCrossOriginRedirectNotOptInInMainFrameNavigation) , "SameSiteCrossOriginNavigationNotOptInInMainFrameNavigation" | "samesitecrossoriginnavigationnotoptininmainframenavigation" => Ok (PrerenderFinalStatus :: SameSiteCrossOriginNavigationNotOptInInMainFrameNavigation) , "MemoryPressureOnTrigger" | "memorypressureontrigger" => Ok (PrerenderFinalStatus :: MemoryPressureOnTrigger) , "MemoryPressureAfterTriggered" | "memorypressureaftertriggered" => Ok (PrerenderFinalStatus :: MemoryPressureAfterTriggered) , "PrerenderingDisabledByDevTools" | "prerenderingdisabledbydevtools" => Ok (PrerenderFinalStatus :: PrerenderingDisabledByDevTools) , "SpeculationRuleRemoved" | "speculationruleremoved" => Ok (PrerenderFinalStatus :: SpeculationRuleRemoved) , "ActivatedWithAuxiliaryBrowsingContexts" | "activatedwithauxiliarybrowsingcontexts" => Ok (PrerenderFinalStatus :: ActivatedWithAuxiliaryBrowsingContexts) , "MaxNumOfRunningEagerPrerendersExceeded" | "maxnumofrunningeagerprerendersexceeded" => Ok (PrerenderFinalStatus :: MaxNumOfRunningEagerPrerendersExceeded) , "MaxNumOfRunningNonEagerPrerendersExceeded" | "maxnumofrunningnoneagerprerendersexceeded" => Ok (PrerenderFinalStatus :: MaxNumOfRunningNonEagerPrerendersExceeded) , "MaxNumOfRunningEmbedderPrerendersExceeded" | "maxnumofrunningembedderprerendersexceeded" => Ok (PrerenderFinalStatus :: MaxNumOfRunningEmbedderPrerendersExceeded) , "PrerenderingUrlHasEffectiveUrl" | "prerenderingurlhaseffectiveurl" => Ok (PrerenderFinalStatus :: PrerenderingUrlHasEffectiveUrl) , "RedirectedPrerenderingUrlHasEffectiveUrl" | "redirectedprerenderingurlhaseffectiveurl" => Ok (PrerenderFinalStatus :: RedirectedPrerenderingUrlHasEffectiveUrl) , "ActivationUrlHasEffectiveUrl" | "activationurlhaseffectiveurl" => Ok (PrerenderFinalStatus :: ActivationUrlHasEffectiveUrl) , "JavaScriptInterfaceAdded" | "javascriptinterfaceadded" => Ok (PrerenderFinalStatus :: JavaScriptInterfaceAdded) , "JavaScriptInterfaceRemoved" | "javascriptinterfaceremoved" => Ok (PrerenderFinalStatus :: JavaScriptInterfaceRemoved) , "AllPrerenderingCanceled" | "allprerenderingcanceled" => Ok (PrerenderFinalStatus :: AllPrerenderingCanceled) , "WindowClosed" | "windowclosed" => Ok (PrerenderFinalStatus :: WindowClosed) , "SlowNetwork" | "slownetwork" => Ok (PrerenderFinalStatus :: SlowNetwork) , "OtherPrerenderedPageActivated" | "otherprerenderedpageactivated" => Ok (PrerenderFinalStatus :: OtherPrerenderedPageActivated) , "V8OptimizerDisabled" | "v8optimizerdisabled" => Ok (PrerenderFinalStatus :: V8OptimizerDisabled) , "PrerenderFailedDuringPrefetch" | "prerenderfailedduringprefetch" => Ok (PrerenderFinalStatus :: PrerenderFailedDuringPrefetch) , _ => Err (s . to_string ()) }
             }
         }
         #[doc = "Preloading status values, see also PreloadingTriggeringOutcome. This\nstatus is shared by prefetchStatusUpdated and prerenderStatusUpdated."]
@@ -98416,6 +99814,8 @@ pub mod browser_protocol {
         pub struct EventPrefetchStatusUpdated {
             #[serde(rename = "key")]
             pub key: PreloadingAttemptKey,
+            #[serde(rename = "pipelineId")]
+            pub pipeline_id: PreloadPipelineId,
             #[doc = "The frame id of the frame initiating prefetch."]
             #[serde(rename = "initiatingFrameId")]
             pub initiating_frame_id: super::page::FrameId,
@@ -98451,6 +99851,8 @@ pub mod browser_protocol {
         pub struct EventPrerenderStatusUpdated {
             #[serde(rename = "key")]
             pub key: PreloadingAttemptKey,
+            #[serde(rename = "pipelineId")]
+            pub pipeline_id: PreloadPipelineId,
             #[serde(rename = "status")]
             #[serde(deserialize_with = "super::super::de::deserialize_from_str")]
             pub status: PreloadingStatus,
