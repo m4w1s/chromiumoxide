@@ -931,11 +931,9 @@ impl BrowserConfig {
             cmd.arg(format!("--remote-debugging-port={}", self.port));
         }
 
-        cmd.args(
-            self.extensions
-                .iter()
-                .map(|e| format!("--load-extension={e}")),
-        );
+        if !self.extensions.is_empty() {
+            cmd.arg(format!("--load-extension={}", self.extensions.join(",")));
+        }
 
         if let Some(ref user_data) = self.user_data_dir {
             cmd.arg(format!("--user-data-dir={}", user_data.display()));
