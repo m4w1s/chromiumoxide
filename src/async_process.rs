@@ -11,14 +11,13 @@ pub struct Command {
 
 impl Command {
     pub fn new<S: AsRef<OsStr>>(program: S) -> Self {
-        let mut inner = process::Command::new(program);
-        // Since the kill and/or wait methods are async, we can't call
-        // explicitely in the Drop implementation. We MUST rely on the
-        // runtime implemetation which is already designed to deal with
-        // this case where the user didn't explicitely kill the child
-        // process before dropping the handle.
-        inner.kill_on_drop(true);
+        let inner = process::Command::new(program);
         Self { inner }
+    }
+
+    pub fn kill_on_drop(&mut self, kill_on_drop: bool) -> &mut Self {
+        self.inner.kill_on_drop(kill_on_drop);
+        self
     }
 
     pub fn arg<S: AsRef<OsStr>>(&mut self, arg: S) -> &mut Self {

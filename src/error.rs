@@ -43,6 +43,8 @@ pub enum CdpError {
     LaunchIo(#[source] io::Error, BrowserStderr),
     #[error("Request timed out.")]
     Timeout,
+    #[error("Browser websocket connection closed.")]
+    ConnectionClosed,
     #[error("FrameId {0:?} not found.")]
     FrameNotFound(FrameId),
     /// Error message related to a cdp response that is not a

@@ -254,12 +254,12 @@ impl Browser {
         rx.await?
     }
 
-    /// Request for the browser to close completely.
+    /// Request for the browser to close.
     ///
-    /// If the browser was spawned by [`Browser::launch`], it is recommended to wait for the
-    /// spawned instance exit, to avoid "zombie" processes ([`Browser::wait`],
-    /// [`Browser::wait_sync`], [`Browser::try_wait`]).
-    /// [`Browser::drop`] waits automatically if needed.
+    /// This returns when Chromium accepts or starts handling the DevTools
+    /// `Browser.close` request. It does not guarantee that the OS process has
+    /// exited. If the browser was spawned by [`Browser::launch`], call
+    /// [`Browser::wait`] after `close` to observe and collect the process exit.
     pub async fn close(&mut self) -> Result<CloseReturns> {
         let (tx, rx) = oneshot_channel();
 
@@ -537,15 +537,17 @@ impl Drop for Browser {
         if let Some(child) = self.child.as_mut() {
             if let Ok(Some(_)) = child.try_wait() {
                 // Already exited, do nothing. Usually occurs after using the method close or kill.
-            } else {
-                // We set the `kill_on_drop` property for the child process, so no need to explicitely
-                // kill it here. It can't really be done anyway since the method is async.
-                //
-                // On Unix, the process will be reaped in the background by the runtime automatically
-                // so it won't leave any resources locked. It is, however, a better practice for the user to
-                // do it himself since the runtime doesn't provide garantees as to when the reap occurs, so we
-                // warn him here.
+            } else if self
+                .config
+                .as_ref()
+                .map(|config| config.kill_on_drop)
+                .unwrap_or_default()
+            {
                 tracing::warn!("Browser was not closed manually, it will be killed automatically in the background");
+            } else {
+                tracing::warn!(
+                    "Browser was dropped while spawned Chromium is still running; call Browser::close() and Browser::wait() to complete shutdown"
+                );
             }
         }
     }
@@ -678,6 +680,9 @@ pub struct BrowserConfig {
 
     /// Emulation overrides applied to every page on creation
     emulation_overrides: EmulationOverrides,
+
+    /// Whether to kill the spawned browser process when its child handle is dropped.
+    kill_on_drop: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -700,6 +705,7 @@ pub struct BrowserConfigBuilder {
     request_intercept: bool,
     cache_enabled: bool,
     emulation_overrides: EmulationOverrides,
+    kill_on_drop: bool,
 }
 
 impl BrowserConfig {
@@ -733,6 +739,7 @@ impl Default for BrowserConfigBuilder {
             request_intercept: false,
             cache_enabled: true,
             emulation_overrides: Default::default(),
+            kill_on_drop: false,
         }
     }
 }
@@ -884,6 +891,11 @@ impl BrowserConfigBuilder {
         self
     }
 
+    pub fn kill_on_drop(mut self, kill_on_drop: bool) -> Self {
+        self.kill_on_drop = kill_on_drop;
+        self
+    }
+
     pub fn build(self) -> std::result::Result<BrowserConfig, String> {
         let executable = if let Some(e) = self.executable {
             e
@@ -909,6 +921,7 @@ impl BrowserConfigBuilder {
             request_intercept: self.request_intercept,
             cache_enabled: self.cache_enabled,
             emulation_overrides: self.emulation_overrides,
+            kill_on_drop: self.kill_on_drop,
         })
     }
 }
@@ -916,6 +929,7 @@ impl BrowserConfigBuilder {
 impl BrowserConfig {
     pub fn launch(&self) -> io::Result<Child> {
         let mut cmd = async_process::Command::new(&self.executable);
+        cmd.kill_on_drop(self.kill_on_drop);
 
         if self.disable_default_args {
             cmd.args(&self.args);
