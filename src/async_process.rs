@@ -51,56 +51,8 @@ impl Command {
     }
 
     pub fn spawn(&mut self) -> std::io::Result<Child> {
-        #[cfg(windows)]
-        {
-            use std::os::windows::io::{AsRawHandle, FromRawHandle, OwnedHandle};
-            use windows::Win32::Foundation::HANDLE;
-            use windows::Win32::System::JobObjects::{
-                AssignProcessToJobObject, CreateJobObjectW, JobObjectExtendedLimitInformation,
-                SetInformationJobObject, JOBOBJECT_EXTENDED_LIMIT_INFORMATION,
-                JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE,
-            };
-            use windows::Win32::System::Threading::{
-                OpenProcess, PROCESS_SET_QUOTA, PROCESS_TERMINATE,
-            };
-
-            let mut child = Child::new(self.inner.spawn()?);
-            let Some(pid) = child.inner.id() else {
-                return Ok(child);
-            };
-            let job_handle = unsafe {
-                OwnedHandle::from_raw_handle(CreateJobObjectW(Some(std::ptr::null()), None)?.0)
-            };
-            let child_handle = unsafe {
-                OwnedHandle::from_raw_handle(
-                    OpenProcess(PROCESS_SET_QUOTA | PROCESS_TERMINATE, false, pid)?.0,
-                )
-            };
-
-            let mut info = JOBOBJECT_EXTENDED_LIMIT_INFORMATION::default();
-            info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
-            unsafe {
-                SetInformationJobObject(
-                    HANDLE(job_handle.as_raw_handle()),
-                    JobObjectExtendedLimitInformation,
-                    &info as *const _ as *const _,
-                    size_of_val(&info) as u32,
-                )?;
-            }
-
-            unsafe {
-                AssignProcessToJobObject(
-                    HANDLE(job_handle.as_raw_handle()),
-                    HANDLE(child_handle.as_raw_handle()),
-                )?;
-            }
-
-            child.attach_job_handle(job_handle);
-            Ok(child)
-        }
-
-        #[cfg(not(windows))]
-        Ok(Child::new(self.inner.spawn()?))
+        let inner = self.inner.spawn()?;
+        Ok(Child::new(inner))
     }
 }
 
@@ -108,8 +60,6 @@ impl Command {
 pub struct Child {
     pub stderr: Option<ChildStderr>,
     pub inner: process::Child,
-    #[cfg(windows)]
-    _job_handle: Option<std::os::windows::io::OwnedHandle>,
 }
 
 /// Wrapper for an async child process.
@@ -119,14 +69,7 @@ impl Child {
         Self {
             inner,
             stderr: stderr.map(|inner| ChildStderr { inner }),
-            #[cfg(windows)]
-            _job_handle: None,
         }
-    }
-
-    #[cfg(windows)]
-    fn attach_job_handle(&mut self, job_handle: std::os::windows::io::OwnedHandle) {
-        self._job_handle = Some(job_handle);
     }
 
     /// Kill the child process synchronously and asynchronously wait for the
