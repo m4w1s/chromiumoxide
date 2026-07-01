@@ -523,6 +523,45 @@ impl Handler {
         }
     }
 
+    fn on_connection_closed(&mut self) {
+        self.closing = true;
+
+        for (_, (req, _, _)) in self.pending_commands.drain() {
+            match req {
+                PendingRequest::CreateTarget(tx) => {
+                    let _ = tx.send(Err(CdpError::ConnectionClosed));
+                }
+                PendingRequest::GetTargets(tx) => {
+                    let _ = tx.send(Err(CdpError::ConnectionClosed));
+                }
+                PendingRequest::Navigate(nav_id) => {
+                    if let Some(nav) = self.navigations.remove(&nav_id) {
+                        match nav {
+                            NavigationRequest::Navigate(nav) => {
+                                let _ = nav.tx.send(Err(CdpError::ConnectionClosed));
+                            }
+                        }
+                    }
+                }
+                PendingRequest::ExternalCommand(tx) => {
+                    let _ = tx.send(Err(CdpError::ConnectionClosed));
+                }
+                PendingRequest::InternalCommand(_) => {}
+                PendingRequest::CloseBrowser(tx) => {
+                    let _ = tx.send(Ok(CloseReturns {}));
+                }
+            }
+        }
+
+        for (_, nav) in self.navigations.drain() {
+            match nav {
+                NavigationRequest::Navigate(nav) => {
+                    let _ = nav.tx.send(Err(CdpError::ConnectionClosed));
+                }
+            }
+        }
+    }
+
     pub fn event_listeners_mut(&mut self) -> &mut EventListeners {
         &mut self.event_listeners
     }
@@ -619,24 +658,33 @@ impl Stream for Handler {
 
             let mut done = true;
 
-            while let Poll::Ready(Some(ev)) = Pin::new(&mut pin.conn).poll_next(cx) {
-                match ev {
-                    Ok(Message::Response(resp)) => {
-                        pin.on_response(resp);
-                        if pin.closing {
-                            // handler should stop processing
-                            return Poll::Ready(None);
+            loop {
+                match Pin::new(&mut pin.conn).poll_next(cx) {
+                    Poll::Ready(Some(ev)) => {
+                        match ev {
+                            Ok(Message::Response(resp)) => {
+                                pin.on_response(resp);
+                                if pin.closing {
+                                    // handler should stop processing
+                                    return Poll::Ready(None);
+                                }
+                            }
+                            Ok(Message::Event(ev)) => {
+                                pin.on_event(ev);
+                            }
+                            Err(err) => {
+                                tracing::error!("WS Connection error: {:?}", err);
+                                return Poll::Ready(Some(Err(err)));
+                            }
                         }
+                        done = false;
                     }
-                    Ok(Message::Event(ev)) => {
-                        pin.on_event(ev);
+                    Poll::Ready(None) => {
+                        pin.on_connection_closed();
+                        return Poll::Ready(None);
                     }
-                    Err(err) => {
-                        tracing::error!("WS Connection error: {:?}", err);
-                        return Poll::Ready(Some(Err(err)));
-                    }
+                    Poll::Pending => break,
                 }
-                done = false;
             }
 
             if pin.evict_command_timeout.poll_ready(cx) {
